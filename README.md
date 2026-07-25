@@ -101,10 +101,10 @@ Astro 6 的 Cloudflare adapter 会声明名为 `SESSION` 的会话 KV。新建 W
 name = "client-industry-site"
 
 [vars]
-SITE_URL = "https://client-industry-site.<你的账户>.workers.dev"
+SITE_URL = "https://businessweb.workers.dev"
 KEYSTATIC_GITHUB_REPO = "你的组织/客户新仓库"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "你的-keystatic-github-app-slug"
-PUBLIC_R2_ASSET_BASE_URL = "https://client-industry-site.<你的账户>.workers.dev/r2"
+PUBLIC_R2_ASSET_BASE_URL = "https://businessweb.workers.dev/r2"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
@@ -116,64 +116,58 @@ database_name = "步骤 3 创建的数据库名称"
 database_id = "步骤 3 的 Database ID"
 ```
 
-点击 **Commit changes**，直接提交到 `main`。
+首次部署前还不知道真实 `workers.dev` 地址，因此上面两个网址先保留为可用的临时值即可；不要猜测账户子域名。完成步骤 7 后会把它们替换为真实网址。点击 **Commit changes**，直接提交到 `main`。
 
-### 步骤 5：创建 GitHub App，供 Keystatic 登录
+### 步骤 5：取得 Cloudflare API Token 和 Account ID
 
-1. GitHub 右上角头像 -> **Settings -> Developer settings -> GitHub Apps -> New GitHub App**。
-2. App name 填写一个新的、不与其他客户重复的名称。
-3. Homepage URL 填写步骤 4 的 `SITE_URL`（网站根地址即可，末尾 `/` 可有可无）。
-4. Callback URL 填写：
+这两个值只给 GitHub Actions 的 **Publish Site** 工作流使用。它们不是 R2 密钥、不是 D1 Database ID，也不要填写进 `wrangler.toml`、网站代码或 Cloudflare Worker 的 Variables and Secrets。
 
-```text
-https://你的公开网站地址/api/keystatic/github/oauth/callback
-```
+#### 5.1 创建 `CLOUDFLARE_API_TOKEN`
 
-5. Repository permissions 中给 **Contents** 选择 **Read and write**。
-6. 创建 App，复制 **Client ID**，生成并复制 **Client secret**。
-7. 将这个 App 只安装到当前客户的新仓库。
-8. 回到 `wrangler.toml`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为 App 的 slug 并提交。
+1. 登录 Cloudflare，点击右上角**头像 -> My Profile（个人资料）-> API Tokens**。
+2. 点击 **Create Token（创建令牌）**。
+3. 在 **Edit Cloudflare Workers** 模板右侧点击 **Use template（使用模板）**。
+4. 该官方模板会自动勾选部署 Worker 所需的权限。在 **Account Resources** 中选择本客户网站使用的目标 Cloudflare Account，不要选其他客户的账户。
+5. 点击 **Continue to summary**，确认后点击 **Create Token**。
+6. Cloudflare 只会完整显示一次 Token。立刻复制整段字符串，先放入密码管理器，名称记为 `CLOUDFLARE_API_TOKEN`。
 
-### 步骤 6：添加 Worker Variables 和 Secrets
+#### 5.2 复制 `CLOUDFLARE_ACCOUNT_ID`
 
-打开 **Workers & Pages -> 你的 Worker -> Settings -> Variables and Secrets -> Add**。下表中写明 **Secret** 的项目选 Secret，其他选 Variable。
+1. 在 Cloudflare 左侧进入 **Websites** 或 **Workers & Pages**，确认左上角当前选中的是本客户的 Account。
+2. 点击左侧 **Account Home**。
+3. 在账户列表中找到该 Account，点击该行右侧的 **...**，选择 **Copy account ID**。
+4. 粘贴到临时安全位置。它通常是一串 32 位字符，名称记为 `CLOUDFLARE_ACCOUNT_ID`。
 
-| 名称 | 类型 | 填什么 | 是否必需 |
-| --- | --- | --- | --- |
-| `KEYSTATIC_SECRET` | Secret | 密码管理器生成的 32 位以上随机字符串 | 是 |
-| `KEYSTATIC_GITHUB_CLIENT_ID` | Secret | 步骤 5 的 Client ID | Keystatic |
-| `KEYSTATIC_GITHUB_CLIENT_SECRET` | Secret | 步骤 5 的 Client secret | Keystatic |
-| `BUSINESSWEB_GITHUB_TOKEN` | Secret | 仅授权当前仓库的 fine-grained GitHub token | manager 发布、翻译、草稿写回 |
-| `MANAGER_ALLOWED_EMAILS` | Variable | 允许内容管理员使用的邮箱，英文逗号分隔 | manager |
-| `RESEND_API_KEY` | Secret | 已配置 Resend 时的 API Key | 联系表单按需 |
-| `RESEND_FROM_EMAIL` | Variable | 已验证的发件人地址 | 联系表单按需 |
-| `RESEND_TO_EMAIL` | Variable | 接收询盘的邮箱 | 联系表单按需 |
+> 不要混淆三种 ID：`CLOUDFLARE_ACCOUNT_ID` 是 Cloudflare 账户 ID，供 GitHub Actions 部署用；D1 的 **Database ID** 填入 `wrangler.toml`；Worker 的公开网址是 `SITE_URL`，它不是 ID。
 
-`BUSINESSWEB_GITHUB_TOKEN` 只需要当前仓库的 Contents 写入、Actions 读取/触发等所需权限。不要使用 GitHub Global token。
+### 步骤 6：把 Cloudflare 部署凭据放入 GitHub Secrets
 
-### 步骤 7：配置 GitHub Actions Secrets
+1. 打开**当前客户的新 GitHub 仓库**，点击 **Settings -> Secrets and variables -> Actions**。
+2. 保持在 **Secrets** 标签，点击 **New repository secret**。
+3. 逐项填写名称和值后点击 **Add secret**。名称必须全大写，不能有空格。
 
-在 GitHub 新仓库打开 **Settings -> Secrets and variables -> Actions**。
+| 名称 | 粘贴什么 | 是否必需 |
+| --- | --- | --- |
+| `CLOUDFLARE_API_TOKEN` | 步骤 5.1 创建的完整 API Token | 是 |
+| `CLOUDFLARE_ACCOUNT_ID` | 步骤 5.2 复制的 Account ID | 是 |
+| `GEMINI_API_KEYS` | Gemini API Key；多个 key 用英文逗号分隔 | 需要 AI 翻译时 |
 
-在 **Secrets** 新增：
-
-| 名称 | 用途 |
-| --- | --- |
-| `CLOUDFLARE_API_TOKEN` | `Publish Site` 工作流部署 Worker |
-| `CLOUDFLARE_ACCOUNT_ID` | 指向此客户的 Cloudflare Account |
-| `GEMINI_API_KEYS` | AI 翻译，可填一个或多个 key，英文逗号分隔 |
-
-在 **Variables** 新增：
+4. 切换到 **Variables** 标签，点击 **New repository variable**，添加：
 
 | 名称 | 值 |
 | --- | --- |
-| `SITE_URL` | 与 `wrangler.toml` 完全相同的公开网址 |
+| `SITE_URL` | 首次部署后得到的公开网站根地址；后续绑定正式域名时改为正式域名 |
 
-### 步骤 8：连接 Cloudflare Workers Builds 自动部署
+首次部署前还不知道公开网址时，先不要创建 `SITE_URL` 这个 Variable；工作流会临时使用 `https://businessweb.workers.dev` 完成第一次部署。取得真实的 `workers.dev` 地址后，必须在后面的步骤 7.1 补齐它，再进行第二次部署。
 
-1. 打开 **Workers & Pages -> Create application -> Workers -> Import a repository**。
-2. 连接 GitHub，选择当前客户的新仓库和 `main` 分支。
-3. 页面中的填写值如下：
+5. 在同一仓库打开 **Settings -> Actions -> General**，找到 **Workflow permissions**，选择 **Read and write permissions** 并点击 **Save**。AI 翻译工作流需要把翻译草稿写回仓库；如果组织策略锁定该选项，请让组织管理员允许当前仓库使用写入权限。
+
+### 步骤 7：连接 Cloudflare Workers Builds，完成第一次部署
+
+1. 打开 **Workers & Pages -> Create application**，在 **Import a repository** 旁点击 **Get started**。
+2. 连接 GitHub，选择**当前客户的新仓库**和 `main` 分支。
+3. Worker 名称必须与 `wrangler.toml` 第一行的 `name` 完全相同。若页面给出的名称不同，先返回 GitHub 修改 `wrangler.toml` 并提交，再继续。
+4. 页面中的构建设置填写：
 
 | 输入项 | 填写值 |
 | --- | --- |
@@ -181,10 +175,22 @@ https://你的公开网站地址/api/keystatic/github/oauth/callback
 | Build command | `npm run build` |
 | Deploy command | `npx wrangler deploy` |
 
-4. 点击 **Save and Deploy**。
-5. 打开 **Deployments**，等待首次构建完成。
+5. 点击 **Save and Deploy**，打开 **Deployments**，等待状态显示成功。
+6. 点击部署结果中的 `workers.dev` 地址，复制完整的根网址，例如 `https://client-industry-site.<你的账户>.workers.dev`。不要在末尾添加 `/keystatic/`。
 
-建议在 **Settings -> Builds -> Build watch paths** 使用白名单。Include paths 填入：
+#### 7.1 配置 Workers Builds 的构建期 `SITE_URL`
+
+Astro 在构建网站时需要 `SITE_URL`，它与 Worker 运行时变量是两回事。首次部署成功后，打开 **Workers & Pages -> 你的 Worker -> Settings -> Build -> Build Variables and Secrets**，点击 **Add**，填写：
+
+| Name | Value | 类型 |
+| --- | --- | --- |
+| `SITE_URL` | 步骤 7 得到的完整 `workers.dev` 根网址 | Variable |
+
+随后回到 GitHub 仓库的 **Settings -> Secrets and variables -> Actions -> Variables**，也创建或修改同名 `SITE_URL`，值必须一字不差。两处都要填：前者用于 Cloudflare 自动部署，后者用于 `/manager/` 的 **Publish Site** 手动发布。
+
+#### 7.2 设置自动部署的监听路径
+
+在同一 Worker 的 **Settings -> Builds -> Build watch paths** 使用白名单。**Include paths** 填入：
 
 ```text
 src/*
@@ -201,7 +207,7 @@ worker-configuration.d.ts
 .nvmrc
 ```
 
-Exclude paths 填入：
+**Exclude paths** 填入：
 
 ```text
 README.md
@@ -213,9 +219,66 @@ src/content/productTranslations/*
 src/content/blogTranslations/*
 ```
 
-这样普通产品/文章内容会自动部署，但 AI 翻译草稿不会在生成或审核过程中意外上线。
+这样普通产品、文章内容会自动部署，但 AI 翻译草稿不会在生成或审核过程中意外上线。
 
-### 步骤 9：用 Cloudflare Access 保护内容后台
+### 步骤 8：创建 GitHub App，配置 Keystatic 登录
+
+现在已有真实的公开网站地址，才创建 GitHub App，避免 Callback URL 填错。
+
+1. GitHub 右上角头像 -> **Settings -> Developer settings -> GitHub Apps -> New GitHub App**。
+2. App name 填写一个新的、不与其他客户重复的名称。
+3. Homepage URL 填写步骤 7 的网站**根地址**，例如 `https://client-industry-site.<你的账户>.workers.dev`。不要填 `/keystatic/`；末尾 `/` 可有可无。
+4. Callback URL 必须填写以下完整地址，只有域名部分替换为步骤 7 的根地址：
+
+```text
+https://你的公开网站地址/api/keystatic/github/oauth/callback
+```
+
+5. Repository permissions 中给 **Contents** 选择 **Read and write**。
+6. 创建 App，复制 **Client ID**，生成并复制 **Client secret**。`Client secret` 离开页面后无法再次查看，复制后立即放进密码管理器。
+7. 点击 **Install App**，只安装到当前客户的新仓库。
+8. 记下 App 的 slug（GitHub App 设置页面网址中 `/apps/` 后面的短名称）。回到 GitHub 编辑 `wrangler.toml`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为这个 slug；同时将 `[vars]` 中的 `SITE_URL` 改为步骤 7 的网址，并把 `PUBLIC_R2_ASSET_BASE_URL` 改为同一网址加 `/r2`，例如 `https://client-industry-site.<你的账户>.workers.dev/r2`。提交到 `main`，等待第二次自动部署成功。
+
+### 步骤 9：添加 Worker Variables 和 Secrets
+
+此时 Worker 已在步骤 7 创建完成。打开 **Workers & Pages -> 你的 Worker -> Settings -> Variables and Secrets -> Add**，每次添加后点击 **Deploy**。下表中写明 **Secret** 的项目必须选 Secret，其他选 Variable。
+
+| 名称 | 类型 | 填什么 | 是否必需 |
+| --- | --- | --- | --- |
+| `KEYSTATIC_SECRET` | Secret | 按步骤 9.1 生成的随机字符串 | 是 |
+| `KEYSTATIC_GITHUB_CLIENT_ID` | Secret | 步骤 8 的 Client ID | Keystatic |
+| `KEYSTATIC_GITHUB_CLIENT_SECRET` | Secret | 步骤 8 的 Client secret | Keystatic |
+| `BUSINESSWEB_GITHUB_TOKEN` | Secret | 仅授权当前仓库的 fine-grained GitHub token | manager 发布、翻译、草稿写回 |
+| `MANAGER_ALLOWED_EMAILS` | Variable | 允许内容管理员使用的邮箱，英文逗号分隔 | manager |
+| `RESEND_API_KEY` | Secret | 已配置 Resend 时的 API Key | 联系表单按需 |
+| `CONTACT_FROM_EMAIL` | Variable | 已在 Resend 验证过的发件人地址 | 联系表单按需 |
+| `CONTACT_TO_EMAIL` | Variable | 接收询盘的邮箱 | 联系表单按需 |
+
+#### 9.1 生成 `KEYSTATIC_SECRET`
+
+不要手写短密码。请在 Windows PowerShell 中复制执行下面**整段**命令；它会输出一条可直接粘贴的随机值：
+
+```powershell
+$bytes = New-Object byte[] 48
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+$rng.Dispose()
+```
+
+输出只显示一次；复制它，作为 `KEYSTATIC_SECRET` 的值保存。不要把它提交到 GitHub，也不要发给内容管理员。
+
+#### 9.2 创建 `BUSINESSWEB_GITHUB_TOKEN`
+
+1. GitHub 右上角头像 -> **Settings -> Developer settings -> Personal access tokens -> Fine-grained tokens -> Generate new token**。
+2. Token name 可填写 `businessweb-manager-publish`，Expiration 按客户维护周期选择。
+3. Resource owner 选择当前客户仓库所属的 GitHub 账号或组织；Repository access 选择 **Only select repositories**，只选择当前客户的新仓库。
+4. 在 **Repository permissions** 中设置 **Contents: Read and write** 与 **Actions: Read and write**。
+5. 点击 **Generate token**，立刻复制完整 Token，在 Worker 的 Variables and Secrets 中作为 **Secret** 新增 `BUSINESSWEB_GITHUB_TOKEN`。
+
+这个 Token 只给 `/manager/` 的发布、翻译与草稿写回使用。不要把它放进 GitHub Actions Secrets，不要使用范围覆盖所有仓库的旧式 Global token。
+
+### 步骤 10：用 Cloudflare Access 保护内容后台
 
 公开首页和 `/api/contact` 不要加整站 Access。只创建两条 Self-hosted Access Application：
 
@@ -223,6 +286,18 @@ src/content/blogTranslations/*
 2. 第一条路径填 `/manager/*`，Allow policy 的邮箱与 `MANAGER_ALLOWED_EMAILS` 完全一致。
 3. 第二条路径填 `/api/manager/*`，使用同一批邮箱。
 4. 使用管理员邮箱打开 `https://你的域名/manager/`，应先出现 Cloudflare Access 登录页。
+
+### 步骤 11：首次部署后按顺序验收
+
+完成步骤 1 至 10，且第二次自动部署显示成功后，再开始上传真实资料。用浏览器逐项检查：
+
+1. 打开网站根地址，确认页面可以加载；这时仍是模板示例内容，不能对外推广。
+2. 用站长的 GitHub 账号打开 `/keystatic/`，点击 **Login with GitHub**；授权后应能进入管理界面。若出现 HTTP 500，先检查步骤 8 的 Callback URL 是否为 `/api/keystatic/github/oauth/callback`，以及步骤 9 的三个 Keystatic Secret 是否都已保存并部署。
+3. 用已加入 Access policy 且已写入 `MANAGER_ALLOWED_EMAILS` 的邮箱打开 `/manager/`；先经过 Cloudflare Access，随后能看到内容管理员界面。
+4. 在 `/manager/` 的 **Assets** 试传一张无敏感信息的测试图片，确认图片可显示，再删除测试文件。
+5. 确认 GitHub Actions 页面可以看到 `Publish Site` 与 `AI Translation Drafts` 两个工作流。不要在未配置 `GEMINI_API_KEYS` 时提交 AI 翻译任务。
+
+只有站长需要步骤 1 至 11 的账户、密钥和部署权限。内容管理员从本 README 的“内容管理员使用”部分开始，不需要接触 Cloudflare、GitHub App、API Token 或任何 Secret。
 
 ## 四、两阶段 Codex 建站流程
 
@@ -273,7 +348,7 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 ### 在 `/keystatic/` 选择网站语言
 
 1. 打开 `/keystatic/`，在左侧 **Foundation** 分组点击 **网站语言**。
-2. **English (en)** 是固定源语言，不能关闭；不要把其它语言当作新的源内容。
+2. **English（英语）· en** 是固定源语言，不能关闭；不要把其它语言当作新的源内容。
 3. 每种语言都同时显示英文名、中文名和语言代码。可以逐项勾选，也可以使用 **全选全部目标语言** 或 **反选当前选择**；没有多语需求时全部不勾选，网站就是英语单语。
 4. 点击页面底部 **Save**。保存会提交 `src/data/site-language-settings.json`，这是全站唯一的启用语言配置。
 5. 自动部署完成后，`/manager/` 和 `/keystatic/ -> AI translator` 只显示刚才勾选的语言。取消勾选后，这些语言也会从新翻译任务选项中消失。
@@ -282,7 +357,9 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 这一分层是有意设计的：**站长的复选框决定要做哪些语言，翻译审核状态决定哪些语言已经可以公开。** 因此不会因为一次误勾选就发布整站英文回退页面，也不需要给 `/manager/` 增加语言管理权限。
 
-### 在 `/manager/` 给内容管理员使用
+### 内容管理员使用手册：在 `/manager/` 工作
+
+内容管理员只需公司邮箱和 Cloudflare Access 登录，不需要 GitHub、Cloudflare 控制台、API Token、GitHub App 或任何 Secret。站长负责配置和发布权限；内容管理员负责创建、补全和审核业务资料。
 
 1. 内容管理员打开 `https://你的域名/manager/`，先通过 Cloudflare Access。
 2. 使用 **Products** 或 **Articles** 创建 D1 草稿；草稿此时不在公开站点，也不等于 Git 内容。
@@ -322,8 +399,8 @@ AI 翻译保留型号、SKU、单位、链接和数字，但仍必须人工审�
 1. **Workers & Pages -> 你的 Worker -> Settings -> Domains & Routes -> Add**。
 2. 域名生效后，回到 GitHub 编辑 `wrangler.toml` 的 `SITE_URL`。
 3. 更新 GitHub App 的 Homepage URL 和 Callback URL。
-4. 更新 GitHub Actions Variable `SITE_URL`。
-5. 提交后等待部署完成。以上四处网址必须完全一致。
+4. 更新 GitHub Actions Variable `SITE_URL`，并在 **Workers & Pages -> 你的 Worker -> Settings -> Build -> Build Variables and Secrets** 更新同名 `SITE_URL`。
+5. 提交后等待部署完成。上述 `wrangler.toml`、GitHub Actions Variable、Workers Builds Variable 与 GitHub App 的网址必须使用同一个正式根地址。
 
 ### 给 R2 图片绑定 CDN 域名
 
