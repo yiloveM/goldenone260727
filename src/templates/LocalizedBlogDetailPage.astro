@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { breadcrumbStructuredData } from '../data/seo';
+import {
+  blogPath,
+  generatedLocalizedArticleBody,
+  localeMeta,
+  localizedArticleStructuredData,
+  localizedBlog,
+  ui,
+} from '../data/i18n';
+import { getStaticArticleBody } from '../data/articleBodyTranslations';
+import { applyBlogTranslationDraft, findPublishedBlogTranslation } from '../data/translationDrafts';
+import { getLocalizedPageCopy, type BlogEntry, type NonEnglishLocale } from './localizedPageHelpers';
+import { siteInfo } from '../data/site';
+
+interface Props {
+  locale: NonEnglishLocale;
+  post: BlogEntry;
+}
+
+const { post, locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const slug = post.id.replace(/\.mdoc$/, '');
+const blogTranslationDrafts = await getCollection('blogTranslations');
+const blogTranslationDraft = findPublishedBlogTranslation(blogTranslationDrafts, slug, locale);
+const DraftContent = blogTranslationDraft ? (await render(blogTranslationDraft)).Content : null;
+const localized = applyBlogTranslationDraft(localizedBlog(post, locale), blogTranslationDraft);
+const engineeringLabel = ui[locale].nav.engineeringNotes || pages.blog.title;
+const postStructuredData = [
+  { ...localizedArticleStructuredData(post, locale, Astro.site), headline: localized.title, description: localized.description },
+  breadcrumbStructuredData(
+    [
+      { name: siteInfo.name, url: `/${locale}/` },
+      { name: engineeringLabel, url: `/${locale}/blog/` },
+      { name: localized.title, url: blogPath(slug, locale) },
+    ],
+    Astro.site
+  ),
+];
+const staticArticleBody = blogTranslationDraft ? '' : await getStaticArticleBody(locale, slug);
+const articleBody = blogTranslationDraft ? '' : staticArticleBody || generatedLocalizedArticleBody(post, locale);
+---
+
+<BaseLayout title={localized.title} description={localized.description} image={post.data.image} type="article" structuredData={postStructuredData} locale={locale}>
+  <main class="section container">
+    <article class="glass-panel" style="overflow:hidden;">
+      {post.data.image && <img src={post.data.image} alt={localized.title} fetchpriority="high" decoding="async" width="1200" height="760" style="width:100%; height:min(46vw,430px); object-fit:cover;" />}
+      <div style="padding:32px;" dir="ltr">
+        <span class="eyebrow">{localized.category} / <bdi dir="ltr">{post.data.publishDate.toLocaleDateString(localeMeta[locale].htmlLang)}</bdi></span>
+        <h1>{localized.title}</h1>
+        <p class="prose">{localized.description}</p>
+        {DraftContent ? <div class="prose detail-panel localized-article-body"><DraftContent /></div> : <div class="prose detail-panel localized-article-body" set:html={articleBody}></div>}
+      </div>
+    </article>
+  </main>
+</BaseLayout>

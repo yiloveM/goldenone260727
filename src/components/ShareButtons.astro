@@ -1,0 +1,85 @@
+---
+import { brandAssets } from '../data/assets';
+
+interface Props {
+  url?: string;
+  title: string;
+  description?: string;
+  image?: string;
+  label?: string;
+  className?: string;
+}
+
+const {
+  url,
+  title,
+  description = '',
+  image = brandAssets.heroRippleDesktop,
+  label = 'Share',
+  className = '',
+} = Astro.props;
+
+const baseUrl = Astro.site || 'https://businessweb.workers.dev';
+const shareUrl = new URL(url || Astro.url.pathname, baseUrl).toString();
+const shareImage = new URL(image, baseUrl).toString();
+const shareText = [title, description].filter(Boolean).join(' - ');
+const encodedUrl = encodeURIComponent(shareUrl);
+const encodedTitle = encodeURIComponent(title);
+const encodedText = encodeURIComponent(shareText);
+const encodedImage = encodeURIComponent(shareImage);
+
+const shareLinks = [
+  {
+    name: 'Facebook',
+    icon: '/icons/facebook.svg',
+    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+  },
+  {
+    name: 'X',
+    icon: '/icons/x.svg',
+    href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
+  },
+  {
+    name: 'Pinterest',
+    icon: '/icons/pinterest.svg',
+    href: `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodedImage}&description=${encodedText}`,
+  },
+  {
+    name: 'WhatsApp',
+    icon: '/icons/whatsapp.svg',
+    href: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`,
+  },
+  {
+    name: 'Telegram',
+    icon: '/icons/telegram.svg',
+    href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+  },
+  {
+    name: 'LINE',
+    icon: '/icons/line.svg',
+    href: `https://social-plugins.line.me/lineit/share?url=${encodedUrl}&text=${encodedText}`,
+  },
+  {
+    name: 'Email',
+    icon: '/icons/email.svg',
+    href: `mailto:?subject=${encodedTitle}&body=${encodedText}%0A${encodedUrl}`,
+  },
+];
+---
+<div class:list={['product-share', 'share-buttons', className]} aria-label={`Share ${title}`}>
+  <span>{label}</span>
+  <div class="social-button-row">
+    {shareLinks.map(link => (
+      <a
+        class="social-button"
+        href={link.href}
+        target={link.href.startsWith('http') ? '_blank' : undefined}
+        rel={link.href.startsWith('http') ? 'noopener' : undefined}
+        title={`Share on ${link.name}`}
+        aria-label={`Share ${title} on ${link.name}`}
+      >
+        <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="18" height="18" /></span>
+      </a>
+    ))}
+  </div>
+</div>

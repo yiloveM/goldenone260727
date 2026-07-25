@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import { pageImages, siteInfo } from '../../data/site';
+import { industryProfile, primaryKeyword, profileKeywords, publicSiteCopy } from '../../data/industry-profile';
+import { collectionStructuredData } from '../../data/seo';
+
+const posts = (await getCollection('blog')).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+const blogDescription = publicSiteCopy.insightDescription;
+const blogStructuredData = collectionStructuredData(
+  {
+    name: `${siteInfo.name} Insights`,
+    description: blogDescription,
+    url: '/blog/',
+    image: pageImages.engineeringNotes,
+    keywords: profileKeywords([primaryKeyword, 'buyer guide', 'technical notes']),
+    items: posts.map(post => ({
+      name: post.data.title,
+      url: `/blog/${post.id.replace(/\.mdoc$/, '')}/`,
+      image: post.data.image,
+    })),
+  },
+  Astro.site
+);
+---
+<BaseLayout title="Insights" description={blogDescription} image={pageImages.engineeringNotes} structuredData={blogStructuredData}>
+  <main>
+    <PageBanner
+      eyebrow="Insights"
+      title={`${industryProfile.market.industry} insights for buyers and project teams`}
+      description={blogDescription}
+      image={pageImages.engineeringNotes}
+    />
+    <section class="section container">
+      <div class="card-grid">
+        {posts.length ? posts.map(post => (
+          <article class="card">
+            <a href={`/blog/${post.id.replace(/\.mdoc$/, '')}/`}>
+              {post.data.image && <img src={post.data.image} alt={post.data.title} loading="lazy" decoding="async" width="1200" height="760" />}
+              <div class="card-body">
+                <span class="eyebrow">{post.data.category} / {post.data.publishDate.toLocaleDateString('en-US')}</span>
+                <h2>{post.data.title}</h2>
+                <p>{post.data.description}</p>
+              </div>
+            </a>
+          </article>
+        )) : (
+          <article class="card">
+            <img src={pageImages.engineeringNotes} alt={`${industryProfile.market.industry} insights`} loading="lazy" decoding="async" width="1200" height="760" />
+            <div class="card-body"><span class="eyebrow">Insights</span><h2>Practical guidance is in preparation</h2><p>{blogDescription}</p></div>
+          </article>
+        )}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

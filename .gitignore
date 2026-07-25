@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.npm-cache/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+!.env.example
+.wrangler/
+.wrangler-config/
+.DS_Store

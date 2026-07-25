@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { faqs, pageImages, siteInfo } from '../data/site';
+import { industryProfile } from '../data/industry-profile';
+import { breadcrumbStructuredData } from '../data/seo';
+
+const faqDescription = `Answers to common ${industryProfile.market.industry} buyer questions.`;
+const faqStructuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    name: `${siteInfo.name} FAQ`,
+    description: faqDescription,
+    mainEntity: faqs.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  },
+  breadcrumbStructuredData(
+    [
+      { name: 'Home', url: '/' },
+      { name: 'FAQ', url: '/faq/' },
+    ],
+    Astro.site
+  ),
+];
+---
+<BaseLayout title="FAQ" description={faqDescription} image={pageImages.faq} structuredData={faqStructuredData}>
+  <main>
+    <PageBanner
+      eyebrow="FAQ"
+      title="Common questions"
+      description="Practical answers for buyers preparing an inquiry, product evaluation, or project discussion."
+      image={pageImages.faq}
+      variant="interior"
+    />
+    <section class="section container interior-section faq-page-section">
+      <div class="section-heading section-heading--compact">
+        <span class="eyebrow">Clarity</span>
+        <h2>Answers for buyers and project teams.</h2>
+      </div>
+      <div class="faq-accordion-list faq-page-list">
+        {faqs.map(item => (
+          <details class="faq-accordion faq-accordion--water">
+            <summary><strong>{item.question}</strong><span aria-hidden="true">+</span></summary>
+            <div class="faq-accordion-panel">
+              <p>{item.answer}</p>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

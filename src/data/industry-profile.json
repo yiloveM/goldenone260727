@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "lifecycle": "template",
+  "brand": {
+    "name": "BusinessWeb",
+    "tagline": "International B2B brand platform",
+    "legalName": "",
+    "description": "A high-trust international website for a specialist B2B business.",
+    "email": "sales@example.com",
+    "phone": "+1 555 010 2000",
+    "whatsapp": "https://wa.me/15550102000",
+    "address": "Replace with your company address",
+    "factoryAddress": "Replace with your production or service address",
+    "socialProfiles": []
+  },
+  "market": {
+    "industry": "Your industry",
+    "businessModel": "undetermined",
+    "primaryLocale": "en",
+    "markets": [],
+    "buyerRoles": ["Procurement teams", "Technical evaluators", "Project decision makers"],
+    "positioning": "A trusted specialist partner for international B2B buyers."
+  },
+  "seo": {
+    "coreKeywords": [],
+    "longTailKeywords": [],
+    "entityTopics": [],
+    "searchIntentSummary": "Research required before production launch.",
+    "competitorReferences": [],
+    "lastResearchDate": ""
+  },
+  "productArchitecture": {
+    "offeringType": "undetermined",
+    "categoryPlans": [
+      {
+        "name": "Solutions",
+        "description": "Core offerings for international buyers.",
+        "highlights": ["Clear selection", "Technical support", "Quote-ready"]
+      },
+      {
+        "name": "Services & Support",
+        "description": "Commercial, project, and lifecycle support.",
+        "highlights": ["Project guidance", "Documentation", "After-sales"]
+      }
+    ],
+    "commonAttributes": [],
+    "modelAttributes": []
+  },
+  "visual": {
+    "archetype": "precise editorial",
+    "accentColor": "#0f766e",
+    "accentColorStrong": "#075985",
+    "accentColorSoft": "#ccfbf1",
+    "heroDirection": "Use real product, process, project, or environment imagery. Avoid generic office imagery after industry setup.",
+    "imageRules": "Show what buyers evaluate: the actual product, material, installation, process, team, or outcome."
+  },
+  "governance": {
+    "factsVerified": false,
+    "contentOwner": "",
+    "lastUpdated": "",
+    "notes": "Complete the industry brief before publishing public pages."
+  }
+}

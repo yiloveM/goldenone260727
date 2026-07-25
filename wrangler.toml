@@ -1,0 +1,23 @@
+name = "goldenone"
+# Wrangler resolves the Worker entry point as a file path in Workers Builds.
+main = "./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js"
+compatibility_date = "2026-05-15"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./dist"
+
+[vars]
+SITE_URL = "https://businessweb.workers.dev"
+KEYSTATIC_GITHUB_REPO = "your-org/businessweb"
+PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "businessweb-keystatic"
+PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
+
+[[r2_buckets]]
+binding = "CONTENT_BUCKET"
+bucket_name = "businessweb-content"
+
+[[d1_databases]]
+binding = "MANAGER_DB"
+database_name = "businessweb-manager"
+database_id = "replace-with-cloudflare-d1-database-id"

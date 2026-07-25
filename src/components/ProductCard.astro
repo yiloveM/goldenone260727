@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCategoryMeta } from '../data/productCategories';
+import { type Locale, localizedProduct, productPath } from '../data/i18n';
+
+interface Props {
+  product: CollectionEntry<'products'>;
+  locale?: Locale;
+}
+
+const { product, locale = 'en' } = Astro.props;
+const slug = product.id.replace(/\.mdoc$/, '');
+const category = getCategoryMeta(product.data.category);
+const localized = localizedProduct(product, locale);
+const categoryName = locale === 'en' ? (category.displayName || category.name) : localized.categoryName;
+const tags = localized.tags;
+---
+<article class="card">
+  <a href={productPath(slug, locale)}>
+    {product.data.image && (
+      <img src={product.data.image} alt={localized.title} loading="lazy" decoding="async" width="900" height="560" />
+    )}
+    <div class="card-body" dir={locale === 'ar' || locale === 'ur' ? 'rtl' : undefined}>
+      <span class="eyebrow">{categoryName}</span>
+      <h3>{localized.title}</h3>
+      <div class="series-card-tags" aria-label={`${localized.title} product keywords`}>
+        {tags.map(tag => <span class="bg-cyan-50/50 text-cyan-700">{tag}</span>)}
+      </div>
+    </div>
+  </a>
+</article>

@@ -1,0 +1,9 @@
+---
+import LocalizedBlogDetailPage from '../../../templates/LocalizedBlogDetailPage.astro';
+import { getLocalizedBlogStaticPaths } from '../../../templates/localizedPageHelpers';
+
+export const getStaticPaths = getLocalizedBlogStaticPaths;
+const locale = 'zh';
+---
+
+<LocalizedBlogDetailPage locale={locale} post={Astro.props.post} />

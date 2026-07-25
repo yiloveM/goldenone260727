@@ -1,0 +1,9 @@
+---
+import LocalizedProductDetailPage from '../../../templates/LocalizedProductDetailPage.astro';
+import { getLocalizedProductStaticPaths } from '../../../templates/localizedPageHelpers';
+
+export const getStaticPaths = getLocalizedProductStaticPaths;
+const locale = 'fr';
+---
+
+<LocalizedProductDetailPage locale={locale} product={Astro.props.product} />

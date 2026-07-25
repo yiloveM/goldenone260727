@@ -1,0 +1,70 @@
+name: Apply Manager Product Draft
+run-name: Apply manager product draft / ${{ inputs.productSlug }} / ${{ inputs.requestId }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      requestId:
+        description: 'Internal request id for manager status tracking'
+        required: true
+        type: string
+      draftId:
+        description: 'D1 draft id'
+        required: true
+        type: string
+      productSlug:
+        description: 'Product slug to update'
+        required: true
+        type: string
+      payload:
+        description: 'Base64 encoded product draft payload'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: manager-product-draft-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apply-product-draft:
+    name: Apply product draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply product draft
+        env:
+          MANAGER_PRODUCT_DRAFT_ID: ${{ inputs.draftId }}
+          MANAGER_PRODUCT_SLUG: ${{ inputs.productSlug }}
+          MANAGER_PRODUCT_DRAFT_PAYLOAD: ${{ inputs.payload }}
+        run: node scripts/apply-manager-product-draft.mjs
+
+      - name: Commit product draft changes
+        run: |
+          CHANGES="$(git status --porcelain -- src/content/products)"
+          if [ -z "$CHANGES" ]; then
+            echo "No product changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/products
+          git commit -m "Apply manager product draft [skip ci]"
+          git push
+

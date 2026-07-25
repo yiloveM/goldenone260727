@@ -1,0 +1,111 @@
+---
+interface Props {
+  images?: string[];
+  title: string;
+  variant?: 'hero' | 'stage';
+  priority?: boolean;
+}
+
+const { images = [], title, variant = 'stage', priority = false } = Astro.props;
+const carouselImages = images.filter(Boolean).slice(0, 8);
+const hasControls = carouselImages.length > 1;
+---
+<div
+  class={`product-image-carousel product-image-carousel--${variant}${hasControls ? ' has-multiple-images' : ''}`}
+  data-product-image-carousel
+  data-autoplay={hasControls ? 'true' : 'false'}
+>
+  <div class="product-image-carousel__viewport">
+    {carouselImages.map((image, index) => (
+      <img
+        class={`product-image-carousel__image${index === 0 ? ' is-active' : ''}`}
+        src={image}
+        alt={`${title} ${index + 1}`}
+        fetchpriority={priority && index === 0 ? 'high' : 'auto'}
+        loading={priority && index === 0 ? 'eager' : 'lazy'}
+        decoding="async"
+        width="1100"
+        height="860"
+        data-carousel-image
+        aria-hidden={index === 0 ? 'false' : 'true'}
+      />
+    ))}
+  </div>
+  {hasControls && (
+    <>
+      <button class="product-image-carousel__nav product-image-carousel__nav--prev" type="button" aria-label="Previous product image" data-carousel-prev>
+        <span aria-hidden="true">&lsaquo;</span>
+      </button>
+      <button class="product-image-carousel__nav product-image-carousel__nav--next" type="button" aria-label="Next product image" data-carousel-next>
+        <span aria-hidden="true">&rsaquo;</span>
+      </button>
+      <div class="product-image-carousel__dots" aria-hidden="true">
+        {carouselImages.map((_, index) => <span class={index === 0 ? 'is-active' : ''} data-carousel-dot />)}
+      </div>
+    </>
+  )}
+</div>
+
+<script>
+  (() => {
+    const setup = () => {
+      document.querySelectorAll('[data-product-image-carousel]').forEach(root => {
+        if (!(root instanceof HTMLElement) || root.dataset.carouselReady === 'true') return;
+        root.dataset.carouselReady = 'true';
+        const images = Array.from(root.querySelectorAll('[data-carousel-image]'));
+        const dots = Array.from(root.querySelectorAll('[data-carousel-dot]'));
+        if (images.length <= 1) return;
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let activeIndex = 0;
+        let timer = 0;
+
+        const show = (index: number) => {
+          activeIndex = (index + images.length) % images.length;
+          images.forEach((image, imageIndex) => {
+            const isActive = imageIndex === activeIndex;
+            image.classList.toggle('is-active', isActive);
+            image.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+          });
+          dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === activeIndex));
+        };
+
+        const stop = () => {
+          if (timer) window.clearInterval(timer);
+          timer = 0;
+        };
+        const start = () => {
+          if (prefersReducedMotion || timer || root.dataset.autoplay !== 'true') return;
+          timer = window.setInterval(() => show(activeIndex + 1), 4200);
+        };
+        const restart = () => {
+          stop();
+          start();
+        };
+
+        root.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
+          show(activeIndex - 1);
+          restart();
+        });
+        root.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
+          show(activeIndex + 1);
+          restart();
+        });
+        root.addEventListener('mouseenter', stop);
+        root.addEventListener('mouseleave', start);
+        root.addEventListener('focusin', stop);
+        root.addEventListener('focusout', start);
+        root.addEventListener('touchstart', stop, { passive: true });
+        root.addEventListener('touchend', start, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) stop();
+          else start();
+        });
+        start();
+      });
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup, { once: true });
+    else setup();
+  })();
+</script>

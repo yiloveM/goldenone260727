@@ -1,0 +1,33 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { articleStructuredData, breadcrumbStructuredData } from '../../data/seo';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({ params: { slug: post.id.replace(/\.mdoc$/, '') }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const slug = post.id.replace(/\.mdoc$/, '');
+const postStructuredData = [
+  articleStructuredData(post, slug, Astro.site),
+  breadcrumbStructuredData(
+    [
+      { name: 'Home', url: '/' },
+      { name: 'Engineering Notes', url: '/blog/' },
+      { name: post.data.title, url: `/blog/${slug}/` },
+    ],
+    Astro.site
+  ),
+];
+---
+<BaseLayout title={post.data.title} description={post.data.description} image={post.data.image} type="article" structuredData={postStructuredData}>
+  <main class="section container">
+    <article class="glass-panel" style="overflow:hidden;">
+      {post.data.image && <img src={post.data.image} alt={post.data.title} fetchpriority="high" decoding="async" width="1200" height="760" style="width:100%; height:min(46vw,430px); object-fit:cover;" />}
+      <div style="padding:32px;"><span class="eyebrow">{post.data.category} / {post.data.publishDate.toLocaleDateString('en-US')}</span><h1>{post.data.title}</h1><p class="prose">{post.data.description}</p><div class="prose"><Content /></div></div>
+    </article>
+  </main>
+</BaseLayout>

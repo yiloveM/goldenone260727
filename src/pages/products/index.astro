@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryCard from '../../components/CategoryCard.astro';
+import PageBanner from '../../components/PageBanner.astro';
+import SeriesCard from '../../components/SeriesCard.astro';
+import { pageImages } from '../../data/site';
+import { industryProfile, primaryKeyword, profileKeywords, publicSiteCopy } from '../../data/industry-profile';
+import { buildProductCategories, isProductPublished, sortProductsByPriority } from '../../data/productCategories';
+import { collectionStructuredData, websiteStructuredData, organizationStructuredData } from '../../data/seo';
+
+const products = (await getCollection('products')).filter(isProductPublished);
+const sortedProducts = sortProductsByPriority(products);
+const productCategories = buildProductCategories(products);
+const catalogDescription = publicSiteCopy.catalogDescription;
+const catalogStructuredData = [
+  organizationStructuredData(Astro.site),
+  websiteStructuredData(Astro.site),
+  collectionStructuredData(
+    {
+      name: `${industryProfile.market.industry} Catalog`,
+      description: catalogDescription,
+      url: '/products/',
+      image: pageImages.productsCatalog,
+      keywords: profileKeywords(['product catalog', primaryKeyword]),
+      items: sortedProducts.map(product => ({
+        name: product.data.title,
+        url: `/products/${product.id.replace(/\.mdoc$/, '')}/`,
+        image: product.data.image,
+      })),
+    },
+    Astro.site
+  ),
+];
+---
+<BaseLayout title={`${industryProfile.market.industry} Catalog`} description={catalogDescription} image={pageImages.productsCatalog} structuredData={catalogStructuredData}>
+  <main>
+    <PageBanner
+      eyebrow="Catalog"
+      title={`${primaryKeyword} for international projects and procurement`}
+      description={catalogDescription}
+      image={pageImages.productsCatalog}
+      ctaHref="#product-series"
+      ctaLabel="Explore offerings"
+      variant="catalog"
+      share
+      shareLabel="Share catalog"
+    />
+    <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
+      <div class="glass-panel catalog-custom-panel">
+        <div class="catalog-banner-strip" aria-label="Catalog summary">
+          <span tabindex="0"><strong>{sortedProducts.length}</strong> published items</span>
+          <span tabindex="0"><strong>{productCategories.length}</strong> active categories</span>
+          <span tabindex="0"><strong>Ready</strong> for buyer evaluation</span>
+        </div>
+        <div class="catalog-custom-layout">
+          <div class="catalog-custom-copy">
+            <span class="eyebrow">Selection support</span>
+            <h2 id="catalog-custom-title">Information that lets a buyer move from interest to a well-prepared inquiry.</h2>
+            <p class="prose">Review the applications, technical details, service scope, and project fit for each published offering before requesting a quotation.</p>
+            <div class="hero-actions">
+              <a class="btn primary" href="/contact">Discuss requirements</a>
+              <a class="btn secondary" href="#product-series">Browse offerings</a>
+            </div>
+          </div>
+          <div class="catalog-custom-cards">
+            {[
+              ['Applications', 'Understand where the offering fits and what it is intended to solve.'],
+              ['Details', 'Review specifications, service scope, and model differences where applicable.'],
+              ['Evidence', 'Use real imagery, documentation, and verified commercial information.'],
+              ['Inquiry', 'Share market, quantity, timeline, and technical requirements with the team.'],
+            ].map(item => (
+              <article class="proof-card" tabindex="0" aria-label={item[0]}>
+                <strong>{item[0]}</strong>
+                <p class="prose">{item[1]}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+    {productCategories.length > 0 && (
+      <section class="section container" id="product-families">
+        <div class="section-heading">
+          <span class="eyebrow">Offerings</span>
+          <h2>Explore the range by commercial need</h2>
+          <p class="prose">Start with the category closest to your application or project requirement.</p>
+        </div>
+        <div class="category-card-grid">
+          {productCategories.map((category, index) => <CategoryCard category={category} priority={index < 2} />)}
+        </div>
+      </section>
+    )}
+    <section class="section container" id="product-series" style="padding-top:0;">
+      <div class="section-heading">
+        <span class="eyebrow">Featured range</span>
+        <h2>{sortedProducts.length ? 'Published offerings' : 'Verified offerings will be published here'}</h2>
+        <p class="prose">{sortedProducts.length ? 'Compare the available options, then contact the team with your scope and buying criteria.' : 'This catalog remains intentionally empty until the business adds verified products, services, or solutions.'}</p>
+      </div>
+      {sortedProducts.length > 0 ? (
+        <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} />)}</div>
+      ) : (
+        <div class="glass-panel detail-panel">
+          <span class="eyebrow">In preparation</span>
+          <h2>Product and service information is being prepared.</h2>
+          <p class="prose">Contact the team with your requirement to begin a commercial discussion.</p>
+        </div>
+      )}
+    </section>
+  </main>
+</BaseLayout>

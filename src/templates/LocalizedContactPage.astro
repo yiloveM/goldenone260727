@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import InquiryForm from '../components/InquiryForm.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { brandAssets } from '../data/assets';
+import { pageImages, siteInfo } from '../data/site';
+import { breadcrumbStructuredData, organizationStructuredData } from '../data/seo';
+import { translateTechnicalText, ui } from '../data/i18n';
+import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+
+interface Props {
+  locale: NonEnglishLocale;
+}
+
+const { locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const mapAddress = siteInfo.address;
+const hasMapAddress = Boolean(mapAddress && !/^replace with/i.test(mapAddress));
+const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed`;
+const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapAddress)}`;
+const contactDescription = pages.contact.description;
+const emailLabel = translateTechnicalText('Email', locale);
+const phoneLabel = translateTechnicalText('Phone', locale);
+const contactStructuredData = [
+  organizationStructuredData(Astro.site),
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: pages.contact.title,
+    description: contactDescription,
+    url: new URL(`/${locale}/contact/`, Astro.site || 'https://businessweb.workers.dev').toString(),
+  },
+  breadcrumbStructuredData(
+    [
+      { name: siteInfo.name, url: `/${locale}/` },
+      { name: ui[locale].nav.contact, url: `/${locale}/contact/` },
+    ],
+    Astro.site
+  ),
+];
+---
+
+<BaseLayout title={pages.contact.title} description={contactDescription} image={pageImages.contact} structuredData={contactStructuredData} locale={locale}>
+  <main>
+    <PageBanner
+      eyebrow={pages.contact.bannerEyebrow}
+      title={pages.contact.bannerTitle}
+      description={pages.contact.bannerDescription}
+      image={pageImages.contact}
+      ctaHref="#contact-form"
+      ctaLabel={pages.contact.startInquiry}
+      variant="interior"
+      share
+      shareLabel={ui[locale].common.sharePage}
+      dir="ltr"
+    />
+    <section class="section container interior-section contact-page-section" id="contact-form">
+      <div class="section-heading" dir="ltr">
+        <span class="eyebrow">{pages.contact.formEyebrow}</span>
+        <h2>{pages.contact.formTitle}</h2>
+        <p class="prose">{pages.contact.formDescription}</p>
+      </div>
+      <div class="card-grid contact-grid">
+        <InquiryForm
+          labels={{
+            name: pages.contact.name,
+            email: pages.contact.email,
+            company: pages.contact.company,
+            country: pages.contact.country,
+            message: pages.contact.message,
+            sendInquiry: pages.contact.sendInquiry,
+          }}
+        />
+        <aside class="glass-panel contact-card contact-direct-card" dir="ltr">
+          <h2>{pages.contact.direct}</h2>
+          <p class="prose" style="margin-top:14px;">
+            {emailLabel}: <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a><br />
+            {phoneLabel}: <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a><br />
+            {pages.contact.salesOffice}: <bdi dir="ltr">{siteInfo.address}</bdi><br />
+            {pages.contact.factoryAddress}: <bdi dir="ltr">{siteInfo.factoryAddress}</bdi>
+          </p>
+          <a class="btn primary" href={siteInfo.whatsapp} target="_blank" rel="noopener" style="margin-top:20px;">{pages.contact.whatsapp}</a>
+        </aside>
+      </div>
+    </section>
+    {hasMapAddress && <section class="section container contact-map-section">
+      <div class="section-heading" dir="ltr">
+        <span class="eyebrow">{pages.contact.mapEyebrow}</span>
+        <h2>{pages.contact.mapTitle}</h2>
+        <p class="prose"><bdi dir="ltr">{mapAddress}</bdi></p>
+      </div>
+      <div class="glass-panel map-panel map-water-panel">
+        <iframe title="Business location on Google Maps" src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <div class="map-logo-pin" aria-hidden="true">
+          <img src={brandAssets.logo} alt="" loading="lazy" decoding="async" width="154" height="60" />
+        </div>
+        <div class="map-location-card">
+          <span class="eyebrow">{translateTechnicalText('Business office', locale)}</span>
+          <strong>{mapAddress}</strong>
+          <p>{siteInfo.factoryAddress}</p>
+          <a href={mapLink} target="_blank" rel="noopener">{pages.contact.mapOpen}</a>
+        </div>
+      </div>
+    </section>}
+  </main>
+</BaseLayout>

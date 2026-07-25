@@ -1,0 +1,256 @@
+import type { APIRoute } from 'astro';
+import { siteInfo } from '../../data/site';
+import { getRuntimeEnv } from '../../lib/runtime-env';
+
+export const prerender = false;
+
+type Env = Record<string, unknown> | undefined;
+
+const CAPTCHA_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const CAPTCHA_LENGTH = 4;
+const CAPTCHA_TTL_MS = 10 * 60 * 1000;
+const DEFAULT_TO_EMAIL = siteInfo.email || 'inquiries@example.com';
+
+const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
+const getCaptchaSecret = (env: Env) =>
+  getEnvString(env, 'CONTACT_FORM_SECRET') ||
+  getEnvString(env, 'KEYSTATIC_SECRET') ||
+  'businessweb-contact-form-local-secret';
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'cache-control': 'no-store',
+      'content-type': 'application/json; charset=utf-8',
+    },
+  });
+
+const randomString = (length: number, alphabet = CAPTCHA_ALPHABET) => {
+  const values = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(values, value => alphabet[value % alphabet.length]).join('');
+};
+
+const base64Url = (bytes: ArrayBuffer) => {
+  let binary = '';
+  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+};
+
+const hmac = async (secret: string, payload: string) => {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  return base64Url(await crypto.subtle.sign('HMAC', key, encoder.encode(payload)));
+};
+
+const createCaptcha = async (secret: string) => {
+  const code = randomString(CAPTCHA_LENGTH);
+  const expires = Date.now() + CAPTCHA_TTL_MS;
+  const nonce = `${Date.now().toString(36)}${randomString(8).toLowerCase()}`;
+  const payload = `${code}.${expires}.${nonce}`;
+  const signature = await hmac(secret, payload);
+  return {
+    code,
+    token: `${payload}.${signature}`,
+    expiresAt: new Date(expires).toISOString(),
+  };
+};
+
+const timingSafeEqual = (left: string, right: string) => {
+  if (left.length !== right.length) return false;
+  let diff = 0;
+  for (let index = 0; index < left.length; index += 1) diff |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  return diff === 0;
+};
+
+const validateCaptcha = async (secret: string, answer: string, token: string) => {
+  const normalized = answer.trim().toUpperCase();
+  const parts = token.split('.');
+  if (parts.length !== 4) return false;
+
+  const [code, expiresText, nonce, signature] = parts;
+  const expires = Number(expiresText);
+  if (!/^[A-Z0-9]{4}$/.test(code) || !Number.isFinite(expires) || !nonce || !signature) return false;
+  if (Date.now() > expires) return false;
+  if (normalized !== code) return false;
+
+  const expected = await hmac(secret, `${code}.${expires}.${nonce}`);
+  return timingSafeEqual(signature, expected);
+};
+
+const field = (formData: FormData, name: string, maxLength = 500) =>
+  String(formData.get(name) || '')
+    .replace(/\0/g, '')
+    .trim()
+    .slice(0, maxLength);
+
+const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const line = (label: string, value: string) => `${label}: ${value || '-'}`;
+
+const sendInquiryEmail = async ({
+  env,
+  request,
+  inquiry,
+}: {
+  env: Env;
+  request: Request;
+  inquiry: {
+    name: string;
+    email: string;
+    company: string;
+    country: string;
+    message: string;
+    pageUrl: string;
+  };
+}) => {
+  const apiKey = getEnvString(env, 'RESEND_API_KEY');
+  const from = getEnvString(env, 'CONTACT_FROM_EMAIL') || getEnvString(env, 'INQUIRY_FROM_EMAIL');
+  const to = getEnvString(env, 'CONTACT_TO_EMAIL') || DEFAULT_TO_EMAIL;
+
+  if (!apiKey) throw new Error('Missing RESEND_API_KEY.');
+  if (!from) throw new Error('Missing CONTACT_FROM_EMAIL.');
+
+  const submittedAt = new Date().toISOString();
+  const ipAddress = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
+  const cfCountry = request.headers.get('cf-ipcountry') || '';
+  const userAgent = request.headers.get('user-agent') || '';
+  const subjectParts = [`${siteInfo.name} inquiry`, inquiry.country || cfCountry, inquiry.company].filter(Boolean);
+  const subject = subjectParts.join(' - ').slice(0, 180);
+  const details = [
+    line('Submitted at', submittedAt),
+    line('Name', inquiry.name),
+    line('Email', inquiry.email),
+    line('Company / project', inquiry.company),
+    line('Country / region', inquiry.country),
+    line('Page', inquiry.pageUrl),
+    line('Visitor IP', ipAddress),
+    line('Cloudflare country', cfCountry),
+    line('User agent', userAgent),
+    '',
+    'Message:',
+    inquiry.message,
+  ];
+  const text = details.join('\n');
+  const htmlRows = [
+    ['Submitted at', submittedAt],
+    ['Name', inquiry.name],
+    ['Email', inquiry.email],
+    ['Company / project', inquiry.company],
+    ['Country / region', inquiry.country],
+    ['Page', inquiry.pageUrl],
+    ['Visitor IP', ipAddress],
+    ['Cloudflare country', cfCountry],
+    ['User agent', userAgent],
+  ]
+    .map(([labelText, value]) => `<tr><th align="left">${escapeHtml(labelText)}</th><td>${escapeHtml(value || '-')}</td></tr>`)
+    .join('');
+  const html = `
+    <div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.55;">
+      <h2 style="margin:0 0 16px;">New ${escapeHtml(siteInfo.name)} website inquiry</h2>
+      <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;border:1px solid #dbe7ee;">${htmlRows}</table>
+      <h3 style="margin:20px 0 8px;">Message</h3>
+      <p style="white-space:pre-wrap;">${escapeHtml(inquiry.message)}</p>
+    </div>`;
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      'content-type': 'application/json',
+      'user-agent': 'businessweb-contact-form/1.0',
+      'idempotency-key': `inquiry-${Date.now().toString(36)}-${randomString(10).toLowerCase()}`,
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      reply_to: inquiry.email,
+      subject,
+      text,
+      html,
+      tags: [{ name: 'source', value: 'contact_form' }],
+    }),
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+  return response.json().catch(() => ({}));
+};
+
+export const GET: APIRoute = async ({ locals }) => {
+  const env = getRuntimeEnv(locals);
+  return json(await createCaptcha(getCaptchaSecret(env)));
+};
+
+export const POST: APIRoute = async ({ locals, request }) => {
+  const env = getRuntimeEnv(locals);
+  let formData: FormData;
+
+  try {
+    formData = await request.formData();
+  } catch {
+    return json({ ok: false, message: 'Please submit the inquiry form again.' }, 400);
+  }
+
+  if (field(formData, 'website', 120)) {
+    return json({ ok: true, message: 'Thank you. Your inquiry has been received.' });
+  }
+
+  const captchaOk = await validateCaptcha(getCaptchaSecret(env), field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
+  if (!captchaOk) {
+    return json({ ok: false, message: 'The verification code is incorrect or expired. Please try the new code.' }, 400);
+  }
+
+  const origin = new URL(request.url).origin;
+  const pagePath = field(formData, 'pagePath', 250) || '/contact/';
+  const inquiry = {
+    name: field(formData, 'name', 120),
+    email: field(formData, 'email', 160).toLowerCase(),
+    company: field(formData, 'company', 160),
+    country: field(formData, 'country', 120),
+    message: field(formData, 'message', 3000),
+    pageUrl: pagePath.startsWith('http') ? pagePath : new URL(pagePath, origin).toString(),
+  };
+
+  if (!inquiry.name || !inquiry.email || !inquiry.message) {
+    return json({ ok: false, message: 'Please provide your name, email and project requirements.' }, 400);
+  }
+
+  if (!isEmail(inquiry.email)) {
+    return json({ ok: false, message: 'Please enter a valid email address.' }, 400);
+  }
+
+  try {
+    const email = await sendInquiryEmail({ env, request, inquiry });
+    return json({
+      ok: true,
+      message: `Thank you. Your inquiry has been sent to ${siteInfo.name}.`,
+      email,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || 'Unknown email delivery error.');
+    const configurationError = /Missing RESEND_API_KEY|Missing CONTACT_FROM_EMAIL/i.test(message);
+    return json(
+      {
+        ok: false,
+        message: configurationError
+          ? `Inquiry email is not configured yet. Please contact ${siteInfo.name} by WhatsApp or email.`
+          : `The inquiry could not be sent right now. Please try again or contact ${siteInfo.name} by WhatsApp.`,
+      },
+      configurationError ? 500 : 502
+    );
+  }
+};

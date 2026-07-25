@@ -1,0 +1,256 @@
+<script is:inline defer src="/jquery-3.7.1.min.js"></script>
+<script is:inline defer src="/rippleeffect.js"></script>
+<script is:inline>
+  (() => {
+    const hero = document.querySelector('#home-hero');
+    const rippleSurface = document.querySelector('#home-ripples');
+    if (!hero || !rippleSurface || rippleSurface.dataset.rippleBooted === 'true') return;
+    rippleSurface.dataset.rippleBooted = 'true';
+
+    const productStage = hero.querySelector('.hero-product-stage');
+    let activeProductTimer;
+    const activateHeroProduct = product => {
+      if (!productStage || !product) return;
+      productStage.querySelectorAll('.hero-product.is-product-active').forEach(item => {
+        if (item !== product) item.classList.remove('is-product-active');
+      });
+      product.classList.add('is-product-active');
+      window.clearTimeout(activeProductTimer);
+      activeProductTimer = window.setTimeout(() => {
+        product.classList.remove('is-product-active');
+      }, 1500);
+    };
+
+    if (productStage) {
+      productStage.addEventListener('click', event => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        activateHeroProduct(target.closest('.hero-product'));
+      });
+      productStage.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const product = target.closest('.hero-product');
+        if (!product) return;
+        event.preventDefault();
+        activateHeroProduct(product);
+      });
+    }
+
+    const parseCssUrl = value => {
+      const trimmed = value.trim();
+      const match = trimmed.match(/^url\((["']?)(.*?)\1\)$/);
+      return match?.[2] || trimmed.replace(/^["']|["']$/g, '');
+    };
+
+    const heroMobileQuery = window.matchMedia('(max-width: 768px)');
+    const getActiveImageUrl = () => {
+      const styles = window.getComputedStyle(rippleSurface);
+      const customProperty = heroMobileQuery.matches ? '--hero-bg-mobile' : '--hero-bg-desktop';
+      const configuredImage = styles.getPropertyValue(customProperty) || styles.backgroundImage;
+      return parseCssUrl(configuredImage);
+    };
+
+    const getRippleImageUrl = imageUrl => {
+      if (!imageUrl || imageUrl === 'none') return '';
+
+      try {
+        const url = new URL(imageUrl, window.location.href);
+        if (url.hostname === 'cdn.example.com') {
+          return `/r2/${url.pathname.replace(/^\/+/, '')}${url.search}`;
+        }
+        if (url.origin === window.location.origin) {
+          return `${url.pathname}${url.search}`;
+        }
+      } catch {
+        return imageUrl;
+      }
+
+      return imageUrl;
+    };
+
+    const getRipplePoint = sourceEvent => {
+      const source = sourceEvent.touches?.[0] || sourceEvent.changedTouches?.[0] || sourceEvent;
+      if (typeof source.clientX !== 'number' || typeof source.clientY !== 'number') return null;
+      const rect = rippleSurface.getBoundingClientRect();
+      if (
+        source.clientX < rect.left ||
+        source.clientX > rect.right ||
+        source.clientY < rect.top ||
+        source.clientY > rect.bottom
+      ) return null;
+      return {
+        x: source.clientX - rect.left,
+        y: source.clientY - rect.top,
+      };
+    };
+
+    let $surface;
+    let initialized = false;
+    let ticking = false;
+    let rippleTimer = 0;
+    let restartTimer = 0;
+    let cleanupContextListeners = () => {};
+
+    const stopAutoRipples = () => {
+      if (!rippleTimer) return;
+      window.clearInterval(rippleTimer);
+      rippleTimer = 0;
+    };
+
+    const destroyRipples = () => {
+      stopAutoRipples();
+      cleanupContextListeners();
+      cleanupContextListeners = () => {};
+      if ($surface && window.jQuery?.fn?.ripples) {
+        try {
+          $surface.ripples('destroy');
+        } catch {
+          // The canvas may already be gone after a browser GPU reset.
+        }
+      }
+      rippleSurface.querySelectorAll('canvas').forEach(canvas => canvas.remove());
+      initialized = false;
+      hero.dataset.rippleEngine = 'css-fallback';
+    };
+
+    const scheduleRestart = (delay = 300) => {
+      window.clearTimeout(restartTimer);
+      rippleSurface.classList.add('is-ripple-recovering');
+      restartTimer = window.setTimeout(() => {
+        destroyRipples();
+        rippleSurface.classList.remove('is-ripple-recovering');
+        bootRipples();
+      }, delay);
+    };
+
+    const safeDrop = (x, y, radius, strength) => {
+      if (!$surface || !initialized || document.hidden) return;
+      try {
+        $surface.ripples('drop', x, y, radius, strength);
+      } catch {
+        scheduleRestart(0);
+      }
+    };
+
+    const startAutoRipples = isMobile => {
+      stopAutoRipples();
+      rippleTimer = window.setInterval(() => {
+        const width = rippleSurface.clientWidth;
+        const height = rippleSurface.clientHeight;
+        if (!width || !height) return;
+        safeDrop(
+          Math.random() * width,
+          Math.random() * height,
+          isMobile ? 18 : 22,
+          isMobile ? 0.03 : 0.035
+        );
+      }, isMobile ? 3000 : 2400);
+    };
+
+    const attachContextRecovery = () => {
+      cleanupContextListeners();
+      const canvas = rippleSurface.querySelector('canvas');
+      if (!canvas) return;
+
+      const handleContextLost = event => {
+        event.preventDefault();
+        scheduleRestart(350);
+      };
+      const handleContextRestored = () => scheduleRestart(50);
+
+      canvas.addEventListener('webglcontextlost', handleContextLost, false);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored, false);
+      cleanupContextListeners = () => {
+        canvas.removeEventListener('webglcontextlost', handleContextLost, false);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored, false);
+      };
+    };
+
+    const startJqueryRipples = () => {
+      try {
+        if (initialized) return true;
+        if (!window.jQuery?.fn?.ripples) return false;
+
+        const isMobile = heroMobileQuery.matches;
+        $surface = window.jQuery(rippleSurface);
+        const imageUrl = getRippleImageUrl(getActiveImageUrl());
+        const dropRadius = isMobile ? 20 : 24;
+        const perturbance = isMobile ? 0.03 : 0.04;
+        const rippleOptions = {
+          imageUrl,
+          resolution: isMobile ? 256 : 512,
+          dropRadius,
+          perturbance,
+          interactive: false,
+          crossOrigin: 'anonymous',
+        };
+        if (!imageUrl) delete rippleOptions.imageUrl;
+
+        try {
+          $surface.ripples(rippleOptions);
+        } catch (imageError) {
+          if (rippleOptions.imageUrl) {
+            delete rippleOptions.imageUrl;
+            $surface.ripples(rippleOptions);
+          } else {
+            throw imageError;
+          }
+        }
+
+        initialized = true;
+        hero.dataset.rippleEngine = 'jquery-ripples';
+        attachContextRecovery();
+        startAutoRipples(isMobile);
+        return true;
+      } catch (error) {
+        destroyRipples();
+        console.warn('BusinessWeb ripple fallback activated:', error);
+        return false;
+      }
+    };
+
+    function bootRipples(attempt = 0) {
+      if (document.hidden) return;
+      if (startJqueryRipples()) return;
+      if (attempt < 120) window.setTimeout(() => bootRipples(attempt + 1), 100);
+    }
+
+    const handlePointerRipple = event => {
+      if (ticking) return;
+      const target = event.target;
+      if (target instanceof Element && target.closest('img')) return;
+      const point = getRipplePoint(event);
+      if (!point) return;
+
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        safeDrop(point.x, point.y, heroMobileQuery.matches ? 16 : 20, 0.02);
+        ticking = false;
+      });
+    };
+
+    document.addEventListener('mousemove', handlePointerRipple, { passive: true });
+    document.addEventListener('touchmove', handlePointerRipple, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopAutoRipples();
+        return;
+      }
+      if (initialized) {
+        startAutoRipples(heroMobileQuery.matches);
+        return;
+      }
+      bootRipples();
+    });
+    heroMobileQuery.addEventListener('change', () => scheduleRestart(50));
+    window.addEventListener('pagehide', destroyRipples, { once: true });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => bootRipples(), { once: true });
+    } else {
+      bootRipples();
+    }
+  })();
+</script>

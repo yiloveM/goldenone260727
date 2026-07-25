@@ -1,0 +1,121 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import PageBanner from '../components/PageBanner.astro';
+import SeriesCard from '../components/SeriesCard.astro';
+import { pageImages } from '../data/site';
+import { primaryKeyword, profileKeywords } from '../data/industry-profile';
+import { buildProductCategories, isProductPublished, sortProductsByPriority } from '../data/productCategories';
+import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
+import { localizedProduct, localizedProductUrl, translateProductCategories, translateTechnicalText, ui } from '../data/i18n';
+import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+
+interface Props {
+  locale: NonEnglishLocale;
+}
+
+const { locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const products = (await getCollection('products')).filter(isProductPublished);
+const sortedProducts = sortProductsByPriority(products);
+const productCategories = translateProductCategories(buildProductCategories(products), locale);
+const catalogDescription = pages.products.description;
+const catalogStructuredData = [
+  organizationStructuredData(Astro.site),
+  websiteStructuredData(Astro.site),
+  collectionStructuredData(
+    {
+      name: pages.products.title,
+      description: catalogDescription,
+      url: `/${locale}/products/`,
+      image: pageImages.productsCatalog,
+      keywords: profileKeywords(['product catalog', primaryKeyword]),
+      items: sortedProducts.map(product => ({
+        name: localizedProduct(product, locale).title,
+        url: localizedProductUrl(product, locale),
+        image: product.data.image,
+      })),
+    },
+    Astro.site
+  ),
+];
+---
+
+<BaseLayout title={pages.products.title} description={catalogDescription} image={pageImages.productsCatalog} structuredData={catalogStructuredData} locale={locale}>
+  <main>
+    <PageBanner
+      eyebrow={pages.products.bannerEyebrow}
+      title={pages.products.bannerTitle}
+      description={pages.products.bannerDescription}
+      image={pageImages.productsCatalog}
+      ctaHref="#product-series"
+      ctaLabel={pages.products.bannerCta}
+      variant="catalog"
+      share
+      shareLabel={ui[locale].common.sharePage}
+      dir="ltr"
+    />
+    <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
+      <div class="glass-panel catalog-custom-panel">
+        <div class="catalog-banner-strip" aria-label="Catalog summary">
+          <span tabindex="0"><strong>{sortedProducts.length}</strong> {pages.products.summaryProducts}</span>
+          <span tabindex="0"><strong>{productCategories.length}</strong> {pages.products.summaryCategories}</span>
+          <span tabindex="0"><strong>{translateTechnicalText('Ready', locale)}</strong> {pages.products.summaryFactory}</span>
+        </div>
+        <div class="catalog-custom-layout">
+          <div class="catalog-custom-copy" dir="ltr">
+            <span class="eyebrow">{pages.products.customEyebrow}</span>
+            <h2 id="catalog-custom-title">{pages.products.customTitle}</h2>
+            <p class="prose">{pages.products.customDescription}</p>
+            <div class="hero-actions">
+              <a class="btn primary" href={`/${locale}/contact/`}>{pages.products.discussCustomization}</a>
+              <a class="btn secondary" href="#product-series">{pages.products.browseAll}</a>
+            </div>
+          </div>
+          <div class="catalog-custom-cards">
+            {[
+              ['Applications', 'Understand where the offering fits and what it is intended to solve.'],
+              ['Details', 'Review specifications, service scope, and model differences where applicable.'],
+              ['Evidence', 'Use real imagery, documentation, and verified commercial information.'],
+              ['Inquiry', 'Share market, quantity, timeline, and technical requirements with the team.'],
+            ].map(item => (
+              <article class="proof-card" tabindex="0" aria-label={translateTechnicalText(item[0], locale)}>
+                <strong>{translateTechnicalText(item[0], locale)}</strong>
+                <p class="prose">{translateTechnicalText(item[1], locale)}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+    {productCategories.length > 0 && (
+      <section class="section container" id="product-families">
+        <div class="section-heading" dir="ltr">
+          <span class="eyebrow">{pages.home.categoriesEyebrow}</span>
+          <h2>{pages.products.categoryTitle}</h2>
+          <p class="prose">{pages.products.categoryDescription}</p>
+        </div>
+        <div class="category-card-grid">
+          {productCategories.map((category, index) => <CategoryCard category={category} priority={index < 2} locale={locale} />)}
+        </div>
+      </section>
+    )}
+    <section class="section container" id="product-series" style="padding-top:0;">
+      <div class="section-heading" dir="ltr">
+        <span class="eyebrow">{pages.products.seriesEyebrow}</span>
+        <h2>{sortedProducts.length ? pages.products.seriesTitle : translateTechnicalText('Verified offerings will be published here', locale)}</h2>
+        <p class="prose">{sortedProducts.length ? pages.products.description : pages.products.categoryDescription}</p>
+      </div>
+      {sortedProducts.length > 0 ? (
+        <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} locale={locale} />)}</div>
+      ) : (
+        <div class="glass-panel detail-panel" dir="ltr">
+          <span class="eyebrow">{translateTechnicalText('In preparation', locale)}</span>
+          <h2>{translateTechnicalText('Product and service information is being prepared.', locale)}</h2>
+          <p class="prose">{translateTechnicalText('Contact the team with your requirement to begin a commercial discussion.', locale)}</p>
+        </div>
+      )}
+    </section>
+  </main>
+</BaseLayout>

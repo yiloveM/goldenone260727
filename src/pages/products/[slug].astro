@@ -1,0 +1,383 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { brandAssets } from '../../data/assets';
+import { getCategoryMeta, isProductPublished, sortProductsByPriority } from '../../data/productCategories';
+import { publicProductSpecs } from '../../data/productSpecs';
+import { productSeoDescription, productStructuredData } from '../../data/seo';
+import SeriesCard from '../../components/SeriesCard.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
+import ProductMediaGallery from '../../components/ProductMediaGallery.astro';
+import ProductImageCarousel from '../../components/ProductImageCarousel.astro';
+
+export async function getStaticPaths() {
+  const products = (await getCollection('products')).filter(isProductPublished);
+  return products.map(product => ({ params: { slug: product.id.replace(/\.mdoc$/, '') }, props: { product } }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+const slug = product.id.replace(/\.mdoc$/, '');
+const productImage = product.data.image || brandAssets.heroCenter;
+const productGalleryImages = Array.from(new Set([productImage, ...product.data.galleryImages].filter(Boolean)));
+const productDetailImages = product.data.detailImages.filter(item => item.image);
+const productCategory = getCategoryMeta(product.data.category);
+const productCategoryName = productCategory.displayName || productCategory.name;
+const relatedProducts = sortProductsByPriority(
+  (await getCollection('products')).filter(
+    item => isProductPublished(item) && item.id !== product.id && item.data.category === product.data.category
+  )
+).slice(0, 3);
+const productUrl = new URL(`/products/${product.id.replace(/\.mdoc$/, '')}/`, Astro.site || 'https://businessweb.workers.dev').toString();
+const productDescription = productSeoDescription(product);
+const productStructuredDataItem = productStructuredData(product, slug, Astro.site);
+const visibleSpecs = publicProductSpecs(product.data.specs);
+const isRedundantSpecTableTitle = (title: string) =>
+  /^(product|model|technical)\s+specifications?$/i.test(String(title || '').trim());
+const isModelSpecTable = (table: typeof product.data.specTables[number]) =>
+  /(^|\b)(model|item|code|sku|product\s*code)(\b|$)/i.test(String(table.columns[0] || ''));
+---
+<BaseLayout title={product.data.title} description={productDescription} image={productImage} type="product" structuredData={productStructuredDataItem}>
+  <main>
+    <section class="section container product-hero" style={`--product-hero-image: url('${productImage}');`}>
+      <div class="glass-panel product-hero-grid">
+        <div class="product-hero-copy">
+          <span class="eyebrow">{productCategoryName} / {product.data.series}</span>
+          <h1>{product.data.title}</h1>
+          <p class="prose">{productDescription}</p>
+          <div class="hero-actions">
+            <a class="btn primary" href="/contact">Request quotation</a>
+            <a class="btn secondary" href="/products">Explore equipment range</a>
+          </div>
+          <div class="product-meta-strip">
+            <span>Content-ready</span>
+            <span>Sales support</span>
+            <span>Project specification support</span>
+            {product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
+              <span>{product.data.aggregateRatingValue}/5 from {product.data.aggregateRatingCount} customer ratings</span>
+            )}
+          </div>
+          <ShareButtons
+            url={productUrl}
+            title={product.data.title}
+            description={productDescription}
+            image={productImage}
+            label="Share product"
+          />
+        </div>
+        <div class="product-hero-media"><ProductImageCarousel images={productGalleryImages} title={product.data.title} variant="hero" priority /></div>
+      </div>
+    </section>
+
+    <section class="section container product-story-section" style="padding-top:0;">
+      <div class="product-story-grid lg:grid lg:grid-cols-2">
+        <aside class="product-sticky-panel sticky top-24">
+          <div class="product-image-stage"><ProductImageCarousel images={productGalleryImages} title={product.data.title} variant="stage" /></div>
+          <div class="product-sticky-meta">
+            <span>{product.data.series}</span>
+            <strong>{productCategoryName}</strong>
+            <p>Specification support for buyers, managers and commercial project teams.</p>
+            <div class="product-sticky-actions">
+              <a href="/contact">Request quote</a>
+              <a href={`/products/category/${product.data.category.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}/`}>View category</a>
+            </div>
+          </div>
+        </aside>
+
+        <div class="product-scroll-copy">
+          <section class="detail-panel">
+            <span class="eyebrow">Core highlights</span>
+            <h2>Series features for selection and comparison.</h2>
+            <ul class="product-highlights" aria-label={`${product.data.title} highlights`}>
+              {product.data.highlights.map(item => (
+                <li class="highlight-card p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                  <span class="highlight-check text-cyan-500" aria-hidden="true">&#10003;</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {product.data.applications.length > 0 && (
+            <section class="detail-panel">
+              <span class="eyebrow">Applications</span>
+              <h2>Where this series is typically specified.</h2>
+              <ul class="application-list prose">
+                {product.data.applications.map(item => <li>{item}</li>)}
+              </ul>
+            </section>
+          )}
+
+          <ProductMediaGallery detailImages={productDetailImages} title={product.data.title} />
+
+          <section class="detail-panel">
+            <span class="eyebrow">Specification overview</span>
+            <h2>Series-level specifications.</h2>
+            <div class="table-hint-row">
+              <span class="table-scroll-hint" aria-hidden="true">Drag / scroll to view full table</span>
+            </div>
+            <div class="table-scroll table-scroll--overview" tabindex="0">
+              <table class="spec-table spec-overview-table">
+                <tbody>{visibleSpecs.map(row => <tr><th>{row.label}</th><td>{row.value}</td></tr>)}</tbody>
+              </table>
+            </div>
+          </section>
+
+          {product.data.specTables.length > 0 && (
+            <section class="detail-panel">
+              <h2>Model specifications</h2>
+              <div class="spec-table-stack">
+                {product.data.specTables.map(table => (
+                  <div class="table-wrap" data-spec-table>
+                    {!isRedundantSpecTableTitle(table.title) && (
+                      <div class="spec-table-head">
+                        <div>
+                          <h3>{table.title}</h3>
+                        </div>
+                      </div>
+                    )}
+                    <div class="table-hint-row">
+                      <span class="table-scroll-hint" aria-hidden="true">Drag / scroll to view full table</span>
+                    </div>
+                    <div class="matrix-scroll table-scroll" tabindex="0">
+                      <table class="spec-table matrix">
+                        <thead>
+                          {table.headerRows.length
+                            ? table.headerRows.map(headerRow => (
+                              <tr>{headerRow.cells.map(cell => (
+                                <th colspan={cell.colspan > 1 ? cell.colspan : undefined} rowspan={cell.rowspan > 1 ? cell.rowspan : undefined}>{cell.text}</th>
+                              ))}</tr>
+                            ))
+                            : <tr>{table.columns.map(column => <th>{column}</th>)}</tr>}
+                        </thead>
+                        <tbody>{table.rows.map(row => <tr data-model={isModelSpecTable(table) ? row[0] : undefined}>{row.map(cell => <td>{cell}</td>)}</tr>)}</tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section class="detail-panel prose">
+            <Content />
+          </section>
+
+          {product.data.faqs.length > 0 && (
+            <section class="detail-panel">
+              <span class="eyebrow">FAQ</span>
+              <h2>Common questions.</h2>
+              <div class="faq-accordion-list">
+                {product.data.faqs.map(item => (
+                  <details class="faq-accordion">
+                    <summary><strong>{item.question}</strong><span aria-hidden="true">+</span></summary>
+                    <div class="faq-accordion-panel">
+                      <p>{item.answer}</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </section>
+
+    {relatedProducts.length > 0 && (
+      <section class="section container related-products-section deferred-section">
+        <div class="section-heading">
+          <span class="eyebrow">Related items</span>
+          <h2>Compare more {productCategoryName.toLowerCase()} options</h2>
+          <p class="prose">Continue exploring the same range for model data, fit and quotation planning.</p>
+        </div>
+        <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} />)}</div>
+      </section>
+    )}
+  </main>
+  <script is:inline>
+    document.querySelectorAll('[data-spec-table]').forEach((wrap) => {
+      const rows = Array.from(wrap.querySelectorAll('tbody tr'));
+      rows.forEach((row) => {
+        row.addEventListener('click', () => {
+          row.classList.toggle('is-selected');
+          const model = row.getAttribute('data-model');
+          if (!model) return;
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set('model', model);
+          window.history.replaceState({}, '', nextUrl);
+        });
+      });
+    });
+
+    const requestedModel = new URLSearchParams(window.location.search).get('model')?.trim().toLowerCase();
+    if (requestedModel) {
+      const matchingRows = Array.from(document.querySelectorAll('[data-model]')).filter(
+        (row) => row.getAttribute('data-model')?.trim().toLowerCase() === requestedModel
+      );
+      matchingRows.forEach((row) => row.classList.add('is-selected'));
+      matchingRows[0]?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }
+
+    document.querySelectorAll('.detail-panel.prose table').forEach((table) => {
+      if (table.closest('.table-scroll')) return;
+      const hintRow = document.createElement('div');
+      hintRow.className = 'table-hint-row';
+      hintRow.innerHTML = '<span class="table-scroll-hint" aria-hidden="true">Drag / scroll to view full table</span>';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-scroll markdown-table-scroll';
+      wrapper.tabIndex = 0;
+      table.parentNode?.insertBefore(hintRow, table);
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    });
+
+    document.querySelectorAll('.table-scroll').forEach((scroller) => {
+      const bar = document.createElement('div');
+      const thumb = document.createElement('span');
+      const hintRow = scroller.previousElementSibling?.classList.contains('table-hint-row')
+        ? scroller.previousElementSibling
+        : null;
+      let scrollbarFrame = 0;
+      bar.className = 'table-scrollbar';
+      bar.setAttribute('aria-hidden', 'true');
+      bar.appendChild(thumb);
+      scroller.insertAdjacentElement('afterend', bar);
+
+      const updateScrollbar = () => {
+        scrollbarFrame = 0;
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        if (maxScroll <= 2) {
+          bar.hidden = true;
+          hintRow?.setAttribute('hidden', '');
+          return;
+        }
+        bar.hidden = false;
+        hintRow?.removeAttribute('hidden');
+        const trackWidth = bar.clientWidth;
+        const thumbWidth = Math.max(48, Math.round(trackWidth * scroller.clientWidth / scroller.scrollWidth));
+        const maxThumbLeft = Math.max(0, trackWidth - thumbWidth);
+        const thumbLeft = maxThumbLeft * scroller.scrollLeft / maxScroll;
+        thumb.style.width = `${thumbWidth}px`;
+        thumb.style.transform = `translate3d(${thumbLeft}px, 0, 0)`;
+      };
+      const requestScrollbarUpdate = () => {
+        if (scrollbarFrame) return;
+        scrollbarFrame = window.requestAnimationFrame(updateScrollbar);
+      };
+      const scrollFromBarPointer = (clientX, centerThumb = false) => {
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        const trackWidth = bar.clientWidth;
+        const thumbWidth = thumb.offsetWidth || 48;
+        const maxThumbLeft = Math.max(1, trackWidth - thumbWidth);
+        const barLeft = bar.getBoundingClientRect().left;
+        const thumbHalf = centerThumb ? thumbWidth / 2 : 0;
+        const thumbLeft = Math.min(maxThumbLeft, Math.max(0, clientX - barLeft - thumbHalf));
+        scroller.scrollLeft = maxScroll * thumbLeft / maxThumbLeft;
+      };
+
+      scroller.addEventListener('scroll', requestScrollbarUpdate, { passive: true });
+      window.addEventListener('resize', requestScrollbarUpdate);
+      if ('ResizeObserver' in window) {
+        new ResizeObserver(requestScrollbarUpdate).observe(scroller);
+      }
+      updateScrollbar();
+
+      let barPointerActive = false;
+      let barPointerId = null;
+      let barStartX = 0;
+      let barStartScrollLeft = 0;
+
+      bar.addEventListener('pointerdown', (event) => {
+        if (!event.isPrimary) return;
+        event.preventDefault();
+        if (event.target !== thumb) {
+          scrollFromBarPointer(event.clientX, true);
+        }
+        barPointerActive = true;
+        barPointerId = event.pointerId;
+        barStartX = event.clientX;
+        barStartScrollLeft = scroller.scrollLeft;
+        bar.classList.add('is-dragging');
+        bar.setPointerCapture?.(event.pointerId);
+      });
+
+      bar.addEventListener('pointermove', (event) => {
+        if (!barPointerActive || event.pointerId !== barPointerId) return;
+        const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        const maxThumbLeft = Math.max(1, bar.clientWidth - (thumb.offsetWidth || 48));
+        scroller.scrollLeft = barStartScrollLeft + (event.clientX - barStartX) * maxScroll / maxThumbLeft;
+        event.preventDefault();
+      });
+
+      const endBarDrag = (event) => {
+        if (!barPointerActive || event.pointerId !== barPointerId) return;
+        barPointerActive = false;
+        barPointerId = null;
+        bar.classList.remove('is-dragging');
+        bar.releasePointerCapture?.(event.pointerId);
+      };
+
+      bar.addEventListener('pointerup', endBarDrag);
+      bar.addEventListener('pointercancel', endBarDrag);
+
+      let pointerActive = false;
+      let activePointerId = null;
+      let startX = 0;
+      let startScrollLeft = 0;
+      let hasDragged = false;
+      let suppressClick = false;
+      const dragThreshold = 5;
+
+      scroller.addEventListener('pointerdown', (event) => {
+        if (!event.isPrimary) return;
+        if (event.pointerType !== 'mouse' || event.button !== 0) return;
+        const target = event.target;
+        if (target instanceof Element && target.closest('a, button, input, textarea, select, summary')) return;
+        pointerActive = true;
+        activePointerId = event.pointerId;
+        hasDragged = false;
+        startX = event.clientX;
+        startScrollLeft = scroller.scrollLeft;
+        scroller.classList.add('is-dragging-scroll');
+        scroller.setPointerCapture?.(event.pointerId);
+      });
+
+      scroller.addEventListener('pointermove', (event) => {
+        if (!pointerActive || !event.isPrimary || event.pointerId !== activePointerId) return;
+        const delta = event.clientX - startX;
+        if (!hasDragged && Math.abs(delta) < dragThreshold) return;
+        hasDragged = true;
+        suppressClick = true;
+        scroller.scrollLeft = startScrollLeft - delta;
+        event.preventDefault();
+      });
+
+      const endDrag = (event) => {
+        if (!pointerActive || event.pointerId !== activePointerId) return;
+        pointerActive = false;
+        activePointerId = null;
+        scroller.classList.remove('is-dragging-scroll');
+        scroller.releasePointerCapture?.(event.pointerId);
+        if (hasDragged) window.setTimeout(() => { suppressClick = false; }, 220);
+      };
+
+      scroller.addEventListener('pointerup', endDrag);
+      scroller.addEventListener('pointercancel', endDrag);
+      scroller.addEventListener('click', (event) => {
+        if (!suppressClick) return;
+        event.preventDefault();
+        event.stopPropagation();
+        suppressClick = false;
+      }, true);
+    });
+
+    document.querySelectorAll('.faq-accordion').forEach((item) => {
+      item.addEventListener('toggle', () => {
+        if (!item.open) return;
+        document.querySelectorAll('.faq-accordion[open]').forEach((openItem) => {
+          if (openItem !== item) openItem.removeAttribute('open');
+        });
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,200 @@
+---
+interface Props {
+  hint: string;
+}
+
+const { hint } = Astro.props;
+---
+
+<script is:inline data-table-hint={hint}>
+  const tableHintText = document.currentScript?.getAttribute('data-table-hint') || 'Drag / scroll to view full table';
+
+  document.querySelectorAll('[data-spec-table]').forEach((wrap) => {
+    const rows = Array.from(wrap.querySelectorAll('tbody tr'));
+    rows.forEach((row) => {
+      row.addEventListener('click', () => {
+        row.classList.toggle('is-selected');
+        const model = row.getAttribute('data-model');
+        if (!model) return;
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set('model', model);
+        window.history.replaceState({}, '', nextUrl);
+      });
+    });
+  });
+
+  const requestedModel = new URLSearchParams(window.location.search).get('model')?.trim().toLowerCase();
+  if (requestedModel) {
+    const matchingRows = Array.from(document.querySelectorAll('[data-model]')).filter(
+      (row) => row.getAttribute('data-model')?.trim().toLowerCase() === requestedModel
+    );
+    matchingRows.forEach((row) => row.classList.add('is-selected'));
+    matchingRows[0]?.scrollIntoView({ block: 'center', inline: 'nearest' });
+  }
+
+  document.querySelectorAll('.detail-panel.prose table').forEach((table) => {
+    if (table.closest('.table-scroll')) return;
+    const hintRow = document.createElement('div');
+    const hint = document.createElement('span');
+    hintRow.className = 'table-hint-row';
+    hint.className = 'table-scroll-hint';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.textContent = tableHintText;
+    hintRow.appendChild(hint);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'table-scroll markdown-table-scroll';
+    wrapper.tabIndex = 0;
+    table.parentNode?.insertBefore(hintRow, table);
+    table.parentNode?.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  });
+
+  document.querySelectorAll('.table-scroll').forEach((scroller) => {
+    const bar = document.createElement('div');
+    const thumb = document.createElement('span');
+    const hintRow = scroller.previousElementSibling?.classList.contains('table-hint-row')
+      ? scroller.previousElementSibling
+      : null;
+    let scrollbarFrame = 0;
+    bar.className = 'table-scrollbar';
+    bar.setAttribute('aria-hidden', 'true');
+    bar.appendChild(thumb);
+    scroller.insertAdjacentElement('afterend', bar);
+
+    const updateScrollbar = () => {
+      scrollbarFrame = 0;
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      if (maxScroll <= 2) {
+        bar.hidden = true;
+        hintRow?.setAttribute('hidden', '');
+        return;
+      }
+      bar.hidden = false;
+      hintRow?.removeAttribute('hidden');
+      const trackWidth = bar.clientWidth;
+      const thumbWidth = Math.max(48, Math.round(trackWidth * scroller.clientWidth / scroller.scrollWidth));
+      const maxThumbLeft = Math.max(0, trackWidth - thumbWidth);
+      const thumbLeft = maxThumbLeft * scroller.scrollLeft / maxScroll;
+      thumb.style.width = `${thumbWidth}px`;
+      thumb.style.transform = `translate3d(${thumbLeft}px, 0, 0)`;
+    };
+    const requestScrollbarUpdate = () => {
+      if (scrollbarFrame) return;
+      scrollbarFrame = window.requestAnimationFrame(updateScrollbar);
+    };
+    const scrollFromBarPointer = (clientX, centerThumb = false) => {
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      const trackWidth = bar.clientWidth;
+      const thumbWidth = thumb.offsetWidth || 48;
+      const maxThumbLeft = Math.max(1, trackWidth - thumbWidth);
+      const barLeft = bar.getBoundingClientRect().left;
+      const thumbHalf = centerThumb ? thumbWidth / 2 : 0;
+      const thumbLeft = Math.min(maxThumbLeft, Math.max(0, clientX - barLeft - thumbHalf));
+      scroller.scrollLeft = maxScroll * thumbLeft / maxThumbLeft;
+    };
+
+    scroller.addEventListener('scroll', requestScrollbarUpdate, { passive: true });
+    window.addEventListener('resize', requestScrollbarUpdate);
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(requestScrollbarUpdate).observe(scroller);
+    }
+    updateScrollbar();
+
+    let barPointerActive = false;
+    let barPointerId = null;
+    let barStartX = 0;
+    let barStartScrollLeft = 0;
+
+    bar.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary) return;
+      event.preventDefault();
+      if (event.target !== thumb) {
+        scrollFromBarPointer(event.clientX, true);
+      }
+      barPointerActive = true;
+      barPointerId = event.pointerId;
+      barStartX = event.clientX;
+      barStartScrollLeft = scroller.scrollLeft;
+      bar.classList.add('is-dragging');
+      bar.setPointerCapture?.(event.pointerId);
+    });
+
+    bar.addEventListener('pointermove', (event) => {
+      if (!barPointerActive || event.pointerId !== barPointerId) return;
+      const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+      const maxThumbLeft = Math.max(1, bar.clientWidth - (thumb.offsetWidth || 48));
+      scroller.scrollLeft = barStartScrollLeft + (event.clientX - barStartX) * maxScroll / maxThumbLeft;
+      event.preventDefault();
+    });
+
+    const endBarDrag = (event) => {
+      if (!barPointerActive || event.pointerId !== barPointerId) return;
+      barPointerActive = false;
+      barPointerId = null;
+      bar.classList.remove('is-dragging');
+      bar.releasePointerCapture?.(event.pointerId);
+    };
+
+    bar.addEventListener('pointerup', endBarDrag);
+    bar.addEventListener('pointercancel', endBarDrag);
+
+    let pointerActive = false;
+    let activePointerId = null;
+    let startX = 0;
+    let startScrollLeft = 0;
+    let hasDragged = false;
+    let suppressClick = false;
+    const dragThreshold = 5;
+
+    scroller.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary) return;
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      const target = event.target;
+      if (target instanceof Element && target.closest('a, button, input, textarea, select, summary')) return;
+      pointerActive = true;
+      activePointerId = event.pointerId;
+      hasDragged = false;
+      startX = event.clientX;
+      startScrollLeft = scroller.scrollLeft;
+      scroller.classList.add('is-dragging-scroll');
+      scroller.setPointerCapture?.(event.pointerId);
+    });
+
+    scroller.addEventListener('pointermove', (event) => {
+      if (!pointerActive || !event.isPrimary || event.pointerId !== activePointerId) return;
+      const delta = event.clientX - startX;
+      if (!hasDragged && Math.abs(delta) < dragThreshold) return;
+      hasDragged = true;
+      suppressClick = true;
+      scroller.scrollLeft = startScrollLeft - delta;
+      event.preventDefault();
+    });
+
+    const endDrag = (event) => {
+      if (!pointerActive || event.pointerId !== activePointerId) return;
+      pointerActive = false;
+      activePointerId = null;
+      scroller.classList.remove('is-dragging-scroll');
+      scroller.releasePointerCapture?.(event.pointerId);
+      if (hasDragged) window.setTimeout(() => { suppressClick = false; }, 220);
+    };
+
+    scroller.addEventListener('pointerup', endDrag);
+    scroller.addEventListener('pointercancel', endDrag);
+    scroller.addEventListener('click', (event) => {
+      if (!suppressClick) return;
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClick = false;
+    }, true);
+  });
+
+  document.querySelectorAll('.faq-accordion').forEach((item) => {
+    item.addEventListener('toggle', () => {
+      if (!item.open) return;
+      document.querySelectorAll('.faq-accordion[open]').forEach((openItem) => {
+        if (openItem !== item) openItem.removeAttribute('open');
+      });
+    });
+  });
+</script>

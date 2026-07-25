@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SeriesCard from '../components/SeriesCard.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import { brandAssets } from '../data/assets';
+import { breadcrumbStructuredData, categoryKeywords, collectionStructuredData } from '../data/seo';
+import { localizedProduct, localizedProductUrl, translateTechnicalText, ui } from '../data/i18n';
+import { type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
+import { siteInfo } from '../data/site';
+
+interface LocalizedCategory {
+  accent: string;
+  count: number;
+  description: string;
+  displayName?: string;
+  href: string;
+  highlights: string[];
+  image: string;
+  imageAlt: string;
+  name: string;
+  products: ProductEntry[];
+}
+
+interface Props {
+  locale: NonEnglishLocale;
+  category: LocalizedCategory;
+}
+
+const { locale, category } = Astro.props;
+const seoDescription = category.description;
+const categoryName = category.displayName || category.name;
+const categoryStructuredData = [
+  collectionStructuredData(
+    {
+      name: `${categoryName}`,
+      description: seoDescription,
+      url: category.href,
+      image: category.image,
+      keywords: categoryKeywords(category.name),
+      items: category.products.map(product => ({
+        name: localizedProduct(product, locale).title,
+        url: localizedProductUrl(product, locale),
+        image: product.data.image,
+      })),
+    },
+    Astro.site
+  ),
+  breadcrumbStructuredData(
+    [
+      { name: siteInfo.name, url: `/${locale}/` },
+      { name: ui[locale].nav.products, url: `/${locale}/products/` },
+      { name: categoryName, url: category.href },
+    ],
+    Astro.site
+  ),
+];
+---
+
+<BaseLayout title={`${categoryName}`} description={seoDescription} image={category.image} structuredData={categoryStructuredData} locale={locale}>
+  <main>
+    <section class="category-hero">
+      <div class="category-hero-bg" style={`--category-hero-image: url('${category.image}');`}></div>
+      <div class="container category-hero-inner">
+        <div class="category-hero-copy" dir="ltr">
+          <span class="eyebrow">{category.accent}</span>
+          <h1>{categoryName}</h1>
+          <p>{seoDescription}</p>
+          <div class="category-hero-tags">
+            {category.highlights.map(highlight => <span>{highlight}</span>)}
+          </div>
+          <ShareButtons
+            title={categoryName}
+            description={seoDescription}
+            image={category.image}
+            label={ui[locale].common.shareCategory}
+            className="share-buttons--banner"
+          />
+        </div>
+        <div class="category-hero-media">
+          <img src={category.image || brandAssets.heroCenter} alt={category.imageAlt} fetchpriority="high" decoding="async" width="1100" height="820" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-heading" dir="ltr">
+        <span class="eyebrow">{category.count} {translateTechnicalText('product series', locale)}</span>
+        <h2>{categoryName}</h2>
+        <p class="prose">{translateTechnicalText('Compare published items by design, application, model range and project fit.', locale)}</p>
+      </div>
+      <div class="card-grid series-card-grid">
+        {category.products.map(product => <SeriesCard product={product} locale={locale} />)}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

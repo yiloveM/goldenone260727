@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { brandAssets } from '../data/assets';
+import { getCategoryMeta } from '../data/productCategories';
+import { type Locale, localizedProduct, productPath } from '../data/i18n';
+
+interface Props {
+  product: CollectionEntry<'products'>;
+  locale?: Locale;
+}
+
+const { product, locale = 'en' } = Astro.props;
+const slug = product.id.replace(/\.mdoc$/, '');
+const localized = localizedProduct(product, locale);
+const categoryName = locale === 'en' ? (getCategoryMeta(product.data.category).displayName || getCategoryMeta(product.data.category).name) : localized.categoryName;
+const tags = localized.tags;
+const image = product.data.image || brandAssets.heroCenter;
+---
+<article class="series-card shadow-sm rounded-2xl border border-transparent hover:border-cyan-400 hover:shadow-cyan-500/20">
+  <a class="series-card-link" href={productPath(slug, locale)}>
+    <div class="series-card-media">
+      <img src={image} alt={localized.title} loading="lazy" decoding="async" width="900" height="640" />
+    </div>
+    <div class="series-card-body" dir={locale === 'ar' || locale === 'ur' ? 'rtl' : undefined}>
+      <span class="series-card-kicker">{categoryName}</span>
+      <h3 class="text-slate-900">{localized.title}</h3>
+      <div class="series-card-tags" aria-label={`${localized.title} product keywords`}>
+        {tags.map(tag => <span class="bg-cyan-50/50 text-cyan-700">{tag}</span>)}
+      </div>
+    </div>
+  </a>
+</article>

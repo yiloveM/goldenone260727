@@ -1,0 +1,84 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import SeriesCard from '../../../components/SeriesCard.astro';
+import ShareButtons from '../../../components/ShareButtons.astro';
+import { brandAssets } from '../../../data/assets';
+import { buildProductCategories, isProductPublished } from '../../../data/productCategories';
+import { breadcrumbStructuredData, categoryKeywords, categorySeoDescription, collectionStructuredData } from '../../../data/seo';
+
+export async function getStaticPaths() {
+  const products = (await getCollection('products')).filter(isProductPublished);
+  return buildProductCategories(products).map(category => ({
+    params: { slug: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const seoDescription = categorySeoDescription(category.name, category.description);
+const categoryName = category.displayName || category.name;
+const categoryStructuredData = [
+  collectionStructuredData(
+    {
+      name: `${categoryName}`,
+      description: seoDescription,
+      url: category.href,
+      image: category.image,
+      keywords: categoryKeywords(category.name),
+      items: category.products.map(product => ({
+        name: product.data.title,
+        url: `/products/${product.id.replace(/\.mdoc$/, '')}/`,
+        image: product.data.image,
+      })),
+    },
+    Astro.site
+  ),
+  breadcrumbStructuredData(
+    [
+        { name: 'Home', url: '/' },
+      { name: 'Products', url: '/products/' },
+      { name: categoryName, url: category.href },
+    ],
+    Astro.site
+  ),
+];
+---
+<BaseLayout title={`${categoryName} Series`} description={seoDescription} image={category.image} structuredData={categoryStructuredData}>
+  <main>
+    <section class="category-hero">
+      <div class="category-hero-bg" style={`--category-hero-image: url('${category.image}');`}></div>
+      <div class="container category-hero-inner">
+        <div class="category-hero-copy">
+          <span class="eyebrow">{category.accent}</span>
+          <h1>{categoryName}</h1>
+          <p>{seoDescription}</p>
+          <div class="category-hero-tags">
+            {category.highlights.map(highlight => <span>{highlight}</span>)}
+          </div>
+          <ShareButtons
+            title={`${categoryName} Series`}
+            description={seoDescription}
+            image={category.image}
+            label="Share category"
+            className="share-buttons--banner"
+          />
+        </div>
+        <div class="category-hero-media">
+          <img src={category.image || brandAssets.heroCenter} alt={category.imageAlt} fetchpriority="high" decoding="async" width="1100" height="820" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-heading">
+        <span class="eyebrow">{category.count} product series</span>
+        <h2>Compare {categoryName.toLowerCase()} series</h2>
+        <p class="prose">Review published items by design, application, model range and project fit.</p>
+      </div>
+      <div class="card-grid series-card-grid">
+        {category.products.map(product => <SeriesCard product={product} />)}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

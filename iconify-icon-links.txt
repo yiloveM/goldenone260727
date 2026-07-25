@@ -1,0 +1,28 @@
+BusinessWeb Iconify SVG icon links
+
+Current usage:
+- Footer social buttons: src/data/site.ts
+- Product detail share buttons: src/pages/products/[slug].astro
+
+Download these SVG files if you want to upload them to the R2 bucket later.
+After uploading to R2, replace the matching Iconify URLs in the files above with the R2 CDN URLs.
+
+Footer social icons:
+- Facebook: https://api.iconify.design/simple-icons/facebook.svg?color=%23ffffff
+- Instagram: https://api.iconify.design/simple-icons/instagram.svg?color=%23ffffff
+- YouTube: https://api.iconify.design/simple-icons/youtube.svg?color=%23ffffff
+- LinkedIn: https://api.iconify.design/simple-icons/linkedin.svg?color=%23ffffff
+
+Product share icons:
+- Facebook: https://api.iconify.design/simple-icons/facebook.svg?color=%23ffffff
+- LinkedIn: https://api.iconify.design/simple-icons/linkedin.svg?color=%23ffffff
+- WhatsApp: https://api.iconify.design/simple-icons/whatsapp.svg?color=%23ffffff
+- Email: https://api.iconify.design/mdi/email.svg?color=%23ffffff
+
+Icon source pages:
+- https://icon-sets.iconify.design/simple-icons/facebook/
+- https://icon-sets.iconify.design/simple-icons/instagram/
+- https://icon-sets.iconify.design/simple-icons/youtube/
+- https://icon-sets.iconify.design/simple-icons/linkedin/
+- https://icon-sets.iconify.design/simple-icons/whatsapp/
+- https://icon-sets.iconify.design/mdi/email/

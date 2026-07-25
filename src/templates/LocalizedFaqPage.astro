@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { pageImages } from '../data/site';
+import { breadcrumbStructuredData } from '../data/seo';
+import { ui } from '../data/i18n';
+import { getLocalizedFaqs, getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+import { siteInfo } from '../data/site';
+
+interface Props {
+  locale: NonEnglishLocale;
+}
+
+const { locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const faqs = getLocalizedFaqs(locale);
+const faqDescription = pages.faq.description;
+const faqStructuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    name: pages.faq.title,
+    description: faqDescription,
+    mainEntity: faqs.map(item => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  },
+  breadcrumbStructuredData(
+    [
+      { name: siteInfo.name, url: `/${locale}/` },
+      { name: ui[locale].nav.faq, url: `/${locale}/faq/` },
+    ],
+    Astro.site
+  ),
+];
+---
+
+<BaseLayout title={pages.faq.title} description={faqDescription} image={pageImages.faq} structuredData={faqStructuredData} locale={locale}>
+  <main>
+    <PageBanner
+      eyebrow={pages.faq.bannerEyebrow}
+      title={pages.faq.bannerTitle}
+      description={pages.faq.bannerDescription}
+      image={pageImages.faq}
+      variant="interior"
+      dir="ltr"
+    />
+    <section class="section container interior-section faq-page-section">
+      <div class="section-heading section-heading--compact" dir="ltr">
+        <span class="eyebrow">{pages.faq.clarityEyebrow}</span>
+        <h2>{pages.faq.clarityTitle}</h2>
+      </div>
+      <div class="faq-accordion-list faq-page-list">
+        {faqs.map(item => (
+          <details class="faq-accordion faq-accordion--water">
+            <summary><strong>{item.question}</strong><span aria-hidden="true">+</span></summary>
+            <div class="faq-accordion-panel">
+              <p>{item.answer}</p>
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageBanner from '../components/PageBanner.astro';
+import { pageImages } from '../data/site';
+import { industryProfile, primaryKeyword, profileKeywords } from '../data/industry-profile';
+import { collectionStructuredData } from '../data/seo';
+import { blogPath, localeMeta, localizedBlog, translateTechnicalText } from '../data/i18n';
+import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+
+interface Props {
+  locale: NonEnglishLocale;
+}
+
+const { locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const posts = (await getCollection('blog')).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+const blogDescription = pages.blog.description;
+const blogStructuredData = collectionStructuredData(
+  {
+    name: pages.blog.title,
+    description: blogDescription,
+    url: `/${locale}/blog/`,
+    image: pageImages.engineeringNotes,
+    keywords: profileKeywords([primaryKeyword, 'buyer guide', 'technical notes']),
+    items: posts.map(post => {
+      const item = localizedBlog(post, locale);
+      return {
+        name: item.title,
+        url: blogPath(item.slug, locale),
+        image: post.data.image,
+      };
+    }),
+  },
+  Astro.site
+);
+---
+
+<BaseLayout title={pages.blog.title} description={blogDescription} image={pageImages.engineeringNotes} structuredData={blogStructuredData} locale={locale}>
+  <main>
+    <PageBanner
+      eyebrow={pages.blog.bannerEyebrow}
+      title={pages.blog.bannerTitle}
+      description={pages.blog.bannerDescription}
+      image={pageImages.engineeringNotes}
+      dir="ltr"
+    />
+    <section class="section container">
+      <div class="card-grid">
+        {posts.length ? posts.map(post => {
+          const item = localizedBlog(post, locale);
+          return (
+            <article class="card">
+              <a href={blogPath(item.slug, locale)}>
+                {post.data.image && <img src={post.data.image} alt={item.title} loading="lazy" decoding="async" width="1200" height="760" />}
+                <div class="card-body" dir="ltr">
+                  <span class="eyebrow">{item.category} / <bdi dir="ltr">{post.data.publishDate.toLocaleDateString(localeMeta[locale].htmlLang)}</bdi></span>
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                </div>
+              </a>
+            </article>
+          );
+        }) : (
+          <article class="card">
+            <img src={pageImages.engineeringNotes} alt={`${industryProfile.market.industry} insights`} loading="lazy" decoding="async" width="1200" height="760" />
+            <div class="card-body" dir="ltr"><span class="eyebrow">{pages.blog.bannerEyebrow}</span><h2>{translateTechnicalText('Practical guidance is in preparation', locale)}</h2><p>{pages.blog.bannerDescription}</p></div>
+          </article>
+        )}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

@@ -1,0 +1,30 @@
+---
+import ShareButtons from './ShareButtons.astro';
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  variant?: string;
+  share?: boolean;
+  shareLabel?: string;
+  dir?: 'ltr' | 'rtl';
+}
+
+const { eyebrow, title, description, image, ctaHref, ctaLabel, variant, share = false, shareLabel = 'Share page', dir } = Astro.props;
+const classes = ['page-banner', variant ? `page-banner--${variant}` : ''];
+---
+<section class:list={classes} style={`--page-banner-image: url('${image}');`}>
+  <div class="container page-banner-inner">
+    <div class="page-banner-copy" dir={dir}>
+      <span class="eyebrow">{eyebrow}</span>
+      <h1>{title}</h1>
+      <p>{description}</p>
+      {ctaHref && ctaLabel && <a class="btn secondary" href={ctaHref}>{ctaLabel}</a>}
+      {share && <ShareButtons title={title} description={description} image={image} label={shareLabel} className="share-buttons--banner" />}
+    </div>
+  </div>
+</section>

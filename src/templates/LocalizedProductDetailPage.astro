@@ -1,0 +1,238 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { brandAssets } from '../data/assets';
+import { isProductPublished, sortProductsByPriority } from '../data/productCategories';
+import { breadcrumbStructuredData } from '../data/seo';
+import SeriesCard from '../components/SeriesCard.astro';
+import ShareButtons from '../components/ShareButtons.astro';
+import ProductMediaGallery from '../components/ProductMediaGallery.astro';
+import ProductImageCarousel from '../components/ProductImageCarousel.astro';
+import ProductTableScrollerScript from '../components/ProductTableScrollerScript.astro';
+import {
+  categoryPath,
+  localizedProduct,
+  localizedProductStructuredData,
+  productPath,
+  translateTechnicalText,
+  ui,
+} from '../data/i18n';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
+import { getLocalizedPageCopy, type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
+import { siteInfo } from '../data/site';
+
+interface Props {
+  locale: NonEnglishLocale;
+  product: ProductEntry;
+}
+
+const { product, locale } = Astro.props;
+const pages = getLocalizedPageCopy(locale);
+const common = ui[locale].common;
+const slug = product.id.replace(/\.mdoc$/, '');
+const productImage = product.data.image || brandAssets.heroCenter;
+const productGalleryImages = Array.from(new Set([productImage, ...(product.data.galleryImages || [])].filter(Boolean)));
+const productDetailImages = (product.data.detailImages || []).filter(item => item.image);
+const productTranslationDrafts = await getCollection('productTranslations');
+const productTranslationDraft = findPublishedProductTranslation(productTranslationDrafts, slug, locale);
+const DraftContent = productTranslationDraft ? (await render(productTranslationDraft)).Content : null;
+const localized = applyProductTranslationDraft(localizedProduct(product, locale), productTranslationDraft);
+const productCategoryName = localized.categoryName;
+const relatedProducts = sortProductsByPriority(
+  (await getCollection('products')).filter(
+    item => isProductPublished(item) && item.id !== product.id && item.data.category === product.data.category
+  )
+).slice(0, 3);
+const productUrl = new URL(productPath(slug, locale), Astro.site || 'https://businessweb.workers.dev').toString();
+const productDescription = localized.description;
+const isRedundantSpecTableTitle = (title: string) =>
+  /^(product|model|technical)\s+specifications?$/i.test(String(title || '').trim());
+const isModelSpecTable = (table: typeof product.data.specTables[number]) =>
+  /(^|\b)(model|item|code|sku|product\s*code)(\b|$)/i.test(String(table.columns[0] || ''));
+const productStructuredDataItem = [
+  ...localizedProductStructuredData(product, locale, Astro.site).map(item =>
+    item['@id'] === `${productUrl}${product.data.offeringType === 'physical-product' ? '#product' : '#service'}`
+      ? { ...item, name: localized.title, description: productDescription, category: productCategoryName }
+      : item
+  ),
+  breadcrumbStructuredData(
+    [
+      { name: siteInfo.name, url: `/${locale}/` },
+      { name: ui[locale].nav.products, url: `/${locale}/products/` },
+      { name: productCategoryName, url: categoryPath(product.data.category, locale) },
+      { name: localized.title, url: productPath(slug, locale) },
+    ],
+    Astro.site
+  ),
+];
+const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll to view full table';
+---
+
+<BaseLayout title={localized.title} description={productDescription} image={productImage} type="product" structuredData={productStructuredDataItem} locale={locale}>
+  <main>
+    <section class="section container product-hero" style={`--product-hero-image: url('${productImage}');`}>
+      <div class="glass-panel product-hero-grid">
+        <div class="product-hero-copy" dir="ltr">
+          <span class="eyebrow">{productCategoryName} / {localized.series}</span>
+          <h1>{localized.title}</h1>
+          <p class="prose">{localized.description}</p>
+          <div class="hero-actions">
+            <a class="btn primary" href={`/${locale}/contact/`}>{common.requestQuote}</a>
+            <a class="btn secondary" href={`/${locale}/products/`}>{common.exploreRange}</a>
+          </div>
+          <div class="product-meta-strip">
+            <span>{pages.product.metaReady}</span>
+            <span>{pages.product.distributorSupport}</span>
+            <span>{pages.product.internationalSupport}</span>
+            {product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
+              <span><bdi dir="ltr">{product.data.aggregateRatingValue}/5 ({product.data.aggregateRatingCount})</bdi></span>
+            )}
+          </div>
+          <ShareButtons
+            url={productUrl}
+            title={localized.title}
+            description={productDescription}
+            image={productImage}
+            label={common.shareProduct}
+          />
+        </div>
+        <div class="product-hero-media"><ProductImageCarousel images={productGalleryImages} title={localized.title} variant="hero" priority /></div>
+      </div>
+    </section>
+
+    <section class="section container product-story-section" style="padding-top:0;">
+      <div class="product-story-grid lg:grid lg:grid-cols-2">
+        <aside class="product-sticky-panel sticky top-24">
+          <div class="product-image-stage"><ProductImageCarousel images={productGalleryImages} title={localized.title} variant="stage" /></div>
+          <div class="product-sticky-meta" dir="ltr">
+            <span>{localized.series}</span>
+            <strong>{productCategoryName}</strong>
+            <p>{pages.product.stickyText}</p>
+            <div class="product-sticky-actions">
+              <a href={`/${locale}/contact/`}>{pages.product.requestQuote}</a>
+              <a href={categoryPath(product.data.category, locale)}>{pages.product.viewCategory}</a>
+            </div>
+          </div>
+        </aside>
+
+        <div class="product-scroll-copy">
+          <section class="detail-panel">
+            <span class="eyebrow">{pages.product.highlightsEyebrow}</span>
+            <h2>{pages.product.highlightsTitle}</h2>
+            <ul class="product-highlights" aria-label={`${localized.title} highlights`} dir="ltr">
+              {localized.highlights.map(item => (
+                <li class="highlight-card p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                  <span class="highlight-check text-cyan-500" aria-hidden="true">&#10003;</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {localized.applications.length > 0 && (
+            <section class="detail-panel">
+              <span class="eyebrow">{pages.product.applicationsEyebrow}</span>
+              <h2>{pages.product.applicationsTitle}</h2>
+              <ul class="application-list prose">
+                {localized.applications.map(item => <li>{item}</li>)}
+              </ul>
+            </section>
+          )}
+
+          <ProductMediaGallery detailImages={productDetailImages} title={localized.title} />
+
+          <section class="detail-panel">
+            <span class="eyebrow">{pages.product.specsEyebrow}</span>
+            <h2>{pages.product.specsTitle}</h2>
+            <div class="table-hint-row">
+              <span class="table-scroll-hint" aria-hidden="true">{tableHint}</span>
+            </div>
+            <div class="table-scroll table-scroll--overview" tabindex="0" dir="ltr">
+              <table class="spec-table spec-overview-table">
+                <tbody>{localized.specs.map(row => <tr><th dir="ltr">{row.label}</th><td><bdi dir="ltr">{row.value}</bdi></td></tr>)}</tbody>
+              </table>
+            </div>
+          </section>
+
+          {localized.specTables.length > 0 && (
+            <section class="detail-panel">
+              <h2>{pages.product.modelEyebrow}</h2>
+              <div class="spec-table-stack">
+                {localized.specTables.map((table, tableIndex) => {
+                  const sourceTitle = product.data.specTables[tableIndex]?.title || table.title;
+                  return (
+                    <div class="table-wrap" data-spec-table>
+                      {!isRedundantSpecTableTitle(sourceTitle) && (
+                        <div class="spec-table-head">
+                          <div>
+                            <h3>{table.title}</h3>
+                          </div>
+                        </div>
+                      )}
+                      <div class="table-hint-row">
+                        <span class="table-scroll-hint" aria-hidden="true">{tableHint}</span>
+                      </div>
+                      <div class="matrix-scroll table-scroll" tabindex="0" dir="ltr">
+                        <table class="spec-table matrix">
+                          <thead>
+                            {table.headerRows.length
+                              ? table.headerRows.map(headerRow => (
+                                <tr>{headerRow.cells.map(cell => (
+                                  <th colspan={cell.colspan > 1 ? cell.colspan : undefined} rowspan={cell.rowspan > 1 ? cell.rowspan : undefined} dir="ltr">{cell.text}</th>
+                                ))}</tr>
+                              ))
+                              : <tr>{table.columns.map(column => <th dir="ltr">{column}</th>)}</tr>}
+                          </thead>
+                          <tbody>{table.rows.map(row => <tr data-model={isModelSpecTable(product.data.specTables[tableIndex] || table) ? row[0] : undefined}>{row.map(cell => <td><bdi dir="ltr">{cell}</bdi></td>)}</tr>)}</tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <section class="detail-panel prose" dir="ltr">
+            {DraftContent ? <DraftContent /> : (
+              <div class="localized-product-overview">
+                <span class="eyebrow">{pages.product.overviewEyebrow}</span>
+                <p>{localized.description}</p>
+                <p>{translateTechnicalText('This series helps buyers and project teams compare models, confirm application fit and prepare quotations with clear technical data.', locale)}</p>
+              </div>
+            )}
+          </section>
+
+          {localized.faqs.length > 0 && (
+            <section class="detail-panel">
+              <span class="eyebrow">{pages.product.faqEyebrow}</span>
+              <h2>{pages.product.faqTitle}</h2>
+              <div class="faq-accordion-list">
+                {localized.faqs.map(item => (
+                  <details class="faq-accordion">
+                    <summary><strong>{item.question}</strong><span aria-hidden="true">+</span></summary>
+                    <div class="faq-accordion-panel">
+                      <p>{item.answer}</p>
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </section>
+
+    {relatedProducts.length > 0 && (
+      <section class="section container related-products-section deferred-section">
+        <div class="section-heading" dir="ltr">
+          <span class="eyebrow">{pages.product.relatedEyebrow}</span>
+          <h2>{pages.product.relatedTitlePrefix} {productCategoryName}</h2>
+          <p class="prose">{pages.product.relatedDescription}</p>
+        </div>
+        <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} locale={locale} />)}</div>
+      </section>
+    )}
+  </main>
+  <ProductTableScrollerScript hint={tableHint} />
+</BaseLayout>

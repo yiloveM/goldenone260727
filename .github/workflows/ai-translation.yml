@@ -1,0 +1,103 @@
+name: AI Translation Drafts
+run-name: AI translation ${{ inputs.sourceSlug || 'batch' }} / ${{ inputs.locales }} / ${{ inputs.requestId }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      requestId:
+        description: 'Internal request id for Keystatic status polling'
+        required: true
+        type: string
+      sourceType:
+        description: 'Content range'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - products
+          - blog
+      locales:
+        description: 'Target locales separated by commas, for example zh,ar,hi'
+        required: true
+        default: 'zh,ar,hi,es,fr,bn,pt,ru,ur,de,tr,fil,ko,uz'
+        type: string
+      sourceSlug:
+        description: 'Optional product or article slug'
+        required: false
+        default: ''
+        type: string
+      overwrite:
+        description: 'Overwrite existing draft files'
+        required: true
+        default: false
+        type: boolean
+      apiKeyOffset:
+        description: 'Internal key rotation offset'
+        required: false
+        default: '0'
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-translation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  translate:
+    name: Generate draft translations
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate translation drafts
+        env:
+          AI_TRANSLATION_SOURCE_TYPE: ${{ inputs.sourceType }}
+          AI_TRANSLATION_LOCALES: ${{ inputs.locales }}
+          AI_TRANSLATION_SOURCE_SLUG: ${{ inputs.sourceSlug }}
+          AI_TRANSLATION_OVERWRITE: ${{ inputs.overwrite }}
+          AI_TRANSLATION_API_KEY_OFFSET: ${{ inputs.apiKeyOffset }}
+          AI_TRANSLATION_REQUEST_ID: ${{ inputs.requestId }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+          GOOGLE_AI_API_KEYS: ${{ secrets.GOOGLE_AI_API_KEYS }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GOOGLE_API_KEYS: ${{ secrets.GOOGLE_API_KEYS }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          GOOGLE_AI_TRANSLATION_MODEL: ${{ vars.GOOGLE_AI_TRANSLATION_MODEL }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+        run: npm run ai:translate
+
+      - name: Commit draft translations and task result
+        if: always()
+        run: |
+          CHANGES="$(git status --porcelain -- src/content/productTranslations src/content/blogTranslations .github/ai-translation-results)"
+          if [ -z "$CHANGES" ]; then
+            echo "No draft changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/content/productTranslations src/content/blogTranslations .github/ai-translation-results
+          git commit -m "Generate AI translation drafts [skip ci]"
+          git push

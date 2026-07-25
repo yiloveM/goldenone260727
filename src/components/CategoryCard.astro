@@ -1,0 +1,45 @@
+---
+import type { ProductCategory } from '../data/productCategories';
+import { type Locale, localizedProduct, translateProductCategory, ui } from '../data/i18n';
+
+interface Props {
+  category: ProductCategory;
+  priority?: boolean;
+  locale?: Locale;
+}
+
+const { category: inputCategory, priority = false, locale = 'en' } = Astro.props;
+const category = translateProductCategory(inputCategory, locale);
+const sampleProducts = category.products.slice(0, 3);
+const categoryName = category.displayName || category.name;
+const viewLabel = `${ui[locale].nav.viewAll} ${categoryName}`;
+const highlightsLabel = `${categoryName} ${ui[locale].common.exploreRange}`;
+---
+<article class="category-card" style={`--category-accent-image: url('${category.image}');`}>
+  <a class="category-card-link" href={category.href} aria-label={viewLabel}>
+    <div class="category-card-media">
+      <img
+        src={category.image}
+        alt={category.imageAlt}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : undefined}
+        decoding="async"
+        width="900"
+        height="620"
+      />
+    </div>
+    <div class="category-card-body" dir={locale === 'ar' || locale === 'ur' ? 'rtl' : undefined}>
+      <span class="category-card-kicker">{category.accent}</span>
+      <h3>{categoryName}</h3>
+      <p>{category.description}</p>
+      <div class="category-card-tags" aria-label={highlightsLabel}>
+        {category.highlights.map(highlight => <span>{highlight}</span>)}
+      </div>
+      {sampleProducts.length > 0 && (
+        <div class="category-card-products" aria-label={highlightsLabel}>
+          {sampleProducts.map(product => <span>{localizedProduct(product, locale).series}</span>)}
+        </div>
+      )}
+    </div>
+  </a>
+</article>

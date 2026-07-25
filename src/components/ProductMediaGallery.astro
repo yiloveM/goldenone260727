@@ -1,0 +1,32 @@
+---
+interface DetailImage {
+  image: string;
+  title?: string;
+  caption?: string;
+}
+
+interface Props {
+  detailImages?: DetailImage[];
+  title: string;
+}
+
+const { detailImages = [], title } = Astro.props;
+const featureImages = detailImages.filter(item => item.image).slice(0, 6);
+---
+{featureImages.length > 0 && (
+  <section class="detail-panel product-feature-images" aria-label={`${title} application and feature images`}>
+    <div class="product-feature-image-grid">
+      {featureImages.map(item => (
+        <figure class="product-feature-image">
+          <img src={item.image} alt={item.title || title} loading="lazy" decoding="async" width="1400" height="900" />
+          {(item.title || item.caption) && (
+            <figcaption>
+              {item.title && <strong>{item.title}</strong>}
+              {item.caption && <span>{item.caption}</span>}
+            </figcaption>
+          )}
+        </figure>
+      ))}
+    </div>
+  </section>
+)}

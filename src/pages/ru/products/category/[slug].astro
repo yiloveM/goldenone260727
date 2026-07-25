@@ -1,0 +1,9 @@
+---
+import LocalizedProductCategoryPage from '../../../../templates/LocalizedProductCategoryPage.astro';
+import { getLocalizedProductCategoryStaticPaths } from '../../../../templates/localizedPageHelpers';
+
+export const getStaticPaths = () => getLocalizedProductCategoryStaticPaths('ru');
+const locale = 'ru';
+---
+
+<LocalizedProductCategoryPage locale={locale} category={Astro.props.category} />

@@ -1,0 +1,51 @@
+{
+  "name": "businessweb-template",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node scripts/run-astro.mjs dev",
+    "build": "node scripts/run-astro.mjs verified-build",
+    "preview": "node scripts/run-astro.mjs preview",
+    "deploy": "node scripts/run-deploy.mjs",
+    "types:cloudflare": "node scripts/run-wrangler-types.mjs",
+    "check": "node scripts/run-astro.mjs check",
+    "check:template": "node scripts/run-template-check.mjs",
+    "check:template:production": "node scripts/run-template-check.mjs --production",
+    "check:continuity": "node scripts/audit-feature-continuity.mjs",
+    "industry:brief": "node scripts/initialize-industry-profile.mjs",
+    "check:seo": "node scripts/audit-product-seo.mjs",
+    "check:rich-results": "node scripts/audit-product-seo.mjs --rich-results",
+    "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",
+    "preview:astro": "node scripts/run-astro.mjs preview",
+    "check:keystatic-env": "node scripts/check-keystatic-env.mjs",
+    "ai:translate": "node scripts/run-ai-translation.mjs",
+    "test:ai-translation:sandbox": "node scripts/ai-translation-sandbox.mjs",
+    "sync:blog:i18n": "node scripts/generate-article-translations.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "0.9.9",
+    "@astrojs/cloudflare": "^13.7.0",
+    "@astrojs/markdoc": "^1.0.6",
+    "@astrojs/react": "^5.0.7",
+    "@astrojs/sitemap": "^3.7.3",
+    "@google/genai": "^2.9.0",
+    "@keystatic/astro": "^5.2.0",
+    "@keystatic/core": "0.5.50",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^6.4.8",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "latest",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "wrangler": "^4.114.0"
+  }
+}

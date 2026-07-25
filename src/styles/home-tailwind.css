@@ -1,0 +1,17 @@
+/*
+ * Public homepage utilities only. Preflight is intentionally omitted so the
+ * existing public pages and both administrative applications retain their UI.
+ */
+@import "tailwindcss/theme" layer(tailwind-theme) prefix(tw);
+@import "tailwindcss/utilities" layer(tailwind-utilities) source(none) prefix(tw);
+
+@source "../pages/index.astro";
+@source "../templates/LocalizedHomePage.astro";
+
+@theme {
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0f766e;
+  --color-brand-700: #0f5f5a;
+  --color-ink-950: #111827;
+}
