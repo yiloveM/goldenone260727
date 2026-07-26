@@ -4,7 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { brandAssets } from '../../data/assets';
 import { getCategoryMeta, isProductPublished, sortProductsByPriority } from '../../data/productCategories';
 import { publicProductSpecs } from '../../data/productSpecs';
-import { productSeoDescription, productStructuredData } from '../../data/seo';
+import { productSeoDescription, productStructuredData, siteUrl } from '../../data/seo';
 import SeriesCard from '../../components/SeriesCard.astro';
 import ShareButtons from '../../components/ShareButtons.astro';
 import ProductMediaGallery from '../../components/ProductMediaGallery.astro';
@@ -28,7 +28,7 @@ const relatedProducts = sortProductsByPriority(
     item => isProductPublished(item) && item.id !== product.id && item.data.category === product.data.category
   )
 ).slice(0, 3);
-const productUrl = new URL(`/products/${product.id.replace(/\.mdoc$/, '')}/`, Astro.site || 'https://businessweb.workers.dev').toString();
+const productUrl = new URL(`/products/${product.id.replace(/\.mdoc$/, '')}/`, siteUrl(Astro.site)).toString();
 const productDescription = productSeoDescription(product);
 const productStructuredDataItem = productStructuredData(product, slug, Astro.site);
 const visibleSpecs = publicProductSpecs(product.data.specs);

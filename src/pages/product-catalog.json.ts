@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { getCategoryMeta, isProductPublished, sortProductsByPriority } from '../data/productCategories';
 import { siteInfo } from '../data/site';
+import { siteUrl } from '../data/seo';
 
 export const prerender = true;
 
@@ -31,7 +32,7 @@ const modelData = (table: {
 };
 
 export const GET: APIRoute = async ({ site }) => {
-  const origin = site?.origin || 'https://businessweb.workers.dev';
+  const origin = siteUrl(site);
   const products = sortProductsByPriority((await getCollection('products')).filter(isProductPublished));
 
   const catalog = {

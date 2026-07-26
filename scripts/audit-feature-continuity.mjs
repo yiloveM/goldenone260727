@@ -18,7 +18,7 @@ const contracts = [
   {
     area: 'Astro and Cloudflare runtime',
     file: 'astro.config.mjs',
-    markers: ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', 'keystatic()', 'sitemap(', 'i18n:'],
+    markers: ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', 'keystatic()', 'siteOriginConfig', 'retiredHosts', 'sitemap(', 'i18n:'],
   },
   {
     area: 'Cloudflare bindings',
@@ -113,7 +113,7 @@ const contracts = [
   {
     area: 'Structured data and SEO logic',
     file: 'src/data/seo.ts',
-    markers: ['ProductGroup', 'Service', 'productStructuredData', 'FAQPage'],
+    markers: ['siteOriginConfig', 'ProductGroup', 'Service', 'productStructuredData', 'FAQPage'],
   },
   {
     area: 'Search discovery outputs',
@@ -123,7 +123,7 @@ const contracts = [
   {
     area: 'Visual-layer isolation',
     file: 'src/layouts/BaseLayout.astro',
-    markers: ["astrowind-visual-foundation.css", 'data-visual-foundation="astrowind"', 'structuredDataItems', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest'],
+    markers: ["astrowind-visual-foundation.css", 'data-visual-foundation="astrowind"', 'href: localizePath(Astro.url.pathname, locale)', 'structuredDataItems', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest'],
   },
   {
     area: 'Tailwind homepage foundation',
@@ -143,7 +143,7 @@ const contracts = [
   {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
-    markers: ['npm run types:cloudflare -- --check', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
+    markers: ['npm run types:cloudflare -- --check', 'SITE_URL: ${{ vars.SITE_URL }}', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
   },
   {
     area: 'AstroWind visual foundation',
@@ -154,6 +154,7 @@ const contracts = [
 
 const requiredFiles = [
   'src/data/site-language-settings.json',
+  'src/data/site-origin.json',
   'src/integrations/keystatic-cloudflare.mjs',
   'src/pages/api/keystatic/[...params].ts',
   'src/pages/api/ai/translations.ts',
@@ -213,6 +214,62 @@ function auditProject(root, label) {
   }
   if (existsSync(resolve(root, 'src/data/site-language-settings.json.json'))) {
     addError(`${label}: unexpected duplicate language settings file exists: src/data/site-language-settings.json.json`);
+  }
+
+  try {
+    const originConfig = JSON.parse(readText(resolve(root, 'src/data/site-origin.json')));
+    const productionUrl = String(originConfig.productionUrl || '').trim();
+    const productionOrigin = productionUrl ? new URL(productionUrl).origin : '';
+    const productionHost = productionOrigin ? new URL(productionOrigin).hostname.toLowerCase() : '';
+    const retiredHosts = Array.isArray(originConfig.retiredHosts)
+      ? originConfig.retiredHosts.map(host => String(host).trim().toLowerCase()).filter(Boolean)
+      : [];
+
+    if (productionUrl && productionOrigin !== productionUrl) {
+      addError(`${label}: src/data/site-origin.json productionUrl must be an origin without a path or trailing slash.`);
+    }
+    if (!Array.isArray(originConfig.retiredHosts)) {
+      addError(`${label}: src/data/site-origin.json retiredHosts must be an array.`);
+    }
+    if (new Set(retiredHosts).size !== retiredHosts.length) {
+      addError(`${label}: src/data/site-origin.json retiredHosts contains duplicates.`);
+    }
+    if (productionHost && retiredHosts.includes(productionHost)) {
+      addError(`${label}: the active production host cannot also be listed in retiredHosts.`);
+    }
+
+    const wrangler = readText(resolve(root, 'wrangler.toml'));
+    const wranglerSiteUrl = wrangler.match(/^SITE_URL\s*=\s*"([^"]*)"/m)?.[1] ?? null;
+    if (wranglerSiteUrl !== productionOrigin) {
+      addError(`${label}: wrangler.toml SITE_URL must match src/data/site-origin.json productionUrl.`);
+    }
+
+    const workflow = readText(resolve(root, '.github/workflows/site-publish.yml'));
+    if (productionOrigin && (workflow.includes(`|| '${productionOrigin}'`) || workflow.includes(`|| "${productionOrigin}"`))) {
+      addError(`${label}: the publish workflow must use the central site-origin fallback instead of duplicating SITE_URL.`);
+    }
+
+    const runtimeOriginLeaks = [];
+    const scanRuntimeCode = directory => {
+      for (const name of readdirSync(directory)) {
+        const fullPath = resolve(directory, name);
+        const stats = statSync(fullPath);
+        if (stats.isDirectory()) {
+          scanRuntimeCode(fullPath);
+          continue;
+        }
+        if (!/\.(?:astro|[cm]?[jt]sx?)$/i.test(name)) continue;
+        if (productionOrigin && readText(fullPath).includes(productionOrigin)) {
+          runtimeOriginLeaks.push(relative(root, fullPath).split(sep).join('/'));
+        }
+      }
+    };
+    scanRuntimeCode(resolve(root, 'src'));
+    if (runtimeOriginLeaks.length) {
+      addError(`${label}: production origin is hard-coded outside site-origin.json: ${runtimeOriginLeaks.join(', ')}`);
+    }
+  } catch (error) {
+    addError(`${label}: site origin configuration could not be validated: ${error.message}`);
   }
 
   const readme = resolve(root, 'README.md');

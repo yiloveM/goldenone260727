@@ -5,7 +5,7 @@ import PageBanner from '../components/PageBanner.astro';
 import { brandAssets } from '../data/assets';
 import { pageImages, siteInfo } from '../data/site';
 import { industryProfile } from '../data/industry-profile';
-import { breadcrumbStructuredData, organizationStructuredData } from '../data/seo';
+import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 
 const mapAddress = siteInfo.address;
 const hasMapAddress = Boolean(mapAddress && !/^replace with/i.test(mapAddress));
@@ -19,7 +19,7 @@ const contactStructuredData = [
     '@type': 'ContactPage',
     name: `Contact ${siteInfo.name}`,
     description: contactDescription,
-    url: new URL('/contact/', Astro.site || 'https://businessweb.workers.dev').toString(),
+    url: new URL('/contact/', siteUrl(Astro.site)).toString(),
   },
   breadcrumbStructuredData(
     [

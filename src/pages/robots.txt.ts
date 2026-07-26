@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
+import { siteUrl } from '../data/seo';
 
 export const GET: APIRoute = ({ site }) => {
-  const origin = site?.origin || 'https://businessweb.workers.dev';
+  const origin = siteUrl(site);
   return new Response(
     [
       'User-agent: *',

@@ -101,10 +101,10 @@ Astro 6 的 Cloudflare adapter 会声明名为 `SESSION` 的会话 KV。新建 W
 name = "client-industry-site"
 
 [vars]
-SITE_URL = "https://businessweb.workers.dev"
+SITE_URL = ""
 KEYSTATIC_GITHUB_REPO = "你的组织/客户新仓库"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "你的-keystatic-github-app-slug"
-PUBLIC_R2_ASSET_BASE_URL = "https://businessweb.workers.dev/r2"
+PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
@@ -116,7 +116,7 @@ database_name = "步骤 3 创建的数据库名称"
 database_id = "步骤 3 的 Database ID"
 ```
 
-首次部署前还不知道真实 `workers.dev` 地址，因此上面两个网址先保留为可用的临时值即可；不要猜测账户子域名。完成步骤 7 后会把它们替换为真实网址。点击 **Commit changes**，直接提交到 `main`。
+首次部署前还不知道真实 `workers.dev` 地址，因此 `SITE_URL` 和 `src/data/site-origin.json` 的 `productionUrl` 都保持空字符串，`retiredHosts` 保持空数组。不要猜测或虚构网站域名。`PUBLIC_R2_ASSET_BASE_URL` 暂时保留明显的 CDN 占位值，取得实际网站地址或 R2 自定义域名后再替换。第一次构建只会在站点元数据中使用本机地址作为临时内部后备；取得 Cloudflare 实际分配的网址后，必须按步骤 7.1 填入真实地址并重新部署，之后才能对外使用。点击 **Commit changes**，直接提交到 `main`。
 
 ### 步骤 5：取得 Cloudflare API Token 和 Account ID
 
@@ -158,7 +158,7 @@ database_id = "步骤 3 的 Database ID"
 | --- | --- |
 | `SITE_URL` | 首次部署后得到的公开网站根地址；后续绑定正式域名时改为正式域名 |
 
-首次部署前还不知道公开网址时，先不要创建 `SITE_URL` 这个 Variable；工作流会临时使用 `https://businessweb.workers.dev` 完成第一次部署。取得真实的 `workers.dev` 地址后，必须在后面的步骤 7.1 补齐它，再进行第二次部署。
+首次部署前还不知道公开网址时，先不要创建 `SITE_URL` 这个 Variable。模板允许用空地址完成第一次部署，以便取得 Cloudflare 实际分配的 `workers.dev` 地址；取得后必须在步骤 7.1 补齐真实地址并进行第二次部署。
 
 5. 在同一仓库打开 **Settings -> Actions -> General**，找到 **Workflow permissions**，选择 **Read and write permissions** 并点击 **Save**。AI 翻译工作流需要把翻译草稿写回仓库；如果组织策略锁定该选项，请让组织管理员允许当前仓库使用写入权限。
 
@@ -237,7 +237,7 @@ https://你的公开网站地址/api/keystatic/github/oauth/callback
 5. Repository permissions 中给 **Contents** 选择 **Read and write**。
 6. 创建 App，复制 **Client ID**，生成并复制 **Client secret**。`Client secret` 离开页面后无法再次查看，复制后立即放进密码管理器。
 7. 点击 **Install App**，只安装到当前客户的新仓库。
-8. 记下 App 的 slug（GitHub App 设置页面网址中 `/apps/` 后面的短名称）。回到 GitHub 编辑 `wrangler.toml`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为这个 slug；同时将 `[vars]` 中的 `SITE_URL` 改为步骤 7 的网址，并把 `PUBLIC_R2_ASSET_BASE_URL` 改为同一网址加 `/r2`，例如 `https://client-industry-site.<你的账户>.workers.dev/r2`。提交到 `main`，等待第二次自动部署成功。
+8. 记下 App 的 slug（GitHub App 设置页面网址中 `/apps/` 后面的短名称）。回到 GitHub 编辑 `wrangler.toml`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为这个 slug；同时将 `[vars]` 中的 `SITE_URL` 改为步骤 7 的网址，并把 `PUBLIC_R2_ASSET_BASE_URL` 改为同一网址加 `/r2`，例如 `https://client-industry-site.<你的账户>.workers.dev/r2`。再把 `src/data/site-origin.json` 的 `productionUrl` 改为同一个网站根地址。提交到 `main`，等待第二次自动部署成功。
 
 ### 步骤 9：添加 Worker Variables 和 Secrets
 
@@ -393,10 +393,13 @@ AI 翻译保留型号、SKU、单位、链接和数字，但仍必须人工审�
 ### 给网站绑定正式域名
 
 1. **Workers & Pages -> 你的 Worker -> Settings -> Domains & Routes -> Add**。
-2. 域名生效后，回到 GitHub 编辑 `wrangler.toml` 的 `SITE_URL`。
-3. 更新 GitHub App 的 Homepage URL 和 Callback URL。
-4. 更新 GitHub Actions Variable `SITE_URL`，并在 **Workers & Pages -> 你的 Worker -> Settings -> Build -> Build Variables and Secrets** 更新同名 `SITE_URL`。
-5. 提交后等待部署完成。上述 `wrangler.toml`、GitHub Actions Variable、Workers Builds Variable 与 GitHub App 的网址必须使用同一个正式根地址。
+2. 域名生效后，回到 GitHub 编辑 `src/data/site-origin.json`：把 `productionUrl` 改为正式根地址，并把旧 `SITE_URL` 中的 `workers.dev` 主机名加入 `retiredHosts`。这里只填写 Cloudflare 实际分配给你的旧主机名，不要带 `https://` 和路径。
+3. 编辑 `wrangler.toml`，把 `SITE_URL` 改成同一个正式根地址。
+4. 更新 GitHub App 的 Homepage URL 和 Callback URL。
+5. 更新 GitHub Actions Variable `SITE_URL`，并在 **Workers & Pages -> 你的 Worker -> Settings -> Build -> Build Variables and Secrets** 更新同名 `SITE_URL`。
+6. 提交后等待部署完成。`site-origin.json`、`wrangler.toml`、GitHub Actions Variable、Workers Builds Variable 与 GitHub App 必须使用同一个正式根地址。
+
+语言菜单使用 `/zh/`、`/de/...` 这类同站相对地址，因此更换域名不会把访客带回旧站。Canonical、`hreflang`、站点地图和分享链接需要绝对地址，它们优先读取构建期 `SITE_URL`；如果该变量仍指向 `retiredHosts` 中的旧域名，构建会自动改用 `productionUrl` 并输出警告。
 
 ### 给 R2 图片绑定 CDN 域名
 
@@ -439,6 +442,7 @@ npm run check:template:production
 | Manager 显示 D1/R2 未连接 | `wrangler.toml` 的 D1 ID、R2 bucket 名称和 binding 名称 |
 | AI 翻译没有语言可选 | 站长进入 `/keystatic/ -> 网站语言` 勾选目标语言、点击 Save，并等待该提交部署完成 |
 | 已勾选语言但公开站点没有显示 | 该语言的 `site-locales.json` 固定 UI、页面文案或 FAQ 尚未补全并审核；查看 `npm run check:template` 的警告 |
+| 切换语言跳到旧域名或打不开 | 重新部署当前模板；检查 `src/data/site-origin.json`、两处构建变量和 `wrangler.toml`。语言菜单已使用同站相对路径，模板自检会阻止再次改回绝对域名 |
 | 翻译任务失败 | GitHub token 权限、`GEMINI_API_KEYS`、Actions 日志和目标语言是否已启用 |
 | 翻译审核后仍未公开 | 需要在 Publish site updates 点击 **Publish Site**；草稿目录不会自动部署 |
 | 图片打不开 | `PUBLIC_R2_ASSET_BASE_URL`、R2 binding、Custom Domain 状态和对象路径 |

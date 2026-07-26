@@ -5,6 +5,7 @@ import { getCategoryMeta } from './productCategories';
 import { publicProductSpecs } from './productSpecs';
 import { industryProfile } from './industry-profile';
 import { siteInfo } from './site';
+import siteOriginConfig from './site-origin.json';
 
 type ProductEntry = CollectionEntry<'products'>;
 type BlogEntry = CollectionEntry<'blog'>;
@@ -13,7 +14,7 @@ export type JsonLd = Record<string, unknown>;
 
 export const productEntitiesEnabled = true;
 
-const fallbackSiteUrl = 'https://businessweb.workers.dev';
+const fallbackSiteUrl = siteOriginConfig.productionUrl || 'http://localhost';
 const languageByLocalePrefix: Record<string, string> = {
   zh: 'zh-CN',
   ar: 'ar',

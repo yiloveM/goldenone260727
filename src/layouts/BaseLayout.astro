@@ -6,7 +6,7 @@ import { brandAssets } from '../data/assets';
 import { siteInfo, socialLinks } from '../data/site';
 import { industryProfile, visualTokens } from '../data/industry-profile';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
-import { absoluteUrl, organizationStructuredData, webPageStructuredData, websiteStructuredData } from '../data/seo';
+import { absoluteUrl, organizationStructuredData, siteUrl, webPageStructuredData, websiteStructuredData } from '../data/seo';
 import {
   type Locale,
   alternateUrls,
@@ -45,7 +45,7 @@ const pageLocale = locale || getLocaleFromPathname(Astro.url.pathname);
 const localeInfo = localeMeta[pageLocale];
 const dictionary = ui[pageLocale];
 const pageDescription = description || siteInfo.description;
-const siteBase = Astro.site || 'https://businessweb.workers.dev';
+const siteBase = siteUrl(Astro.site);
 const pageIsActiveLocale = isActiveLocale(pageLocale);
 const canonical = new URL(pageIsActiveLocale ? Astro.url.pathname : stripLocaleFromPath(Astro.url.pathname), siteBase);
 const canonicalUrl = canonical.toString();
@@ -83,7 +83,7 @@ const navCategories = translateProductCategories(buildProductCategories((await g
 const alternates = alternateUrls(Astro.url.pathname, siteBase);
 const languageOptions = locales.map(locale => ({
   locale,
-  href: alternates[locale],
+  href: localizePath(Astro.url.pathname, locale),
   active: locale === pageLocale,
   ...localeMeta[locale],
 }));

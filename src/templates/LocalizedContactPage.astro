@@ -4,7 +4,7 @@ import InquiryForm from '../components/InquiryForm.astro';
 import PageBanner from '../components/PageBanner.astro';
 import { brandAssets } from '../data/assets';
 import { pageImages, siteInfo } from '../data/site';
-import { breadcrumbStructuredData, organizationStructuredData } from '../data/seo';
+import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 import { translateTechnicalText, ui } from '../data/i18n';
 import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
 
@@ -28,7 +28,7 @@ const contactStructuredData = [
     '@type': 'ContactPage',
     name: pages.contact.title,
     description: contactDescription,
-    url: new URL(`/${locale}/contact/`, Astro.site || 'https://businessweb.workers.dev').toString(),
+    url: new URL(`/${locale}/contact/`, siteUrl(Astro.site)).toString(),
   },
   breadcrumbStructuredData(
     [

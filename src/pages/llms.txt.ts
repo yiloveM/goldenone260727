@@ -3,11 +3,12 @@ import { getCollection } from 'astro:content';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
 import { siteInfo } from '../data/site';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
+import { siteUrl } from '../data/seo';
 
 export const prerender = true;
 
 export const GET: APIRoute = async ({ site }) => {
-  const origin = site?.origin || 'https://businessweb.workers.dev';
+  const origin = siteUrl(site);
   const products = (await getCollection('products')).filter(isProductPublished);
   const categories = buildProductCategories(products);
   const absolute = (path: string) => new URL(path, `${origin}/`).toString();

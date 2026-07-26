@@ -9,6 +9,7 @@ const requiredFiles = [
   'src/data/industry-profile.json',
   'src/data/industry-profile.ts',
   'src/data/site-language-settings.json',
+  'src/data/site-origin.json',
   'src/data/site-locales.json',
   'src/content.config.ts',
   'src/cloudflare-workers.d.ts',
@@ -89,11 +90,40 @@ try {
   add('error', 'src/data/site-language-settings.json', `Invalid JSON: ${error.message}`);
 }
 
+let siteOrigin;
+try {
+  siteOrigin = JSON.parse(await source('src/data/site-origin.json'));
+} catch (error) {
+  add('error', 'src/data/site-origin.json', `Invalid JSON: ${error.message}`);
+}
+
 const placeholder = value => /^(|businessweb|your industry|sales@example\.com|replace with)/i.test(String(value || '').trim());
 const validHex = value => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
 const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz']);
 const targetLocaleCodes = [...supportedLocales].filter(locale => locale !== 'en');
 let selectedTargetLocales = [];
+
+if (siteOrigin) {
+  const productionUrl = String(siteOrigin.productionUrl || '').trim();
+  if (productionUrl) {
+    try {
+      const parsed = new URL(productionUrl);
+      if (parsed.origin !== productionUrl || !['http:', 'https:'].includes(parsed.protocol)) {
+        add('error', 'src/data/site-origin.json', 'productionUrl must be an HTTP(S) origin without a path or trailing slash.');
+      }
+      if (production && ['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+        add('error', 'src/data/site-origin.json', 'Replace the local build origin with the real public website URL before production.');
+      }
+    } catch {
+      add('error', 'src/data/site-origin.json', 'productionUrl must be empty before first deployment or contain a valid public HTTP(S) origin.');
+    }
+  } else if (production) {
+    add('error', 'src/data/site-origin.json', 'Set productionUrl to the real deployed website root before production.');
+  }
+  if (!Array.isArray(siteOrigin.retiredHosts)) {
+    add('error', 'src/data/site-origin.json', 'retiredHosts must be an array of old host names.');
+  }
+}
 
 if (languageSettings) {
   if (languageSettings.sourceLocale !== 'en') {

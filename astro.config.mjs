@@ -7,8 +7,27 @@ import keystatic from './src/integrations/keystatic-cloudflare.mjs';
 import tailwindcss from '@tailwindcss/vite';
 import siteLanguageSettings from './src/data/site-language-settings.json';
 import siteLocaleConfig from './src/data/site-locales.json';
+import siteOriginConfig from './src/data/site-origin.json';
 
-const site = process.env.SITE_URL || 'https://businessweb.workers.dev';
+const configuredDefaultSite = String(siteOriginConfig.productionUrl || '').trim();
+const defaultSite = new URL(configuredDefaultSite || 'http://localhost');
+const environmentSite = String(process.env.SITE_URL || '').trim();
+const requestedSite = new URL(environmentSite || configuredDefaultSite || defaultSite);
+const retiredHosts = new Set(
+  (siteOriginConfig.retiredHosts || []).map(host => String(host).trim().toLowerCase()).filter(Boolean)
+);
+const defaultHost = defaultSite.hostname.toLowerCase();
+const requestedHost = requestedSite.hostname.toLowerCase();
+if (retiredHosts.has(defaultHost)) {
+  throw new Error(`site-origin.json cannot retire its own production host: ${defaultHost}`);
+}
+const site = retiredHosts.has(requestedHost) ? defaultSite.origin : requestedSite.origin;
+if (retiredHosts.has(requestedHost)) {
+  console.warn(`Ignoring retired SITE_URL host ${requestedHost}; using ${defaultSite.origin}.`);
+}
+if (!configuredDefaultSite && !environmentSite) {
+  console.warn('SITE_URL is not configured; using http://localhost for non-production build metadata.');
+}
 const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz'];
 const localeEntries = siteLocaleConfig.locales || {};
 const requiredPhraseKeys = siteLocaleConfig.requiredPhraseKeys || [];

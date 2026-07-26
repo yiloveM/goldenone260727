@@ -1,7 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCategoryMeta, slugifyCategory, type ProductCategory, type ProductCategoryMeta } from './productCategories';
 import { publicProductSpecs } from './productSpecs';
-import { productStructuredData, articleStructuredData, absoluteUrl, type JsonLd } from './seo';
+import { productStructuredData, articleStructuredData, absoluteUrl, siteUrl, type JsonLd } from './seo';
 import { faqs as publicFaqs, siteInfo } from './site';
 import { industryProfile, primaryKeyword, publicSiteCopy } from './industry-profile';
 import siteLocaleConfig from './site-locales.json';
@@ -110,7 +110,7 @@ export const categoryPath = (categoryNameOrSlug: string, locale: Locale = defaul
 export const blogPath = (slug: string, locale: Locale = defaultLocale) => localizePath(`/blog/${slug}/`, locale);
 
 export const alternateUrls = (pathname: string, site?: URL | string | null) => {
-  const base = site || 'https://businessweb.workers.dev';
+  const base = siteUrl(site);
   const urls = Object.fromEntries(locales.map(locale => [locale, new URL(localizePath(pathname, locale), base).toString()]));
   return {
     ...(urls as Record<Locale, string>),

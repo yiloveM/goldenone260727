@@ -39,7 +39,7 @@ jobs:
 
       - name: Build the Astro site
         env:
-          SITE_URL: ${{ vars.SITE_URL || 'https://businessweb.workers.dev' }}
+          SITE_URL: ${{ vars.SITE_URL }}
         run: npm run build
 
       - name: Deploy the Worker and static assets

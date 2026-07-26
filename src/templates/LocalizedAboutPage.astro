@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
 import { factoryGallery, pageImages, siteInfo } from '../data/site';
 import { industryProfile } from '../data/industry-profile';
-import { breadcrumbStructuredData, organizationStructuredData } from '../data/seo';
+import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 import { translateTechnicalText, ui } from '../data/i18n';
 import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
 
@@ -21,7 +21,7 @@ const aboutStructuredData = [
     '@type': 'AboutPage',
     name: pages.about.title,
     description: aboutDescription,
-    url: new URL(`/${locale}/about/`, Astro.site || 'https://businessweb.workers.dev').toString(),
+    url: new URL(`/${locale}/about/`, siteUrl(Astro.site)).toString(),
   },
   breadcrumbStructuredData(
     [

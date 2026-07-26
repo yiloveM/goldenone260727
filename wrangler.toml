@@ -8,7 +8,7 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 
 [vars]
-SITE_URL = "https://businessweb.workers.dev"
+SITE_URL = ""
 KEYSTATIC_GITHUB_REPO = "your-org/businessweb"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "businessweb-keystatic"
 PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"

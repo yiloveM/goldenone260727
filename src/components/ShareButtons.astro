@@ -1,5 +1,6 @@
 ---
 import { brandAssets } from '../data/assets';
+import { siteUrl } from '../data/seo';
 
 interface Props {
   url?: string;
@@ -19,7 +20,7 @@ const {
   className = '',
 } = Astro.props;
 
-const baseUrl = Astro.site || 'https://businessweb.workers.dev';
+const baseUrl = siteUrl(Astro.site);
 const shareUrl = new URL(url || Astro.url.pathname, baseUrl).toString();
 const shareImage = new URL(image, baseUrl).toString();
 const shareText = [title, description].filter(Boolean).join(' - ');
