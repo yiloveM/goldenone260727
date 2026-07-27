@@ -116,7 +116,7 @@ database_name = "步骤 3 创建的数据库名称"
 database_id = "步骤 3 的 Database ID"
 ```
 
-首次部署前还不知道真实 `workers.dev` 地址，因此 `SITE_URL` 和 `src/data/site-origin.json` 的 `productionUrl` 都保持空字符串，`retiredHosts` 保持空数组。不要猜测或虚构网站域名。`PUBLIC_R2_ASSET_BASE_URL` 暂时保留明显的 CDN 占位值，取得实际网站地址或 R2 自定义域名后再替换。第一次构建只会在站点元数据中使用本机地址作为临时内部后备；取得 Cloudflare 实际分配的网址后，必须按步骤 7.1 填入真实地址并重新部署，之后才能对外使用。点击 **Commit changes**，直接提交到 `main`。
+首次部署前还不知道真实 `workers.dev` 地址，因此 `SITE_URL` 和 `src/data/site-origin.json` 的 `productionUrl` 都保持空字符串，`retiredHosts` 保持空数组。`PUBLIC_R2_ASSET_BASE_URL` 暂时保留明显的 CDN 占位值，取得实际网站地址或 R2 自定义域名后再替换。第一次构建只会在站点元数据中使用本机地址作为临时内部后备；取得 Cloudflare 实际分配的网址后，必须按步骤 7.1 填入真实地址并重新部署，之后才能对外使用。点击 **Commit changes**，直接提交到 `main`。
 
 ### 步骤 5：取得 Cloudflare API Token 和 Account ID
 
