@@ -19,5 +19,5 @@ bucket_name = "businessweb-content"
 
 [[d1_databases]]
 binding = "MANAGER_DB"
-database_name = "businessweb-manager"
-database_id = "replace-with-cloudflare-d1-database-id"
+database_name = "goldenone"
+database_id = "2c5ddd64-6fe0-4fd9-af99-c100496ec872"
