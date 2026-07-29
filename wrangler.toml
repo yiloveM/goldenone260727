@@ -15,7 +15,7 @@ PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
-bucket_name = "businessweb-content"
+bucket_name = "goldenone"
 
 [[d1_databases]]
 binding = "MANAGER_DB"
