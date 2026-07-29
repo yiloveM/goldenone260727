@@ -8,10 +8,10 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 
 [vars]
-SITE_URL = ""
+SITE_URL = "https://goldenone.arkalpooltech.workers.dev"
 KEYSTATIC_GITHUB_REPO = "yiloveM/goldenone260727"
-PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "businessweb-keystatic"
-PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
+PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "goldenone260727"
+PUBLIC_R2_ASSET_BASE_URL = "https://goldenone.arkalpooltech.workers.dev/r2"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
