@@ -11,9 +11,23 @@ import { siteLanguageBulkActionsField, siteLanguageCheckboxField } from './src/k
 import siteLocaleConfig from './src/data/site-locales.json';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const [githubOwner = 'your-org', githubName = 'businessweb'] = (process.env.KEYSTATIC_GITHUB_REPO ||
-  process.env.PUBLIC_KEYSTATIC_GITHUB_REPO ||
-  'your-org/businessweb').split('/');
+const configuredGitHubRepo = String(import.meta.env.PUBLIC_KEYSTATIC_GITHUB_REPO || '').trim();
+const githubAppSlug = String(import.meta.env.PUBLIC_KEYSTATIC_GITHUB_APP_SLUG || '').trim();
+
+if (isProduction && (!configuredGitHubRepo || configuredGitHubRepo === 'your-org/businessweb')) {
+  throw new Error(
+    'Set PUBLIC_KEYSTATIC_GITHUB_REPO to the real owner/repo in wrangler.toml before building for production.'
+  );
+}
+if (isProduction && !githubAppSlug) {
+  throw new Error(
+    'Set PUBLIC_KEYSTATIC_GITHUB_APP_SLUG to the GitHub App slug in wrangler.toml before building for production.'
+  );
+}
+
+const [githubOwner = 'your-org', githubName = 'businessweb'] = (
+  configuredGitHubRepo || 'your-org/businessweb'
+).split('/');
 
 const translationLocaleOptions = [
   { label: 'Simplified Chinese（简体中文）', value: 'zh' },

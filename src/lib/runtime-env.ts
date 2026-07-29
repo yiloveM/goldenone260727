@@ -25,7 +25,7 @@ export const firstEnvString = (env: RuntimeEnv, keys: string[]) => {
 };
 
 export const getRepoFullName = (env: RuntimeEnv) =>
-  firstEnvString(env, ['KEYSTATIC_GITHUB_REPO', 'PUBLIC_KEYSTATIC_GITHUB_REPO']) || DEFAULT_GITHUB_REPO;
+  firstEnvString(env, ['PUBLIC_KEYSTATIC_GITHUB_REPO', 'KEYSTATIC_GITHUB_REPO']) || DEFAULT_GITHUB_REPO;
 
 export const getBranch = (env: RuntimeEnv) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 

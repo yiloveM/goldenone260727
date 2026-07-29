@@ -161,7 +161,7 @@ const getEnvString = (env: Record<string, unknown> | undefined, key: string) =>
   typeof env?.[key] === 'string' ? env[key].trim() : '';
 
 const getRepoFullName = (env: Record<string, unknown> | undefined) =>
-  getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
 
 const hasGitHubWriteAccess = async (request: Request, env: Record<string, unknown> | undefined) => {
   const accessToken = parseCookies(request)['keystatic-gh-access-token'];

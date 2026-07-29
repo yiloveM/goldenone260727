@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from 'node:fs';
+import { loadWranglerVars } from './load-wrangler-vars.mjs';
 
 const envFiles = ['.env', '.env.local', '.dev.vars', '.env.production'];
-const env = { ...process.env };
+const env = { ...loadWranglerVars(), ...process.env };
 
 function parseDotEnv(source) {
   for (const rawLine of source.split(/\r?\n/)) {
@@ -20,14 +21,6 @@ for (const file of envFiles) {
   if (existsSync(file)) parseDotEnv(readFileSync(file, 'utf8'));
 }
 
-if (existsSync('wrangler.toml')) {
-  const wrangler = readFileSync('wrangler.toml', 'utf8');
-  for (const key of ['SITE_URL', 'KEYSTATIC_GITHUB_REPO', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG']) {
-    const match = wrangler.match(new RegExp(`^${key}\\s*=\\s*['\"]([^'\"]+)['\"]`, 'm'));
-    if (match) env[key] ??= match[1];
-  }
-}
-
 const errors = [];
 const warnings = [];
 const strict = env.STRICT_KEYSTATIC_ENV === '1' || env.CI === 'true';
@@ -42,8 +35,11 @@ function requireFormat(key, regex, message) {
   if (!regex.test(value)) errors.push(`${key}: ${message} Current value: ${value}`);
 }
 
-requireFormat('KEYSTATIC_GITHUB_REPO', /^[^/\s]+\/[^/\s]+$/, 'must use owner/repo format.');
+requireFormat('PUBLIC_KEYSTATIC_GITHUB_REPO', /^[^/\s]+\/[^/\s]+$/, 'must use owner/repo format.');
 requireFormat('PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'must be the GitHub App slug, e.g. businessweb-keystatic.');
+if (env.PUBLIC_KEYSTATIC_GITHUB_REPO === 'your-org/businessweb') {
+  errors.push('PUBLIC_KEYSTATIC_GITHUB_REPO still uses the template placeholder your-org/businessweb.');
+}
 
 const secret = env.KEYSTATIC_SECRET;
 if (!secret) {
@@ -70,5 +66,7 @@ if (errors.length) {
   for (const error of errors) console.error(`- ${error}`);
   process.exitCode = 1;
 } else {
+  console.log(`Keystatic build target: ${env.PUBLIC_KEYSTATIC_GITHUB_REPO}`);
+  console.log(`Keystatic GitHub App slug: ${env.PUBLIC_KEYSTATIC_GITHUB_APP_SLUG}`);
   console.log(strict ? 'Keystatic environment self-check passed.' : 'Keystatic environment self-check passed with non-fatal warnings allowed.');
 }

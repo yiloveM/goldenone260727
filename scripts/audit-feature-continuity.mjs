@@ -143,7 +143,17 @@ const contracts = [
   {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
-    markers: ['npm run types:cloudflare -- --check', 'SITE_URL: ${{ vars.SITE_URL }}', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
+    markers: ['npm run types:cloudflare -- --check', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
+  },
+  {
+    area: 'Wrangler variables available during Astro builds',
+    file: 'scripts/run-astro.mjs',
+    markers: ['loadWranglerVars', '...configuredWranglerVars', '...process.env', 'verify-keystatic-build.mjs'],
+  },
+  {
+    area: 'Keystatic browser build configuration verification',
+    file: 'scripts/verify-keystatic-build.mjs',
+    markers: ['PUBLIC_KEYSTATIC_GITHUB_REPO', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'clientBundle.includes'],
   },
   {
     area: 'AstroWind visual foundation',

@@ -38,8 +38,6 @@ jobs:
         run: npm run types:cloudflare -- --check
 
       - name: Build the Astro site
-        env:
-          SITE_URL: ${{ vars.SITE_URL }}
         run: npm run build
 
       - name: Deploy the Worker and static assets

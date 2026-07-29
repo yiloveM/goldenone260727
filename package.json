@@ -22,6 +22,7 @@
     "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",
     "preview:astro": "node scripts/run-astro.mjs preview",
     "check:keystatic-env": "node scripts/check-keystatic-env.mjs",
+    "check:keystatic-build": "node scripts/verify-keystatic-build.mjs",
     "ai:translate": "node scripts/run-ai-translation.mjs",
     "test:ai-translation:sandbox": "node scripts/ai-translation-sandbox.mjs",
     "sync:blog:i18n": "node scripts/generate-article-translations.mjs"
