@@ -1,0 +1,203 @@
+---
+import type { Locale } from '../data/i18n';
+import { localeMeta, localizePath, ui } from '../data/i18n';
+import { INQUIRY_CART_STORAGE_KEY } from '../data/inquiryCart';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = ui[locale].inquiryCart;
+const contactPath = `${localizePath('/contact/', locale)}#contact-form`;
+---
+
+<div
+  class="inquiry-cart"
+  data-inquiry-cart
+  data-storage-key={INQUIRY_CART_STORAGE_KEY}
+  data-model-label={copy.model}
+  data-quantity-label={copy.quantity}
+  data-remove-label={copy.remove}
+  data-decrease-label={copy.decrease}
+  data-increase-label={copy.increase}
+  dir={localeMeta[locale].dir}
+  hidden
+>
+  <button
+    class="inquiry-cart-trigger"
+    type="button"
+    aria-label={copy.cartTitle}
+    aria-expanded="false"
+    aria-controls="inquiry-cart-panel"
+    data-inquiry-cart-trigger
+  >
+    <span class="inquiry-cart-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M3 4h2l2.2 10.1a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 7H7" />
+        <circle cx="10" cy="20" r="1.25" />
+        <circle cx="18" cy="20" r="1.25" />
+      </svg>
+    </span>
+    <strong data-inquiry-cart-count>0</strong>
+    <span class="side-contact-note inquiry-cart-note"><strong>{copy.cartTitle}</strong></span>
+  </button>
+  <section class="inquiry-cart-panel" id="inquiry-cart-panel" aria-label={copy.cartTitle} data-inquiry-cart-panel hidden>
+    <header>
+      <h2>{copy.cartTitle}</h2>
+      <button type="button" data-inquiry-cart-clear>{copy.clear}</button>
+    </header>
+    <div class="inquiry-cart-list" data-inquiry-cart-list></div>
+    <p class="inquiry-cart-empty" data-inquiry-cart-empty>{copy.cartEmpty}</p>
+    <a class="btn primary inquiry-cart-inquire" href={contactPath}>{copy.inquire}</a>
+  </section>
+</div>
+
+<script is:inline>
+  (() => {
+    const clampQuantity = value => Math.min(999999, Math.max(1, Math.trunc(Number(value) || 1)));
+    const cleanText = (value, maxLength) => String(value || '').replace(/\0/g, '').trim().slice(0, maxLength);
+    const cleanItem = value => {
+      if (!value || typeof value !== 'object') return null;
+      const productSlug = cleanText(value.productSlug, 160);
+      const productTitle = cleanText(value.productTitle, 220);
+      if (!productSlug || !productTitle) return null;
+      const fallbackPath = `/products/${encodeURIComponent(productSlug)}/`;
+      const submittedPath = cleanText(value.productPath, 500);
+      return {
+        productSlug,
+        productTitle,
+        series: cleanText(value.series, 160),
+        model: cleanText(value.model, 120),
+        quantity: clampQuantity(value.quantity),
+        productPath: submittedPath.startsWith('/') && !submittedPath.startsWith('//') ? submittedPath : fallbackPath,
+      };
+    };
+
+    document.querySelectorAll('[data-inquiry-cart]').forEach(root => {
+      const storageKey = root.dataset.storageKey;
+      const trigger = root.querySelector('[data-inquiry-cart-trigger]');
+      const panel = root.querySelector('[data-inquiry-cart-panel]');
+      const count = root.querySelector('[data-inquiry-cart-count]');
+      const list = root.querySelector('[data-inquiry-cart-list]');
+      const empty = root.querySelector('[data-inquiry-cart-empty]');
+      const clearButton = root.querySelector('[data-inquiry-cart-clear]');
+
+      const readItems = () => {
+        try {
+          const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
+          const sourceItems = Array.isArray(parsed) ? parsed : parsed?.items;
+          if (!Array.isArray(sourceItems)) return [];
+          const deduped = new Map();
+          sourceItems.slice(0, 30).forEach(value => {
+            const item = cleanItem(value);
+            if (!item) return;
+            const key = `${item.productSlug.toLowerCase()}::${item.model.toLowerCase()}`;
+            const existing = deduped.get(key);
+            if (existing) existing.quantity = clampQuantity(existing.quantity + item.quantity);
+            else deduped.set(key, item);
+          });
+          return [...deduped.values()];
+        } catch {
+          return [];
+        }
+      };
+
+      const saveItems = items => {
+        window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, items }));
+        window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-change'));
+      };
+
+      const setOpen = open => {
+        if (!panel || !trigger) return;
+        panel.hidden = !open;
+        trigger.setAttribute('aria-expanded', String(open));
+      };
+
+      const render = ({ open = false } = {}) => {
+        const items = readItems();
+        root.hidden = items.length === 0;
+        document.documentElement.classList.toggle('has-inquiry-cart', items.length > 0);
+        count.textContent = String(items.length);
+        empty.hidden = items.length > 0;
+        list.replaceChildren();
+
+        items.forEach((item, index) => {
+          const row = document.createElement('article');
+          const product = document.createElement('div');
+          const title = document.createElement('a');
+          const meta = document.createElement('small');
+          const controls = document.createElement('div');
+          const decrease = document.createElement('button');
+          const quantity = document.createElement('output');
+          const increase = document.createElement('button');
+          const remove = document.createElement('button');
+
+          row.className = 'inquiry-cart-item';
+          row.dataset.index = String(index);
+          product.className = 'inquiry-cart-item-copy';
+          title.href = item.productPath;
+          title.textContent = item.productTitle;
+          meta.textContent = item.model
+            ? `${root.dataset.modelLabel}: ${item.model}`
+            : item.series || '';
+          controls.className = 'inquiry-cart-quantity';
+
+          decrease.type = 'button';
+          decrease.dataset.action = 'decrease';
+          decrease.setAttribute('aria-label', root.dataset.decreaseLabel);
+          decrease.textContent = '-';
+          quantity.textContent = String(item.quantity);
+          quantity.setAttribute('aria-label', root.dataset.quantityLabel);
+          increase.type = 'button';
+          increase.dataset.action = 'increase';
+          increase.setAttribute('aria-label', root.dataset.increaseLabel);
+          increase.textContent = '+';
+          remove.type = 'button';
+          remove.className = 'inquiry-cart-remove';
+          remove.dataset.action = 'remove';
+          remove.textContent = root.dataset.removeLabel;
+
+          product.append(title, meta);
+          controls.append(decrease, quantity, increase);
+          row.append(product, controls, remove);
+          list.append(row);
+        });
+
+        if (items.length === 0) setOpen(false);
+        if (open && items.length > 0) setOpen(true);
+      };
+
+      trigger?.addEventListener('click', () => setOpen(panel?.hidden !== false));
+      clearButton?.addEventListener('click', () => saveItems([]));
+      list?.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest('button[data-action]') : null;
+        const row = button?.closest('[data-index]');
+        if (!button || !row) return;
+        const items = readItems();
+        const index = Number(row.dataset.index);
+        if (!Number.isInteger(index) || !items[index]) return;
+        if (button.dataset.action === 'remove') items.splice(index, 1);
+        if (button.dataset.action === 'decrease') items[index].quantity = clampQuantity(items[index].quantity - 1);
+        if (button.dataset.action === 'increase') items[index].quantity = clampQuantity(items[index].quantity + 1);
+        saveItems(items);
+      });
+
+      document.addEventListener('click', event => {
+        if (panel?.hidden || !(event.target instanceof Node) || root.contains(event.target)) return;
+        setOpen(false);
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setOpen(false);
+      });
+      window.addEventListener('storage', event => {
+        if (event.key === storageKey) render();
+      });
+      window.addEventListener('businessweb:inquiry-cart-change', event => {
+        render({ open: Boolean(event.detail?.open) });
+      });
+
+      render();
+    });
+  })();
+</script>

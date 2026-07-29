@@ -1,4 +1,8 @@
 ---
+import type { Locale } from '../data/i18n';
+import { ui } from '../data/i18n';
+import { INQUIRY_CART_STORAGE_KEY } from '../data/inquiryCart';
+
 interface InquiryLabels {
   name: string;
   email: string;
@@ -10,21 +14,45 @@ interface InquiryLabels {
 
 interface Props {
   labels: InquiryLabels;
+  locale: Locale;
 }
 
-const { labels } = Astro.props;
+const { labels, locale } = Astro.props;
+const cartCopy = ui[locale].inquiryCart;
 const pagePath = Astro.url.pathname;
 ---
 
-<form class="glass-panel contact-card contact-form-card" action="/api/contact" method="post" data-inquiry-form dir="ltr">
+<form
+  class="glass-panel contact-card contact-form-card"
+  action="/api/contact"
+  method="post"
+  data-inquiry-form
+  data-storage-key={INQUIRY_CART_STORAGE_KEY}
+  dir="ltr"
+>
   <input type="hidden" name="captchaToken" data-captcha-token />
   <input type="hidden" name="pagePath" value={pagePath} />
+  <input type="hidden" name="inquiryItems" value="[]" data-inquiry-items-input />
   <div class="form-trap" aria-hidden="true">
     <label>
       Website
       <input name="website" tabindex="-1" autocomplete="off" />
     </label>
   </div>
+  <section
+    class="contact-inquiry-summary"
+    data-contact-inquiry-summary
+    data-model-label={cartCopy.model}
+    data-quantity-label={cartCopy.quantity}
+    data-remove-label={cartCopy.remove}
+    hidden
+  >
+    <header>
+      <h2>{cartCopy.selectedProducts}</h2>
+      <p>{cartCopy.review}</p>
+    </header>
+    <div class="contact-inquiry-list" data-contact-inquiry-list></div>
+  </section>
   <div class="form-grid">
     <input class="input" name="name" placeholder={labels.name} autocomplete="name" required />
     <input class="input" name="email" type="email" placeholder={labels.email} autocomplete="email" required />
@@ -69,6 +97,141 @@ const pagePath = Astro.url.pathname;
       const status = form.querySelector('[data-form-status]');
       const submitButton = form.querySelector('.contact-submit-button');
       const refreshButton = form.querySelector('[data-captcha-refresh]');
+      const summary = form.querySelector('[data-contact-inquiry-summary]');
+      const summaryList = form.querySelector('[data-contact-inquiry-list]');
+      const inquiryItemsInput = form.querySelector('[data-inquiry-items-input]');
+      const storageKey = form.dataset.storageKey;
+      const clampQuantity = value => Math.min(999999, Math.max(1, Math.trunc(Number(value) || 1)));
+      const cleanText = (value, maxLength) => String(value || '').replace(/\0/g, '').trim().slice(0, maxLength);
+      const cleanItem = value => {
+        if (!value || typeof value !== 'object') return null;
+        const productSlug = cleanText(value.productSlug, 160);
+        const productTitle = cleanText(value.productTitle, 220);
+        if (!productSlug || !productTitle) return null;
+        const fallbackPath = `/products/${encodeURIComponent(productSlug)}/`;
+        const submittedPath = cleanText(value.productPath, 500);
+        return {
+          productSlug,
+          productTitle,
+          series: cleanText(value.series, 160),
+          model: cleanText(value.model, 120),
+          quantity: clampQuantity(value.quantity),
+          productPath: submittedPath.startsWith('/') && !submittedPath.startsWith('//') ? submittedPath : fallbackPath,
+        };
+      };
+
+      const readItems = () => {
+        try {
+          const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
+          const sourceItems = Array.isArray(parsed) ? parsed : parsed?.items;
+          if (!Array.isArray(sourceItems)) return [];
+          return sourceItems.slice(0, 30).map(cleanItem).filter(Boolean);
+        } catch {
+          return [];
+        }
+      };
+
+      const storeItems = items => {
+        if (items.length > 0) {
+          window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, items }));
+        } else {
+          window.localStorage.removeItem(storageKey);
+        }
+      };
+
+      const saveItems = items => {
+        storeItems(items);
+        window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-change'));
+      };
+
+      const renderInquiryItems = () => {
+        const items = readItems();
+        inquiryItemsInput.value = JSON.stringify(items);
+        summary.hidden = items.length === 0;
+        summaryList.replaceChildren();
+
+        items.forEach((item, index) => {
+          const row = document.createElement('article');
+          const product = document.createElement('div');
+          const title = document.createElement('a');
+          const meta = document.createElement('small');
+          const quantityLabel = document.createElement('label');
+          const quantityText = document.createElement('span');
+          const quantityInput = document.createElement('input');
+          const removeButton = document.createElement('button');
+
+          row.className = 'contact-inquiry-item';
+          row.dataset.index = String(index);
+          product.className = 'contact-inquiry-item-copy';
+          title.href = item.productPath;
+          title.textContent = item.productTitle;
+          meta.textContent = item.model
+            ? `${summary.dataset.modelLabel}: ${item.model}`
+            : item.series || '';
+          quantityLabel.className = 'contact-inquiry-quantity';
+          quantityText.textContent = summary.dataset.quantityLabel;
+          quantityInput.type = 'number';
+          quantityInput.min = '1';
+          quantityInput.max = '999999';
+          quantityInput.step = '1';
+          quantityInput.inputMode = 'numeric';
+          quantityInput.value = String(item.quantity);
+          quantityInput.dataset.action = 'quantity';
+          removeButton.type = 'button';
+          removeButton.className = 'contact-inquiry-remove';
+          removeButton.dataset.action = 'remove';
+          removeButton.textContent = summary.dataset.removeLabel;
+
+          product.append(title, meta);
+          quantityLabel.append(quantityText, quantityInput);
+          row.append(product, quantityLabel, removeButton);
+          summaryList.append(row);
+        });
+
+        return items;
+      };
+
+      summaryList?.addEventListener('input', event => {
+        const input = event.target instanceof HTMLInputElement && event.target.dataset.action === 'quantity'
+          ? event.target
+          : null;
+        const row = input?.closest('[data-index]');
+        if (!input || !row) return;
+        const items = readItems();
+        const index = Number(row.dataset.index);
+        if (!Number.isInteger(index) || !items[index]) return;
+        items[index].quantity = clampQuantity(input.value);
+        storeItems(items);
+      });
+      summaryList?.addEventListener('change', event => {
+        const input = event.target instanceof HTMLInputElement && event.target.dataset.action === 'quantity'
+          ? event.target
+          : null;
+        const row = input?.closest('[data-index]');
+        if (!input || !row) return;
+        const items = readItems();
+        const index = Number(row.dataset.index);
+        if (!Number.isInteger(index) || !items[index]) return;
+        items[index].quantity = clampQuantity(input.value);
+        saveItems(items);
+      });
+      summaryList?.addEventListener('click', event => {
+        const button = event.target instanceof Element
+          ? event.target.closest('button[data-action="remove"]')
+          : null;
+        const row = button?.closest('[data-index]');
+        if (!button || !row) return;
+        const items = readItems();
+        const index = Number(row.dataset.index);
+        if (!Number.isInteger(index) || !items[index]) return;
+        items.splice(index, 1);
+        saveItems(items);
+      });
+      window.addEventListener('businessweb:inquiry-cart-change', renderInquiryItems);
+      window.addEventListener('storage', event => {
+        if (event.key === storageKey) renderInquiryItems();
+      });
+      renderInquiryItems();
 
       loadCaptcha(form).catch(() => {
         status.textContent = 'Verification code could not load. Please refresh this page.';
@@ -91,6 +254,7 @@ const pagePath = Astro.url.pathname;
         submitButton.disabled = true;
         status.textContent = 'Sending inquiry...';
         status.dataset.state = 'pending';
+        const submittedItems = renderInquiryItems();
 
         try {
           const response = await fetch(form.action, {
@@ -103,6 +267,10 @@ const pagePath = Astro.url.pathname;
           if (!response.ok || !data.ok) throw new Error(data.message || 'Send failed.');
 
           form.reset();
+          if (submittedItems.length > 0) {
+            window.localStorage.removeItem(storageKey);
+            window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-change'));
+          }
           status.textContent = data.message || 'Thank you. Your inquiry has been sent.';
           status.dataset.state = 'success';
           await loadCaptcha(form);

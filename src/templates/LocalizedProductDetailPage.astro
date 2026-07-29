@@ -9,6 +9,8 @@ import ShareButtons from '../components/ShareButtons.astro';
 import ProductMediaGallery from '../components/ProductMediaGallery.astro';
 import ProductImageCarousel from '../components/ProductImageCarousel.astro';
 import ProductTableScrollerScript from '../components/ProductTableScrollerScript.astro';
+import ProductInquirySelector from '../components/ProductInquirySelector.astro';
+import { getProductModelCodes, isModelSpecTable } from '../data/inquiryCart';
 import {
   categoryPath,
   localizedProduct,
@@ -45,10 +47,10 @@ const relatedProducts = sortProductsByPriority(
 ).slice(0, 3);
 const productUrl = new URL(productPath(slug, locale), siteUrl(Astro.site)).toString();
 const productDescription = localized.description;
+const usesInquiryCart = product.data.offeringType === 'physical-product';
+const productModels = product.data.modelStrategy === 'series' ? getProductModelCodes(product) : [];
 const isRedundantSpecTableTitle = (title: string) =>
   /^(product|model|technical)\s+specifications?$/i.test(String(title || '').trim());
-const isModelSpecTable = (table: typeof product.data.specTables[number]) =>
-  /(^|\b)(model|item|code|sku|product\s*code)(\b|$)/i.test(String(table.columns[0] || ''));
 const productStructuredDataItem = [
   ...localizedProductStructuredData(product, locale, Astro.site).map(item =>
     item['@id'] === `${productUrl}${product.data.offeringType === 'physical-product' ? '#product' : '#service'}`
@@ -76,9 +78,20 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
           <span class="eyebrow">{productCategoryName} / {localized.series}</span>
           <h1>{localized.title}</h1>
           <p class="prose">{localized.description}</p>
-          <div class="hero-actions">
-            <a class="btn primary" href={`/${locale}/contact/`}>{common.requestQuote}</a>
-            <a class="btn secondary" href={`/${locale}/products/`}>{common.exploreRange}</a>
+          <div class="hero-actions product-hero-actions">
+            {usesInquiryCart ? (
+              <ProductInquirySelector
+                locale={locale}
+                productSlug={slug}
+                productTitle={localized.title}
+                series={localized.series}
+                productPath={productPath(slug, locale)}
+                models={productModels}
+              />
+            ) : (
+              <a class="btn primary" href={`/${locale}/contact/`}>{common.requestQuote}</a>
+            )}
+            <a class="btn secondary product-hero-explore" href={`/${locale}/products/`}>{common.exploreRange}</a>
           </div>
           <div class="product-meta-strip">
             <span>{pages.product.metaReady}</span>

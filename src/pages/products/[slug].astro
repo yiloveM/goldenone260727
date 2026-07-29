@@ -9,6 +9,8 @@ import SeriesCard from '../../components/SeriesCard.astro';
 import ShareButtons from '../../components/ShareButtons.astro';
 import ProductMediaGallery from '../../components/ProductMediaGallery.astro';
 import ProductImageCarousel from '../../components/ProductImageCarousel.astro';
+import ProductInquirySelector from '../../components/ProductInquirySelector.astro';
+import { getProductModelCodes, isModelSpecTable } from '../../data/inquiryCart';
 
 export async function getStaticPaths() {
   const products = (await getCollection('products')).filter(isProductPublished);
@@ -32,10 +34,10 @@ const productUrl = new URL(`/products/${product.id.replace(/\.mdoc$/, '')}/`, si
 const productDescription = productSeoDescription(product);
 const productStructuredDataItem = productStructuredData(product, slug, Astro.site);
 const visibleSpecs = publicProductSpecs(product.data.specs);
+const usesInquiryCart = product.data.offeringType === 'physical-product';
+const productModels = product.data.modelStrategy === 'series' ? getProductModelCodes(product) : [];
 const isRedundantSpecTableTitle = (title: string) =>
   /^(product|model|technical)\s+specifications?$/i.test(String(title || '').trim());
-const isModelSpecTable = (table: typeof product.data.specTables[number]) =>
-  /(^|\b)(model|item|code|sku|product\s*code)(\b|$)/i.test(String(table.columns[0] || ''));
 ---
 <BaseLayout title={product.data.title} description={productDescription} image={productImage} type="product" structuredData={productStructuredDataItem}>
   <main>
@@ -45,9 +47,20 @@ const isModelSpecTable = (table: typeof product.data.specTables[number]) =>
           <span class="eyebrow">{productCategoryName} / {product.data.series}</span>
           <h1>{product.data.title}</h1>
           <p class="prose">{productDescription}</p>
-          <div class="hero-actions">
-            <a class="btn primary" href="/contact">Request quotation</a>
-            <a class="btn secondary" href="/products">Explore equipment range</a>
+          <div class="hero-actions product-hero-actions">
+            {usesInquiryCart ? (
+              <ProductInquirySelector
+                locale="en"
+                productSlug={slug}
+                productTitle={product.data.title}
+                series={product.data.series}
+                productPath={`/products/${slug}/`}
+                models={productModels}
+              />
+            ) : (
+              <a class="btn primary" href="/contact">Request quotation</a>
+            )}
+            <a class="btn secondary product-hero-explore" href="/products">Explore all offerings</a>
           </div>
           <div class="product-meta-strip">
             <span>Content-ready</span>

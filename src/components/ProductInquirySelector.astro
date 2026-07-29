@@ -1,0 +1,155 @@
+---
+import type { Locale } from '../data/i18n';
+import { ui } from '../data/i18n';
+import {
+  INQUIRY_CART_MAX_QUANTITY,
+  INQUIRY_CART_STORAGE_KEY,
+} from '../data/inquiryCart';
+
+interface Props {
+  locale: Locale;
+  productSlug: string;
+  productTitle: string;
+  series: string;
+  productPath: string;
+  models: string[];
+}
+
+const { locale, productSlug, productTitle, series, productPath, models } = Astro.props;
+const copy = ui[locale].inquiryCart;
+---
+
+<section
+  class:list={['product-inquiry-selector', { 'product-inquiry-selector--single': models.length === 0 }]}
+  data-product-inquiry-selector
+  data-storage-key={INQUIRY_CART_STORAGE_KEY}
+  data-product-slug={productSlug}
+  data-product-title={productTitle}
+  data-series={series}
+  data-product-path={productPath}
+>
+  <div class="product-inquiry-fields">
+    {models.length > 0 ? (
+      <label>
+        <span>{copy.model}</span>
+        <select data-inquiry-model>
+          <option value="">{copy.allModels}</option>
+          {models.map(model => <option value={model}>{model}</option>)}
+        </select>
+      </label>
+    ) : (
+      <input type="hidden" value="" data-inquiry-model />
+    )}
+    <label>
+      <span>{copy.quantity}</span>
+      <span class="product-inquiry-stepper">
+        <button type="button" aria-label={copy.decrease} data-selector-quantity="decrease">-</button>
+        <input
+          type="number"
+          min="1"
+          max={INQUIRY_CART_MAX_QUANTITY}
+          step="1"
+          value="1"
+          inputmode="numeric"
+          aria-label={copy.quantity}
+          data-inquiry-quantity
+        />
+        <button type="button" aria-label={copy.increase} data-selector-quantity="increase">+</button>
+      </span>
+    </label>
+  </div>
+  <button class="btn primary product-inquiry-add" type="button" data-inquiry-add>{copy.add}</button>
+</section>
+
+<script is:inline>
+  (() => {
+    const clampQuantity = value => Math.min(999999, Math.max(1, Math.trunc(Number(value) || 1)));
+    const cleanText = (value, maxLength) => String(value || '').replace(/\0/g, '').trim().slice(0, maxLength);
+
+    document.querySelectorAll('[data-product-inquiry-selector]').forEach(selector => {
+      const modelSelect = selector.querySelector('[data-inquiry-model]');
+      const quantityInput = selector.querySelector('[data-inquiry-quantity]');
+      const addButton = selector.querySelector('[data-inquiry-add]');
+      const storageKey = selector.dataset.storageKey;
+
+      const readItems = () => {
+        try {
+          const parsed = JSON.parse(window.localStorage.getItem(storageKey) || '{}');
+          const items = Array.isArray(parsed) ? parsed : parsed?.items;
+          return Array.isArray(items) ? items.slice(0, 30) : [];
+        } catch {
+          return [];
+        }
+      };
+
+      const selectModel = model => {
+        if (!(modelSelect instanceof HTMLSelectElement)) return;
+        const normalized = cleanText(model, 120).toLowerCase();
+        const option = [...modelSelect.options].find(item => item.value.trim().toLowerCase() === normalized);
+        if (!option) return;
+        modelSelect.value = option.value;
+      };
+
+      const updateModelUrl = model => {
+        const nextUrl = new URL(window.location.href);
+        if (model) nextUrl.searchParams.set('model', model);
+        else nextUrl.searchParams.delete('model');
+        window.history.replaceState({}, '', nextUrl);
+        document.querySelectorAll('[data-model]').forEach(row => {
+          row.classList.toggle(
+            'is-selected',
+            Boolean(model) && row.getAttribute('data-model')?.trim().toLowerCase() === model.trim().toLowerCase()
+          );
+        });
+      };
+
+      const requestedModel = new URLSearchParams(window.location.search).get('model');
+      if (requestedModel) selectModel(requestedModel);
+
+      document.addEventListener('click', event => {
+        const row = event.target instanceof Element ? event.target.closest('[data-model]') : null;
+        const model = row?.getAttribute('data-model');
+        if (model) selectModel(model);
+      });
+
+      modelSelect?.addEventListener('change', () => updateModelUrl(modelSelect.value));
+      selector.querySelectorAll('[data-selector-quantity]').forEach(button => {
+        button.addEventListener('click', () => {
+          const change = button.dataset.selectorQuantity === 'decrease' ? -1 : 1;
+          quantityInput.value = String(clampQuantity(Number(quantityInput.value) + change));
+        });
+      });
+      quantityInput?.addEventListener('change', () => {
+        quantityInput.value = String(clampQuantity(quantityInput.value));
+      });
+      addButton?.addEventListener('click', () => {
+        const productSlug = cleanText(selector.dataset.productSlug, 160);
+        const productTitle = cleanText(selector.dataset.productTitle, 220);
+        const series = cleanText(selector.dataset.series, 160);
+        const model = cleanText(modelSelect?.value, 120);
+        const quantity = clampQuantity(quantityInput?.value);
+        const productPath = cleanText(selector.dataset.productPath, 500);
+        const items = readItems();
+        const existing = items.find(item =>
+          cleanText(item?.productSlug, 160).toLowerCase() === productSlug.toLowerCase()
+          && cleanText(item?.model, 120).toLowerCase() === model.toLowerCase()
+        );
+
+        if (existing) {
+          existing.quantity = clampQuantity(Number(existing.quantity) + quantity);
+          existing.productTitle = productTitle;
+          existing.series = series;
+          existing.productPath = productPath;
+        } else if (items.length < 30) {
+          items.push({ productSlug, productTitle, series, model, quantity, productPath });
+        }
+
+        quantityInput.value = '1';
+        window.localStorage.setItem(storageKey, JSON.stringify({ version: 1, items }));
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-change', { detail: { open: true } }));
+        }, 0);
+      });
+    });
+  })();
+</script>

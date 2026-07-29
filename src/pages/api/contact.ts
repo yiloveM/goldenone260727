@@ -1,4 +1,7 @@
+import { getCollection, type CollectionEntry } from 'astro:content';
 import type { APIRoute } from 'astro';
+import { getProductModelCodes, INQUIRY_CART_MAX_ITEMS, INQUIRY_CART_MAX_QUANTITY } from '../../data/inquiryCart';
+import { isProductPublished } from '../../data/productCategories';
 import { siteInfo } from '../../data/site';
 import { getRuntimeEnv } from '../../lib/runtime-env';
 
@@ -10,6 +13,15 @@ const CAPTCHA_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const CAPTCHA_LENGTH = 4;
 const CAPTCHA_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_TO_EMAIL = siteInfo.email || 'inquiries@example.com';
+
+interface ValidatedInquiryItem {
+  productSlug: string;
+  productTitle: string;
+  series: string;
+  model: string;
+  quantity: number;
+  productUrl: string;
+}
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
 const getCaptchaSecret = (env: Env) =>
@@ -102,6 +114,76 @@ const escapeHtml = (value: string) =>
 
 const line = (label: string, value: string) => `${label}: ${value || '-'}`;
 
+const parseInquiryItems = (
+  raw: string,
+  products: CollectionEntry<'products'>[],
+  origin: string
+): ValidatedInquiryItem[] => {
+  if (!raw) return [];
+
+  let submitted: unknown;
+  try {
+    submitted = JSON.parse(raw);
+  } catch {
+    throw new Error('The selected product list is invalid. Please review the inquiry cart and try again.');
+  }
+  if (!Array.isArray(submitted) || submitted.length > INQUIRY_CART_MAX_ITEMS) {
+    throw new Error(`Please select no more than ${INQUIRY_CART_MAX_ITEMS} products per inquiry.`);
+  }
+
+  const catalog = new Map(
+    products
+      .filter(product => isProductPublished(product) && product.data.offeringType === 'physical-product')
+      .map(product => [product.id.replace(/\.mdoc$/, '').toLowerCase(), product] as const)
+  );
+  const normalized = new Map<string, ValidatedInquiryItem>();
+
+  submitted.forEach(value => {
+    if (!value || typeof value !== 'object') {
+      throw new Error('The selected product list is invalid. Please review the inquiry cart and try again.');
+    }
+    const item = value as Record<string, unknown>;
+    const submittedSlug = String(item.productSlug || '').trim().toLowerCase().slice(0, 160);
+    const product = catalog.get(submittedSlug);
+    if (!product) {
+      throw new Error('One selected product is no longer available. Please remove it and try again.');
+    }
+
+    const submittedModel = String(item.model || '').trim().slice(0, 120);
+    const validModel = submittedModel && product.data.modelStrategy === 'series'
+      ? getProductModelCodes(product).find(model => model.toLowerCase() === submittedModel.toLowerCase()) || ''
+      : '';
+    if (submittedModel && !validModel) {
+      throw new Error(`Model ${submittedModel} is not available for ${product.data.title}. Please review the selection.`);
+    }
+
+    const quantity = Number(item.quantity);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > INQUIRY_CART_MAX_QUANTITY) {
+      throw new Error(`Each product quantity must be between 1 and ${INQUIRY_CART_MAX_QUANTITY}.`);
+    }
+
+    const productSlug = product.id.replace(/\.mdoc$/, '');
+    const productUrl = new URL(`/products/${productSlug}/`, origin);
+    if (validModel) productUrl.searchParams.set('model', validModel);
+    const key = `${productSlug.toLowerCase()}::${validModel.toLowerCase()}`;
+    const existing = normalized.get(key);
+    if (existing) {
+      existing.quantity = Math.min(INQUIRY_CART_MAX_QUANTITY, existing.quantity + quantity);
+      return;
+    }
+    normalized.set(key, {
+      productSlug,
+      productTitle: product.data.title,
+      series: product.data.series,
+      model: validModel,
+      quantity,
+      productUrl: productUrl.toString(),
+    });
+  });
+
+  return [...normalized.values()];
+};
+
 const sendInquiryEmail = async ({
   env,
   request,
@@ -116,6 +198,7 @@ const sendInquiryEmail = async ({
     country: string;
     message: string;
     pageUrl: string;
+    items: ValidatedInquiryItem[];
   };
 }) => {
   const apiKey = getEnvString(env, 'RESEND_API_KEY');
@@ -129,8 +212,20 @@ const sendInquiryEmail = async ({
   const ipAddress = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
   const cfCountry = request.headers.get('cf-ipcountry') || '';
   const userAgent = request.headers.get('user-agent') || '';
-  const subjectParts = [`${siteInfo.name} inquiry`, inquiry.country || cfCountry, inquiry.company].filter(Boolean);
+  const subjectParts = [
+    `${siteInfo.name} inquiry`,
+    inquiry.items.length ? `${inquiry.items.length} product selection${inquiry.items.length === 1 ? '' : 's'}` : '',
+    inquiry.country || cfCountry,
+    inquiry.company,
+  ].filter(Boolean);
   const subject = subjectParts.join(' - ').slice(0, 180);
+  const productLines = inquiry.items.flatMap((item, index) => [
+    `${index + 1}. ${item.productTitle}`,
+    line('   Series', item.series),
+    line('   Model', item.model || 'All models'),
+    line('   Quantity', String(item.quantity)),
+    line('   Product page', item.productUrl),
+  ]);
   const details = [
     line('Submitted at', submittedAt),
     line('Name', inquiry.name),
@@ -141,6 +236,7 @@ const sendInquiryEmail = async ({
     line('Visitor IP', ipAddress),
     line('Cloudflare country', cfCountry),
     line('User agent', userAgent),
+    ...(productLines.length ? ['', 'Requested products:', ...productLines] : []),
     '',
     'Message:',
     inquiry.message,
@@ -159,10 +255,35 @@ const sendInquiryEmail = async ({
   ]
     .map(([labelText, value]) => `<tr><th align="left">${escapeHtml(labelText)}</th><td>${escapeHtml(value || '-')}</td></tr>`)
     .join('');
+  const productHtml = inquiry.items.length
+    ? `
+      <h3 style="margin:20px 0 8px;">Requested products</h3>
+      <table cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;border:1px solid #dbe7ee;">
+        <thead>
+          <tr>
+            <th align="left">Product / series</th>
+            <th align="left">Model</th>
+            <th align="left">Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${inquiry.items.map(item => `
+            <tr>
+              <td style="border-top:1px solid #dbe7ee;">
+                <a href="${escapeHtml(item.productUrl)}">${escapeHtml(item.productTitle)}</a>
+                <br><small>${escapeHtml(item.series || '-')}</small>
+              </td>
+              <td style="border-top:1px solid #dbe7ee;">${escapeHtml(item.model || 'All models')}</td>
+              <td style="border-top:1px solid #dbe7ee;">${item.quantity}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`
+    : '';
   const html = `
     <div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.55;">
       <h2 style="margin:0 0 16px;">New ${escapeHtml(siteInfo.name)} website inquiry</h2>
       <table cellpadding="8" cellspacing="0" style="border-collapse:collapse;border:1px solid #dbe7ee;">${htmlRows}</table>
+      ${productHtml}
       <h3 style="margin:20px 0 8px;">Message</h3>
       <p style="white-space:pre-wrap;">${escapeHtml(inquiry.message)}</p>
     </div>`;
@@ -216,6 +337,18 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const origin = new URL(request.url).origin;
   const pagePath = field(formData, 'pagePath', 250) || '/contact/';
+  let inquiryItems: ValidatedInquiryItem[];
+  try {
+    inquiryItems = parseInquiryItems(field(formData, 'inquiryItems', 20000), await getCollection('products'), origin);
+  } catch (error) {
+    return json(
+      {
+        ok: false,
+        message: error instanceof Error ? error.message : 'Please review the selected products and try again.',
+      },
+      400
+    );
+  }
   const inquiry = {
     name: field(formData, 'name', 120),
     email: field(formData, 'email', 160).toLowerCase(),
@@ -223,6 +356,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     country: field(formData, 'country', 120),
     message: field(formData, 'message', 3000),
     pageUrl: pagePath.startsWith('http') ? pagePath : new URL(pagePath, origin).toString(),
+    items: inquiryItems,
   };
 
   if (!inquiry.name || !inquiry.email || !inquiry.message) {
