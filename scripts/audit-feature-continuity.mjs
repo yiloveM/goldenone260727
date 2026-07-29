@@ -46,6 +46,16 @@ const contracts = [
     markers: ['makeGenericAPIRouteHandler', 'KEYSTATIC_GITHUB_CLIENT_ID', 'KEYSTATIC_GITHUB_CLIENT_SECRET', 'KEYSTATIC_SECRET'],
   },
   {
+    area: 'Keystatic Chinese navigation and browser dependency interop',
+    file: 'keystatic.config.ts',
+    markers: ["brand: { name: '通用企业网站内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"],
+  },
+  {
+    area: 'Keystatic local browser dependency optimization',
+    file: 'astro.config.mjs',
+    markers: ["exclude: ['@keystatic/astro', '@keystatic/core']", "include: ['slate-react']"],
+  },
+  {
     area: 'Keystatic content and product controls',
     file: 'keystatic.config.ts',
     markers: ['productManagerField', 'productOrderField', 'r2ImageUrlField', "path: 'src/content/products/*'", 'offeringType', 'modelStrategy'],

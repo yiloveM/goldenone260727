@@ -62,7 +62,7 @@ export default defineConfig({
     // Keystatic owns this virtual module. Do not let workerd's dependency optimizer prebundle it.
     optimizeDeps: {
       exclude: ['@keystatic/astro', '@keystatic/core'],
-      include: ['lodash/debounce.js'],
+      include: ['slate-react'],
     },
   },
   i18n: {

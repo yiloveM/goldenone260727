@@ -195,14 +195,14 @@ if (profile) {
 
 const structuralChecks = [
   ['src/layouts/BaseLayout.astro', ['rel="canonical"', 'hreflang', 'application/ld+json', 'max-image-preview:large', 'astrowind-visual-foundation.css', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest']],
-  ['astro.config.mjs', ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', "from './src/integrations/keystatic-cloudflare.mjs'", "exclude: ['@keystatic/astro', '@keystatic/core']"]],
+  ['astro.config.mjs', ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', "from './src/integrations/keystatic-cloudflare.mjs'", "exclude: ['@keystatic/astro', '@keystatic/core']", "include: ['slate-react']"]],
   ['wrangler.toml', ['./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js', 'directory = "./dist"', 'CONTENT_BUCKET', 'MANAGER_DB']],
   ['src/lib/runtime-env.ts', ['cloudflare:workers', 'cfContext?.env']],
   ['src/styles/home-tailwind.css', ['tailwindcss/theme', 'tailwindcss/utilities', 'prefix(tw)']],
   ['src/pages/robots.txt.ts', ['Disallow: /keystatic/', 'Disallow: /manager/', 'Disallow: /api/', 'Disallow: /r2/']],
   ['src/pages/llms.txt.ts', ['product-catalog.json', 'Content notes']],
   ['src/data/seo.ts', ['productEntitiesEnabled = true', 'ProductGroup', 'FAQPage', 'Service']],
-  ['keystatic.config.ts', ['siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslator', 'sitePublisher', 'imagePool', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField']],
+  ['keystatic.config.ts', ['siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslator', 'sitePublisher', 'imagePool', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField', "brand: { name: '通用企业网站内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"]],
   ['src/keystatic/site-language-selector-field.tsx', ['全选全部目标语言', '反选当前选择', 'languageBulkEvent', 'siteLanguageCheckboxField']],
   ['src/integrations/keystatic-cloudflare.mjs', ["'/keystatic/[...params]'", '@keystatic/astro/internal/keystatic-astro-page.astro']],
   ['src/pages/api/keystatic/[...params].ts', ['makeGenericAPIRouteHandler', 'KEYSTATIC_GITHUB_CLIENT_ID', 'KEYSTATIC_GITHUB_CLIENT_SECRET', 'KEYSTATIC_SECRET']],
@@ -219,6 +219,27 @@ for (const [file, terms] of structuralChecks) {
   } catch {
     // The missing file error above is enough context.
   }
+}
+
+try {
+  const keystaticConfig = await source('keystatic.config.ts');
+  if (/enabledLocales:\s*fields\.object\([\s\S]{0,800}?layout\s*:/.test(keystaticConfig)) {
+    add('error', 'keystatic.config.ts', 'The website-language object must not use a partial Keystatic layout array.');
+  }
+  const keystaticUiFiles = [
+    'keystatic.config.ts',
+    ...(await readdir(path.join(root, 'src', 'keystatic'), { withFileTypes: true }))
+      .filter(entry => entry.isFile() && /\.(?:ts|tsx)$/.test(entry.name))
+      .map(entry => path.join('src', 'keystatic', entry.name)),
+  ];
+  const mojibake = /[\u0080-\u009f\uFFFD]|Ã.|Â.|â€|ï¿½/;
+  for (const file of keystaticUiFiles) {
+    if (mojibake.test(await source(file))) {
+      add('error', file, 'Possible invalid UTF-8 or mojibake text found in the Keystatic interface.');
+    }
+  }
+} catch {
+  // Missing-file errors are already reported above.
 }
 
 try {
