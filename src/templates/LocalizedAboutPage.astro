@@ -32,6 +32,19 @@ const aboutStructuredData = [
   ),
 ];
 const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: translateTechnicalText(item.title, locale) }));
+const aboutCards = locale === 'es'
+  ? [
+      ['Diseño', 'Empieza con la idea visual, el uso previsto y la forma que debe representarla.'],
+      ['Objeto', 'Define silueta, dimensiones, espesor, relieve, anverso, reverso y canto.'],
+      ['Acabado', 'Compara esmalte, baño, pulido, efecto antiguo, color y textura.'],
+      ['Presentación', 'Completa el proyecto con cierre, cinta, herrajes, cuero y embalaje.'],
+    ]
+  : [
+      ['Artwork', 'Start with the visual idea, intended use, and the form that should carry it.'],
+      ['Object', 'Define shape, dimensions, thickness, relief, front, reverse, and edge treatment.'],
+      ['Finish', 'Compare enamel, plating, polish, antique treatment, color, and texture.'],
+      ['Presentation', 'Complete the project with backing, ribbon, hardware, leather, and packaging choices.'],
+    ];
 ---
 
 <BaseLayout title={pages.about.title} description={aboutDescription} image={pageImages.about} structuredData={aboutStructuredData} locale={locale}>
@@ -58,34 +71,12 @@ const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: tr
           <p class="prose">{pages.about.whatWeBuildDescription}</p>
         </div>
         <div class="proof-list">
-          <div class="proof-card about-proof-card" tabindex="0">
-            <strong>{translateTechnicalText('Context', locale)}</strong>
-            <p class="prose">{translateTechnicalText('Information shaped around actual applications, evaluation criteria, and project fit.', locale)}</p>
-            <span class="proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64"><path d="M16 43c6-13 15-21 32-24"/><path d="M17 43h30"/><path d="M22 36l7 7 12-18"/><path d="M14 51h36"/></svg>
-            </span>
-          </div>
-          <div class="proof-card about-proof-card" tabindex="0">
-            <strong>{translateTechnicalText('Clarity', locale)}</strong>
-            <p class="prose">{translateTechnicalText('Direct commercial conversations with the details needed for a useful response.', locale)}</p>
-            <span class="proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64"><path d="M32 10 48 17v13c0 11-7 19-16 24-9-5-16-13-16-24V17Z"/><path d="m23 32 6 6 13-15"/></svg>
-            </span>
-          </div>
-          <div class="proof-card about-proof-card" tabindex="0">
-            <strong>{translateTechnicalText('Continuity', locale)}</strong>
-            <p class="prose">{translateTechnicalText('Support for selection, implementation, and long-term operating needs.', locale)}</p>
-            <span class="proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64"><path d="M14 24h36v24H14z"/><path d="M20 24V14h24v10"/><path d="M23 36h18"/><path d="M23 43h10"/></svg>
-            </span>
-          </div>
-          <div class="proof-card about-proof-card" tabindex="0">
-            <strong>{translateTechnicalText('Reach', locale)}</strong>
-            <p class="prose">{translateTechnicalText('A perspective designed for international B2B buyers and project teams.', locale)}</p>
-            <span class="proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="21"/><path d="M11 32h42"/><path d="M32 11c6 7 9 14 9 21s-3 14-9 21c-6-7-9-14-9-21s3-14 9-21Z"/></svg>
-            </span>
-          </div>
+          {aboutCards.map(item => (
+            <div class="proof-card about-proof-card" tabindex="0">
+              <strong>{item[0]}</strong>
+              <p class="prose">{item[1]}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

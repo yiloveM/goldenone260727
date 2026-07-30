@@ -155,7 +155,7 @@ const baseUi = {
     sitemap: 'Sitemap',
     whatsappInquiry: 'WhatsApp inquiry',
     contactStrip: publicSiteCopy.positioning,
-    copyright: `${siteInfo.name}.`,
+    copyright: 'All rights reserved.',
     clearPools: `International ${industryProfile.market.industry} information for B2B buyers.`,
   },
   sideContact: {

@@ -17,6 +17,10 @@ const pages = getLocalizedPageCopy(locale);
 const mapAddress = siteInfo.address;
 const hasMapAddress = Boolean(mapAddress && !/^replace with/i.test(mapAddress));
 const hasDirectContact = Boolean(siteInfo.email || siteInfo.phone || siteInfo.address || siteInfo.factoryAddress || siteInfo.whatsapp);
+const hasDistinctFactoryAddress = Boolean(
+  siteInfo.factoryAddress
+  && siteInfo.factoryAddress.trim().toLowerCase() !== siteInfo.address.trim().toLowerCase()
+);
 const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed`;
 const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapAddress)}`;
 const contactDescription = pages.contact.description;
@@ -79,7 +83,7 @@ const contactStructuredData = [
             {siteInfo.email && <>{emailLabel}: <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a><br /></>}
             {siteInfo.phone && <>{phoneLabel}: <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a><br /></>}
             {siteInfo.address && <>{pages.contact.salesOffice}: <bdi dir="ltr">{siteInfo.address}</bdi><br /></>}
-            {siteInfo.factoryAddress && <>{pages.contact.factoryAddress}: <bdi dir="ltr">{siteInfo.factoryAddress}</bdi></>}
+            {hasDistinctFactoryAddress && <>{pages.contact.factoryAddress}: <bdi dir="ltr">{siteInfo.factoryAddress}</bdi></>}
           </p>
           {siteInfo.whatsapp && <a class="btn primary" href={siteInfo.whatsapp} target="_blank" rel="noopener" style="margin-top:20px;">{pages.contact.whatsapp}</a>}
         </aside>}
@@ -91,7 +95,7 @@ const contactStructuredData = [
         <h2>{pages.contact.mapTitle}</h2>
         <p class="prose"><bdi dir="ltr">{mapAddress}</bdi></p>
       </div>
-      <div class="glass-panel map-panel map-water-panel">
+      <div class="glass-panel map-panel">
         <iframe title="Business location on Google Maps" src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         <div class="map-logo-pin" aria-hidden="true">
           <img src={brandAssets.logo} alt="" loading="lazy" decoding="async" width="154" height="60" />
@@ -99,7 +103,7 @@ const contactStructuredData = [
         <div class="map-location-card">
           <span class="eyebrow">{translateTechnicalText('Business office', locale)}</span>
           <strong>{mapAddress}</strong>
-          <p>{siteInfo.factoryAddress}</p>
+          {hasDistinctFactoryAddress && <p>{siteInfo.factoryAddress}</p>}
           <a href={mapLink} target="_blank" rel="noopener">{pages.contact.mapOpen}</a>
         </div>
       </div>

@@ -91,7 +91,7 @@ const languageOptions = locales.map(locale => ({
   ...localeMeta[locale],
 }));
 const latinFontHref =
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans:wght@400;500;600;700;800;900&display=swap';
+  'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700;800&display=swap';
 const fontHrefByLocale: Record<Locale, string> = {
   en: latinFontHref,
   es: latinFontHref,
@@ -126,6 +126,9 @@ const footerCategoryLinks = navCategories.slice(0, 6);
 const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
 const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
+const utilityLabel = pageLocale === 'es'
+  ? 'Regalos metálicos personalizados para programas OEM'
+  : 'Custom metal gifts for OEM programs';
 ---
 <!doctype html>
 <html lang={localeInfo.htmlLang} dir={localeInfo.dir}>
@@ -175,72 +178,82 @@ const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
   </head>
   <body>
     <header class="site-header astrowind-site-header" data-visual-foundation="astrowind">
+      <div class="nav-utility">
+        <div class="container nav-utility__inner">
+          <span>{utilityLabel}</span>
+          <div>
+            {hasEmail && <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a>}
+            {hasPhone && <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a>}
+          </div>
+        </div>
+      </div>
       <nav class="container nav" aria-label="Main navigation">
         <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
           <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="154" height="60" decoding="async" />
-          <span class="logo-tagline" aria-hidden="true">
-            <span>{siteInfo.tagline}</span>
-            <small>{industryProfile.market.industry}</small>
-          </span>
         </a>
         <button class="mobile-toggle" aria-label={dictionary.nav.toggleMenu} aria-expanded="false" data-menu-toggle>
           <span></span><span></span><span></span>
         </button>
         <div class="nav-links" data-nav-links>
-          <div class="nav-item nav-products" data-products-nav>
-            <a class="nav-trigger" href={localizePath('/products/', pageLocale)} aria-haspopup={navCategories.length ? 'true' : undefined} aria-expanded="false" data-products-trigger>{dictionary.nav.products}</a>
-            {navCategories.length > 0 && (
-              <div class="mega-menu" aria-label="Product category navigation">
-                <div class="mega-menu-shell">
-                  <div class="mega-category-list">
-                    {navCategories.map(category => (
-                      <div class="mega-category-item">
-                        <a class="mega-category-link" href={category.href}>
-                          <span>{category.displayName || category.name}</span>
-                        </a>
-                        <div class="mega-product-flyout" aria-label={`${category.name} products`}>
-                          {category.products.map(product => {
-                            const item = localizedProduct(product, pageLocale);
-                            return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
-                          })}
-                          <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {category.displayName || category.name}</a>
+          <div class="nav-primary">
+            <div class="nav-item nav-products" data-products-nav>
+              <a class="nav-trigger" href={localizePath('/products/', pageLocale)} aria-haspopup={navCategories.length ? 'true' : undefined} aria-expanded="false" data-products-trigger>
+                {dictionary.nav.products}
+                <span class="nav-chevron" aria-hidden="true"></span>
+              </a>
+              {navCategories.length > 0 && (
+                <div class="mega-menu" aria-label="Product category navigation">
+                  <div class="mega-menu-shell">
+                    <div class="mega-category-list">
+                      {navCategories.map(category => (
+                        <div class="mega-category-item">
+                          <a class="mega-category-link" href={category.href}>
+                            <span>{category.displayName || category.name}</span>
+                          </a>
+                          <div class="mega-product-flyout" aria-label={`${category.name} products`}>
+                            {category.products.map(product => {
+                              const item = localizedProduct(product, pageLocale);
+                              return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
+                            })}
+                            <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {category.displayName || category.name}</a>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-          <a href={localizePath('/blog/', pageLocale)}>{dictionary.nav.engineeringNotes}</a>
-          <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
-          <a href={localizePath('/about/', pageLocale)}>{dictionary.nav.about}</a>
-          <a href={localizePath('/contact/', pageLocale)}>{dictionary.nav.contact}</a>
-          <div class="language-switcher" data-language-switcher>
-            <button class="language-trigger" type="button" aria-label={dictionary.nav.language} aria-haspopup="menu" aria-expanded="false" data-language-trigger>
-              <span class="language-globe" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="img">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M3.6 9h16.8M3.6 15h16.8M12 3c2.4 2.3 3.6 5.3 3.6 9s-1.2 6.7-3.6 9M12 3C9.6 5.3 8.4 8.3 8.4 12s1.2 6.7 3.6 9" />
-                </svg>
-              </span>
-              <span class="language-code">{localeInfo.label}</span>
-            </button>
-            <div class="language-menu" role="menu" aria-label={dictionary.nav.language}>
-              {languageOptions.map(option => (
-                <a
-                  class={option.active ? 'language-option is-active' : 'language-option'}
-                  href={option.href}
-                  hreflang={option.htmlLang}
-                  lang={option.htmlLang}
-                  dir="ltr"
-                  role="menuitem"
-                  aria-current={option.active ? 'page' : undefined}
-                >
-                  <strong>{option.label}</strong>
-                </a>
-              ))}
+              )}
             </div>
+            <a href={localizePath('/blog/', pageLocale)}>{dictionary.nav.engineeringNotes}</a>
+            <a href={localizePath('/about/', pageLocale)}>{dictionary.nav.about}</a>
+            <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
+          </div>
+          <div class="nav-actions">
+            <div class="language-switcher" data-language-switcher>
+              <button class="language-trigger" type="button" aria-label={dictionary.nav.language} aria-haspopup="menu" aria-expanded="false" data-language-trigger>
+                <span class="language-code">{localeInfo.label}</span>
+                <span class="nav-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="language-menu" role="menu" aria-label={dictionary.nav.language}>
+                {languageOptions.map(option => (
+                  <a
+                    class={option.active ? 'language-option is-active' : 'language-option'}
+                    href={option.href}
+                    hreflang={option.htmlLang}
+                    lang={option.htmlLang}
+                    dir="ltr"
+                    role="menuitem"
+                    aria-current={option.active ? 'page' : undefined}
+                  >
+                    <strong>{option.label}</strong>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <a class="nav-quote" href={localizePath('/contact/', pageLocale)}>
+              {dictionary.common.requestQuote}
+              <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
       </nav>
@@ -272,8 +285,12 @@ const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
     <footer class="footer">
       <div class="container footer-shell">
         <div class="footer-brand-card">
-          <a class="logo footer-logo" href={localizePath('/', pageLocale)}>
-            <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} loading="lazy" decoding="async" width="154" height="60" />
+          <a class="footer-brand-lockup" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
+            <img src={brandAssets.icon} alt="" loading="lazy" decoding="async" width="46" height="46" />
+            <span>
+              <strong>{siteInfo.name}</strong>
+              <small>{industryProfile.market.industry}</small>
+            </span>
           </a>
           <p dir={localeInfo.dir}>{pageDescription}</p>
           <div class="footer-socials" aria-label={`${siteInfo.name} social media`}>
@@ -415,80 +432,6 @@ const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
         closeProductsMenu();
         closeLanguageMenus();
       });
-    </script>
-    <script is:inline>
-      (() => {
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const root = document.documentElement;
-        const revealItems = new Set();
-
-        const shouldSkipReveal = element => Boolean(element.closest([
-          '.brand-rail-shell',
-          '.factory-carousel-shell',
-          '.site-header',
-          '.side-contact',
-        ].join(','))) || (Boolean(element.closest('.hero')) && !element.matches('.metric'));
-
-        const setReveal = (element, type = 'card', index = 0) => {
-          if (!(element instanceof HTMLElement) || revealItems.has(element)) return;
-          if (shouldSkipReveal(element)) return;
-          element.dataset.reveal = type;
-          element.style.setProperty('--reveal-delay', `${Math.min(index * 55, 280)}ms`);
-          revealItems.add(element);
-        };
-
-        const addAll = (selector, type = 'card') => {
-          document.querySelectorAll(selector).forEach((element, index) => setReveal(element, type, index));
-        };
-
-        const addStaggered = (containerSelector, childSelector, type = 'card') => {
-          document.querySelectorAll(containerSelector).forEach(container => {
-            container.querySelectorAll(childSelector).forEach((element, index) => setReveal(element, type, index));
-          });
-        };
-
-        addAll('main .section-heading', 'heading');
-        addAll('main .partnership-visual, main .map-panel, main .product-image-stage', 'image');
-        addAll('main .product-sticky-panel, main .detail-panel');
-        addAll('.footer-brand-card, .footer-links-panel, .footer-contact-strip, .footer-bottom');
-
-        addStaggered('.metric-row', ':scope > .metric');
-        addStaggered('.category-card-grid', ':scope > .category-card');
-        addStaggered('.series-card-grid', ':scope > .series-card');
-        addStaggered('.card-grid', ':scope > .card, :scope > .contact-card');
-        addStaggered('.proof-list', ':scope > .proof-card');
-        addStaggered('.mini-specs', ':scope > .hot-sale-card');
-        addStaggered('.product-highlights', ':scope > .highlight-card');
-        addStaggered('.application-list', ':scope > li');
-        addStaggered('.faq-accordion-list', ':scope > .faq-accordion');
-        addStaggered('.footer-grid', ':scope > div');
-
-        if (revealItems.size === 0) return;
-        root.classList.add('reveal-ready');
-
-        const revealNow = element => element.classList.add('is-revealed');
-
-        if (reduceMotion || !('IntersectionObserver' in window)) {
-          revealItems.forEach(revealNow);
-          return;
-        }
-
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-            revealNow(entry.target);
-            observer.unobserve(entry.target);
-          });
-        }, {
-          root: null,
-          rootMargin: '0px 0px -12% 0px',
-          threshold: 0.16,
-        });
-
-        requestAnimationFrame(() => {
-          revealItems.forEach(element => observer.observe(element));
-        });
-      })();
     </script>
     <script is:inline>
       const initMarqueeDrag = ({ shell, track, duration = 42, direction = 'rtl' }) => {

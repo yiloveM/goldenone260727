@@ -4,7 +4,9 @@ import PageBanner from '../components/PageBanner.astro';
 import { factoryGallery, pageImages, siteInfo } from '../data/site';
 import { industryProfile, publicSiteCopy } from '../data/industry-profile';
 import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
+import { getPageCopy } from '../data/i18n';
 
+const pages = getPageCopy('en');
 const aboutDescription = publicSiteCopy.positioning;
 const aboutStructuredData = [
   organizationStructuredData(Astro.site),
@@ -27,30 +29,30 @@ const aboutStructuredData = [
 <BaseLayout title={`About ${siteInfo.name}`} description={aboutDescription} image={pageImages.about} structuredData={aboutStructuredData}>
   <main>
     <PageBanner
-      eyebrow="About"
-      title={`A specialist ${industryProfile.market.industry} partner for international buyers.`}
-      description={aboutDescription}
+      eyebrow={pages.about.bannerEyebrow}
+      title={pages.about.bannerTitle}
+      description={pages.about.bannerDescription}
       image={pageImages.about}
       variant="interior"
       share
     />
     <section class="section container interior-section about-system-section">
       <div class="section-heading">
-        <span class="eyebrow">Approach</span>
-        <h2>Focused commercial support from evaluation through delivery.</h2>
-        <p class="prose">Share the evidence, application requirements, and commercial priorities that matter to your project. The team can then provide a relevant response.</p>
+        <span class="eyebrow">{pages.about.systemEyebrow}</span>
+        <h2>{pages.about.systemTitle}</h2>
+        <p class="prose">{pages.about.systemDescription}</p>
       </div>
       <div class="proof-grid">
         <div class="glass-panel proof-panel">
-          <h2>What buyers can expect</h2>
-          <p class="prose">Clear offering information, practical commercial communication, and a direct route to the people who can evaluate a specific requirement.</p>
+          <h2>{pages.about.whatWeBuild}</h2>
+          <p class="prose">{pages.about.whatWeBuildDescription}</p>
         </div>
         <div class="proof-list">
           {[
-            ['Context', 'Information shaped around actual applications, evaluation criteria, and project fit.'],
-            ['Clarity', 'Direct commercial conversations with the details needed for a useful response.'],
-            ['Continuity', 'Support for selection, implementation, and long-term operating needs.'],
-            ['Reach', 'A perspective designed for international B2B buyers and project teams.'],
+            ['Artwork', 'Start with the visual idea, intended use, and the form that should carry it.'],
+            ['Object', 'Define shape, dimensions, thickness, relief, front, reverse, and edge treatment.'],
+            ['Finish', 'Compare enamel, plating, polish, antique treatment, color, and texture.'],
+            ['Presentation', 'Complete the project with backing, ribbon, hardware, leather, and packaging choices.'],
           ].map(item => (
             <div class="proof-card about-proof-card" tabindex="0">
               <strong>{item[0]}</strong>
@@ -62,8 +64,8 @@ const aboutStructuredData = [
     </section>
     <section class="section container factory-section">
       <div class="section-heading">
-        <span class="eyebrow">Capability</span>
-        <h2>See the work and outcomes in context.</h2>
+        <span class="eyebrow">{pages.about.factoryEyebrow}</span>
+        <h2>{pages.about.factoryTitle}</h2>
       </div>
       <div class="factory-carousel-shell" data-marquee-shell data-marquee-direction="ltr" data-marquee-duration="48">
         <div class="brand-rail-hint" aria-hidden="true">Drag / swipe to browse</div>

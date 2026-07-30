@@ -21,6 +21,19 @@ const products = (await getCollection('products')).filter(isProductPublished);
 const sortedProducts = sortProductsByPriority(products);
 const productCategories = translateProductCategories(buildProductCategories(products), locale);
 const catalogDescription = pages.products.description;
+const catalogCards = locale === 'es'
+  ? [
+      ['Formato', 'Elige la construcción de pin, moneda, medalla o llavero que mejor represente el diseño.'],
+      ['Diseño', 'Compara esmalte, impresión, relieve 2D y volumen 3D para la idea visual.'],
+      ['Acabado', 'Revisa el color del baño, el carácter de la superficie, el canto y la aplicación de color.'],
+      ['Presentación', 'Completa el objeto con cierre, cinta, anilla, elemento de cuero o dirección de embalaje.'],
+    ]
+  : [
+      ['Format', 'Choose the pin, coin, medal, or keychain construction that best carries the design.'],
+      ['Artwork', 'Compare enamel, print, 2D relief, and sculpted 3D directions for the visual idea.'],
+      ['Finish', 'Review plating color, surface character, edge treatment, and color application.'],
+      ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging direction.'],
+    ];
 const catalogStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
@@ -74,15 +87,10 @@ const catalogStructuredData = [
             </div>
           </div>
           <div class="catalog-custom-cards">
-            {[
-              ['Applications', 'Understand where the offering fits and what it is intended to solve.'],
-              ['Details', 'Review specifications, service scope, and model differences where applicable.'],
-              ['Evidence', 'Use real imagery, documentation, and verified commercial information.'],
-              ['Inquiry', 'Share market, quantity, timeline, and technical requirements with the team.'],
-            ].map(item => (
+            {catalogCards.map(item => (
               <article class="proof-card" tabindex="0" aria-label={translateTechnicalText(item[0], locale)}>
                 <strong>{translateTechnicalText(item[0], locale)}</strong>
-                <p class="prose">{translateTechnicalText(item[1], locale)}</p>
+                <p class="prose">{item[1]}</p>
               </article>
             ))}
           </div>
@@ -112,8 +120,8 @@ const catalogStructuredData = [
       ) : (
         <div class="glass-panel detail-panel" dir="ltr">
           <span class="eyebrow">{translateTechnicalText('In preparation', locale)}</span>
-          <h2>{translateTechnicalText('Product and service information is being prepared.', locale)}</h2>
-          <p class="prose">{translateTechnicalText('Contact the team with your requirement to begin a commercial discussion.', locale)}</p>
+          <h2>{locale === 'es' ? 'Se está preparando información de producto verificada.' : translateTechnicalText('Verified product information is being prepared.', locale)}</h2>
+          <p class="prose">{locale === 'es' ? 'Contacta con el equipo indicando el objeto, diseño, cantidad, destino y plazo disponibles.' : translateTechnicalText('Contact the team with the object, artwork, quantity, destination, and timing available.', locale)}</p>
         </div>
       )}
     </section>

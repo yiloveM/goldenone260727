@@ -8,7 +8,9 @@ import { pageImages } from '../../data/site';
 import { industryProfile, primaryKeyword, profileKeywords, publicSiteCopy } from '../../data/industry-profile';
 import { buildProductCategories, isProductPublished, sortProductsByPriority } from '../../data/productCategories';
 import { collectionStructuredData, websiteStructuredData, organizationStructuredData } from '../../data/seo';
+import { getPageCopy } from '../../data/i18n';
 
+const pages = getPageCopy('en');
 const products = (await getCollection('products')).filter(isProductPublished);
 const sortedProducts = sortProductsByPriority(products);
 const productCategories = buildProductCategories(products);
@@ -36,12 +38,12 @@ const catalogStructuredData = [
 <BaseLayout title={`${industryProfile.market.industry} Catalog`} description={catalogDescription} image={pageImages.productsCatalog} structuredData={catalogStructuredData}>
   <main>
     <PageBanner
-      eyebrow="Catalog"
-      title={`${primaryKeyword} for international projects and procurement`}
-      description={catalogDescription}
+      eyebrow={pages.products.bannerEyebrow}
+      title={pages.products.bannerTitle}
+      description={pages.products.bannerDescription}
       image={pageImages.productsCatalog}
       ctaHref="#product-series"
-      ctaLabel="Explore offerings"
+      ctaLabel={pages.products.bannerCta}
       variant="catalog"
       share
       shareLabel="Share catalog"
@@ -55,20 +57,20 @@ const catalogStructuredData = [
         </div>
         <div class="catalog-custom-layout">
           <div class="catalog-custom-copy">
-            <span class="eyebrow">Selection support</span>
-            <h2 id="catalog-custom-title">Information that lets a buyer move from interest to a well-prepared inquiry.</h2>
-            <p class="prose">Review the applications, technical details, service scope, and project fit for each published offering before requesting a quotation.</p>
+            <span class="eyebrow">{pages.products.customEyebrow}</span>
+            <h2 id="catalog-custom-title">{pages.products.customTitle}</h2>
+            <p class="prose">{pages.products.customDescription}</p>
             <div class="hero-actions">
-              <a class="btn primary" href="/contact">Discuss requirements</a>
-              <a class="btn secondary" href="#product-series">Browse offerings</a>
+              <a class="btn primary" href="/contact">{pages.products.discussCustomization}</a>
+              <a class="btn secondary" href="#product-series">{pages.products.browseAll}</a>
             </div>
           </div>
           <div class="catalog-custom-cards">
             {[
-              ['Applications', 'Understand where the offering fits and what it is intended to solve.'],
-              ['Details', 'Review specifications, service scope, and model differences where applicable.'],
-              ['Evidence', 'Use real imagery, documentation, and verified commercial information.'],
-              ['Inquiry', 'Share market, quantity, timeline, and technical requirements with the team.'],
+              ['Format', 'Choose the pin, coin, medal, or keychain construction that best carries the design.'],
+              ['Artwork', 'Compare enamel, print, 2D relief, and sculpted 3D directions for the visual idea.'],
+              ['Finish', 'Review plating color, surface character, edge treatment, and color application.'],
+              ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging direction.'],
             ].map(item => (
               <article class="proof-card" tabindex="0" aria-label={item[0]}>
                 <strong>{item[0]}</strong>
@@ -82,9 +84,9 @@ const catalogStructuredData = [
     {productCategories.length > 0 && (
       <section class="section container" id="product-families">
         <div class="section-heading">
-          <span class="eyebrow">Offerings</span>
-          <h2>Explore the range by commercial need</h2>
-          <p class="prose">Start with the category closest to your application or project requirement.</p>
+          <span class="eyebrow">{pages.home.categoriesEyebrow}</span>
+          <h2>{pages.products.categoryTitle}</h2>
+          <p class="prose">{pages.products.categoryDescription}</p>
         </div>
         <div class="category-card-grid">
           {productCategories.map((category, index) => <CategoryCard category={category} priority={index < 2} />)}
@@ -93,17 +95,17 @@ const catalogStructuredData = [
     )}
     <section class="section container" id="product-series" style="padding-top:0;">
       <div class="section-heading">
-        <span class="eyebrow">Featured range</span>
-        <h2>{sortedProducts.length ? 'Published offerings' : 'Verified offerings will be published here'}</h2>
-        <p class="prose">{sortedProducts.length ? 'Compare the available options, then contact the team with your scope and buying criteria.' : 'This catalog remains intentionally empty until the business adds verified products, services, or solutions.'}</p>
+        <span class="eyebrow">{pages.products.seriesEyebrow}</span>
+        <h2>{sortedProducts.length ? pages.products.seriesTitle : 'Verified product families will be published here'}</h2>
+        <p class="prose">{sortedProducts.length ? pages.products.description : 'The catalog remains intentionally empty until Golden One adds verified product information and imagery.'}</p>
       </div>
       {sortedProducts.length > 0 ? (
         <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} />)}</div>
       ) : (
         <div class="glass-panel detail-panel">
           <span class="eyebrow">In preparation</span>
-          <h2>Product and service information is being prepared.</h2>
-          <p class="prose">Contact the team with your requirement to begin a commercial discussion.</p>
+          <h2>Verified product information is being prepared.</h2>
+          <p class="prose">Contact the team with the object, artwork, quantity, destination, and timing available for your project.</p>
         </div>
       )}
     </section>
