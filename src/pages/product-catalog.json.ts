@@ -42,8 +42,8 @@ export const GET: APIRoute = async ({ site }) => {
     publisher: {
       name: siteInfo.name,
       url: `${origin}/`,
-      email: siteInfo.email,
-      telephone: siteInfo.phone,
+      ...(siteInfo.email ? { email: siteInfo.email } : {}),
+      ...(siteInfo.phone ? { telephone: siteInfo.phone } : {}),
     },
     productCount: products.length,
     products: products.map(product => {

@@ -5,6 +5,7 @@ import PageBanner from '../components/PageBanner.astro';
 import { pageImages } from '../data/site';
 import { industryProfile, primaryKeyword, profileKeywords } from '../data/industry-profile';
 import { collectionStructuredData } from '../data/seo';
+import { isPublicBlogPost } from '../data/publicContent';
 import { blogPath, localeMeta, localizedBlog, translateTechnicalText } from '../data/i18n';
 import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
 
@@ -14,7 +15,7 @@ interface Props {
 
 const { locale } = Astro.props;
 const pages = getLocalizedPageCopy(locale);
-const posts = (await getCollection('blog')).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+const posts = (await getCollection('blog')).filter(isPublicBlogPost).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 const blogDescription = pages.blog.description;
 const blogStructuredData = collectionStructuredData(
   {

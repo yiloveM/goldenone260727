@@ -12,7 +12,7 @@ type Env = Record<string, unknown> | undefined;
 const CAPTCHA_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const CAPTCHA_LENGTH = 4;
 const CAPTCHA_TTL_MS = 10 * 60 * 1000;
-const DEFAULT_TO_EMAIL = siteInfo.email || 'inquiries@example.com';
+const DEFAULT_TO_EMAIL = siteInfo.email;
 
 interface ValidatedInquiryItem {
   productSlug: string;
@@ -207,6 +207,7 @@ const sendInquiryEmail = async ({
 
   if (!apiKey) throw new Error('Missing RESEND_API_KEY.');
   if (!from) throw new Error('Missing CONTACT_FROM_EMAIL.');
+  if (!to) throw new Error('Missing CONTACT_TO_EMAIL.');
 
   const submittedAt = new Date().toISOString();
   const ipAddress = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';

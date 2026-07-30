@@ -1,0 +1,417 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/home-tailwind.css';
+import { brandAssets } from '../data/assets';
+import { industryProfile, profileKeywords, publicSiteCopy } from '../data/industry-profile';
+import { type Locale, getPageCopy, localizePath, translateTechnicalText, ui } from '../data/i18n';
+import { isProductPublished, sortProductsByPriority } from '../data/productCategories';
+import { isPublicBlogPost } from '../data/publicContent';
+import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
+import { brandShowcase, siteInfo } from '../data/site';
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = 'en' } = Astro.props;
+const pages = getPageCopy(locale);
+const dictionary = ui[locale];
+const visibleProducts = sortProductsByPriority(
+  (await getCollection('products')).filter(isProductPublished)
+).slice(0, 4);
+const visiblePosts = (await getCollection('blog'))
+  .filter(post => post.data.featured && isPublicBlogPost(post))
+  .slice(0, 2);
+const categories = brandShowcase.map((item, index) => ({
+  ...item,
+  number: String(index + 1).padStart(2, '0'),
+  title: translateTechnicalText(item.title, locale),
+  label: translateTechnicalText(item.label, locale),
+}));
+const attributes = industryProfile.productArchitecture.commonAttributes
+  .slice(0, 8)
+  .map(item => translateTechnicalText(item, locale));
+const briefingSteps = [
+  {
+    number: '01',
+    title: pages.home.briefStep1,
+    description: pages.home.briefStep1Description,
+  },
+  {
+    number: '02',
+    title: pages.home.briefStep2,
+    description: pages.home.briefStep2Description,
+  },
+  {
+    number: '03',
+    title: pages.home.briefStep3,
+    description: pages.home.briefStep3Description,
+  },
+  {
+    number: '04',
+    title: pages.home.briefStep4,
+    description: pages.home.briefStep4Description,
+  },
+];
+const finishes = [
+  { id: 'polished', label: pages.home.finishPolished, description: pages.home.finishPolishedDescription },
+  { id: 'matte', label: pages.home.finishMatte, description: pages.home.finishMatteDescription },
+  { id: 'antique', label: pages.home.finishAntique, description: pages.home.finishAntiqueDescription },
+  { id: 'dark', label: pages.home.finishDark, description: pages.home.finishDarkDescription },
+];
+const rangeImageByIndex = [
+  brandAssets.heroCenter,
+  '/images/metal-gifts/challenge-coins.webp',
+  '/images/metal-gifts/medals-keychains.webp',
+  '/images/metal-gifts/medals-keychains.webp',
+];
+const homeStructuredData = [
+  organizationStructuredData(Astro.site),
+  websiteStructuredData(Astro.site),
+  collectionStructuredData(
+    {
+      name: `${siteInfo.name} | ${industryProfile.market.industry}`,
+      description: pages.home.description,
+      url: localizePath('/', locale),
+      image: brandAssets.heroRippleDesktop,
+      keywords: profileKeywords([industryProfile.market.industry]),
+      items: categories.map((category, index) => ({
+        name: category.title,
+        url: localizePath('/products/', locale),
+        image: rangeImageByIndex[index],
+      })),
+    },
+    Astro.site
+  ),
+];
+---
+
+<BaseLayout
+  title={siteInfo.name}
+  description={pages.home.description}
+  image={brandAssets.heroRippleDesktop}
+  preloadHomeHero
+  structuredData={homeStructuredData}
+  locale={locale}
+>
+  <main class="metal-home tw:relative" data-tailwind-homepage>
+    <section class="metal-hero" data-hero-stage>
+      <img
+        class="metal-hero__image"
+        src={brandAssets.heroRippleDesktop}
+        alt={pages.home.heroImageAlt}
+        width="1792"
+        height="1024"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <div class="metal-hero__shade" aria-hidden="true"></div>
+      <div class="metal-shell metal-hero__inner">
+        <div class="metal-hero__copy" data-hero-copy>
+          <p class="metal-kicker metal-kicker--light">{pages.home.eyebrow}</p>
+          <h1><span>{pages.home.title}</span></h1>
+          <p class="metal-hero__lead">{pages.home.description}</p>
+          <div class="metal-actions">
+            <a class="metal-button metal-button--primary" href={localizePath('/products/', locale)}>
+              {dictionary.common.exploreProducts}
+              <span aria-hidden="true">↗</span>
+            </a>
+            <a class="metal-button metal-button--ghost" href={localizePath('/contact/', locale)}>
+              {dictionary.common.requestQuote}
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+        <aside
+          class="metal-hero__index"
+          aria-label={pages.home.heroIndexLabel}
+          data-hero-index
+          data-hero-labels={JSON.stringify(categories.map(category => category.title))}
+        >
+          <span class="metal-hero__index-rule" aria-hidden="true"></span>
+          <div class="metal-hero__index-window">
+            <span class="metal-hero__index-label" data-hero-rotating>{categories[0]?.title || pages.home.metric1}</span>
+          </div>
+          <p class="metal-hero__index-count">
+            <strong data-hero-counter>01</strong>
+            <span aria-hidden="true"> / {String(categories.length).padStart(2, '0')}</span>
+          </p>
+        </aside>
+      </div>
+      <div class="metal-hero__footer">
+        <div class="metal-shell">
+          <span>{pages.home.heroFooterLeft}</span>
+          <span>{pages.home.heroFooterRight}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="metal-section metal-range" aria-labelledby="range-title">
+      <div class="metal-shell">
+        <header class="metal-heading metal-heading--split" data-reveal>
+          <div>
+            <p class="metal-kicker">{pages.home.categoriesEyebrow}</p>
+            <h2 id="range-title">{pages.home.categoriesTitle}</h2>
+          </div>
+          <p>{pages.home.categoriesDescription}</p>
+        </header>
+        <div class="metal-range__grid">
+          {categories.map((category, index) => (
+            <article
+              class={`metal-range-card metal-range-card--${index + 1}`}
+              data-reveal
+              style={`--reveal-delay: ${index * 70}ms;`}
+            >
+              <a href={localizePath('/products/', locale)} aria-label={`${category.title}: ${category.label}`}>
+                <div class="metal-range-card__media">
+                  <img
+                    src={rangeImageByIndex[index]}
+                    alt={category.title}
+                    width="1200"
+                    height="900"
+                    loading={index > 1 ? 'lazy' : 'eager'}
+                    decoding="async"
+                  />
+                  <span>{category.number}</span>
+                </div>
+                <div class="metal-range-card__body">
+                  <h3>{category.title}</h3>
+                  <p>{category.label}</p>
+                  <span class="metal-range-card__arrow" aria-hidden="true">↗</span>
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="metal-section metal-finish" aria-labelledby="finish-title">
+      <div class="metal-shell metal-finish__layout">
+        <figure class="metal-finish__visual" data-reveal>
+          <img
+            src="/images/metal-gifts/challenge-coins.webp"
+            alt={pages.home.finishImageAlt}
+            width="1200"
+            height="900"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>
+            <span>{pages.home.finishCaptionEyebrow}</span>
+            <strong>{pages.home.finishCaption}</strong>
+          </figcaption>
+        </figure>
+        <div class="metal-finish__content" data-reveal style="--reveal-delay: 100ms;">
+          <p class="metal-kicker">{pages.home.featureEyebrow}</p>
+          <h2 id="finish-title">{pages.home.featureTitle}</h2>
+          <p class="metal-finish__intro">{pages.home.featureDescription}</p>
+          <div class="metal-finish__control" data-finish-control>
+            <div class="metal-finish__tabs" role="tablist" aria-label={pages.home.finishTabLabel}>
+              {finishes.map((finish, index) => (
+                <button
+                  type="button"
+                  role="tab"
+                  id={`finish-tab-${finish.id}`}
+                  aria-controls={`finish-panel-${finish.id}`}
+                  aria-selected={index === 0 ? 'true' : 'false'}
+                  tabindex={index === 0 ? 0 : -1}
+                  data-finish-tab={finish.id}
+                >
+                  <span class={`metal-swatch metal-swatch--${finish.id}`} aria-hidden="true"></span>
+                  {finish.label}
+                </button>
+              ))}
+            </div>
+            {finishes.map((finish, index) => (
+              <div
+                class="metal-finish__panel"
+                role="tabpanel"
+                id={`finish-panel-${finish.id}`}
+                aria-labelledby={`finish-tab-${finish.id}`}
+                hidden={index !== 0}
+                data-finish-panel={finish.id}
+              >
+                <p>{finish.description}</p>
+              </div>
+            ))}
+          </div>
+          <a class="metal-text-link" href={localizePath('/contact/', locale)}>
+            {pages.home.finishCta}
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="metal-section metal-brief" aria-labelledby="brief-title">
+      <div class="metal-shell">
+        <header class="metal-heading metal-heading--split metal-heading--dark" data-reveal>
+          <div>
+            <p class="metal-kicker metal-kicker--light">{pages.home.partnersEyebrow}</p>
+            <h2 id="brief-title">{pages.home.partnersTitle}</h2>
+          </div>
+          <p>{pages.home.partnersDescription}</p>
+        </header>
+        <ol class="metal-brief__steps">
+          {briefingSteps.map(step => (
+            <li data-reveal style={`--reveal-delay: ${Number(step.number) * 60}ms;`}>
+              <span>{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="metal-section metal-proof" aria-labelledby="proof-title">
+      <div class="metal-shell metal-proof__layout">
+        <div class="metal-proof__content" data-reveal>
+          <p class="metal-kicker">{pages.home.factoryEyebrow}</p>
+          <h2 id="proof-title">{pages.home.factoryTitle}</h2>
+          <p>{pages.home.factoryDescription}</p>
+          <ul class="metal-proof__list">
+            {attributes.map((attribute, index) => (
+              <li>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <strong>{attribute}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <figure class="metal-proof__visual" data-reveal style="--reveal-delay: 100ms;">
+          <img
+            src="/images/metal-gifts/custom-lapel-pins.webp"
+            alt={pages.home.proofImageAlt}
+            width="1200"
+            height="900"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>{pages.home.proofCaption}</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    {(visibleProducts.length > 0 || visiblePosts.length > 0) && (
+      <section class="metal-section metal-published" aria-labelledby="published-title">
+        <div class="metal-shell">
+          <header class="metal-heading metal-heading--split" data-reveal>
+            <div>
+              <p class="metal-kicker">{pages.home.insightsEyebrow}</p>
+              <h2 id="published-title">{pages.home.insightsTitle}</h2>
+            </div>
+            <p>{publicSiteCopy.insightDescription}</p>
+          </header>
+        </div>
+      </section>
+    )}
+
+    <section class="metal-cta">
+      <img
+        src="/images/metal-gifts/medals-keychains.webp"
+        alt=""
+        width="1792"
+        height="1024"
+        loading="lazy"
+        decoding="async"
+      />
+      <div class="metal-cta__shade" aria-hidden="true"></div>
+      <div class="metal-shell metal-cta__inner" data-reveal>
+        <p class="metal-kicker metal-kicker--light">{pages.home.ctaEyebrow}</p>
+        <h2>{pages.home.ctaTitle}</h2>
+        <p>{pages.home.ctaDescription}</p>
+        <a class="metal-button metal-button--primary" href={localizePath('/contact/', locale)}>
+          {dictionary.common.requestFactoryQuote}
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  const controls = document.querySelectorAll<HTMLElement>('[data-finish-control]');
+
+  controls.forEach(control => {
+    const tabs = Array.from(control.querySelectorAll<HTMLButtonElement>('[data-finish-tab]'));
+    const panels = Array.from(control.querySelectorAll<HTMLElement>('[data-finish-panel]'));
+
+    const activate = (tab: HTMLButtonElement) => {
+      const target = tab.dataset.finishTab;
+      tabs.forEach(item => {
+        const selected = item === tab;
+        item.setAttribute('aria-selected', String(selected));
+        item.tabIndex = selected ? 0 : -1;
+      });
+      panels.forEach(panel => {
+        panel.hidden = panel.dataset.finishPanel !== target;
+      });
+    };
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activate(tab));
+      tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        let nextIndex = index;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = tabs.length - 1;
+        activate(tabs[nextIndex]);
+        tabs[nextIndex].focus();
+      });
+    });
+  });
+
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const home = document.querySelector<HTMLElement>('[data-tailwind-homepage]');
+  const revealItems = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+
+  if (home) {
+    home.classList.add('is-motion-ready');
+    if (motionQuery.matches || !('IntersectionObserver' in window)) {
+      revealItems.forEach(item => item.classList.add('is-visible'));
+    } else {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          (entry.target as HTMLElement).classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, {
+        rootMargin: '0px 0px -10% 0px',
+        threshold: 0.12,
+      });
+      revealItems.forEach(item => observer.observe(item));
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-hero-index]').forEach(index => {
+    const label = index.querySelector<HTMLElement>('[data-hero-rotating]');
+    const counter = index.querySelector<HTMLElement>('[data-hero-counter]');
+    let labels: string[] = [];
+
+    try {
+      labels = JSON.parse(index.dataset.heroLabels || '[]');
+    } catch {
+      labels = [];
+    }
+
+    if (!label || !counter || labels.length < 2 || motionQuery.matches) return;
+
+    let activeIndex = 0;
+    window.setInterval(() => {
+      index.classList.add('is-changing');
+      window.setTimeout(() => {
+        activeIndex = (activeIndex + 1) % labels.length;
+        label.textContent = labels[activeIndex];
+        counter.textContent = String(activeIndex + 1).padStart(2, '0');
+        index.classList.remove('is-changing');
+      }, 220);
+    }, 3200);
+  });
+</script>

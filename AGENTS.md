@@ -17,7 +17,9 @@ Read `.agents/skills/businessweb-seo-geo/SKILL.md` before acting. Use `src/data/
 - Keep `/manager/` as the content-administrator portal with D1 drafts, R2 media, review, and approval/write-back flow.
 - Preserve the custom Keystatic fields, AI translation APIs/workflow, R2 routes, Astro 6 Cloudflare Workers adapter, KV session binding, D1 binding, contact workflow, and publish workflow.
 - Keep `/keystatic/`, `/manager/`, `/api/`, and `/r2/` out of public indexing.
-- Do not use fabricated prices, availability, reviews, ratings, certifications, manufacturing claims, customer logos, dates, contact information, or case studies.
+- Do not use fabricated prices, availability, reviews, ratings, certifications, manufacturing claims, customer logos, dates, or case studies.
+- While `industry-profile.json` is in `template` or `briefed` lifecycle, clearly recognizable sample email, phone, WhatsApp, and address values may remain visible for frontend visual comparison. Keep them obviously exemplary; do not replace them with realistic but unverified company details.
+- Before a real production launch, replace or verify every sample contact value. `npm run check:template:production` must reject remaining sample contacts.
 
 ## Required verification
 

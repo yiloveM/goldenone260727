@@ -1,8 +1,9 @@
 import { siteImages } from './backgroundImages';
-import { industryProfile, publicSiteCopy } from './industry-profile';
+import { industryProfile } from './industry-profile';
 
 export const siteInfo = {
   name: industryProfile.brand.name,
+  legalName: industryProfile.brand.legalName,
   tagline: industryProfile.brand.tagline,
   description: industryProfile.brand.description,
   email: industryProfile.brand.email,
@@ -36,55 +37,55 @@ export const pageImages = siteImages.pageBanners;
 
 export const brandShowcase = [
   {
-    title: 'Buyer-first product clarity',
-    label: publicSiteCopy.positioning,
+    title: 'Custom Lapel Pins',
+    label: 'Enamel style, metal finish, backing, and presentation',
     image: homePlaceholderImages.primaryOffer,
   },
   {
-    title: 'Technical confidence',
-    label: 'Clear applications, specifications, and evidence for evaluation.',
+    title: 'Challenge Coins',
+    label: 'Dimensions, relief, edge, finish, and front/reverse design',
     image: homePlaceholderImages.operations,
   },
   {
-    title: 'International delivery',
-    label: 'Built for global commercial and project conversations.',
+    title: 'Sports Medals',
+    label: 'Medal construction, ribbon specification, finish, and packaging',
     image: homePlaceholderImages.quality,
   },
   {
-    title: 'Lifecycle partnership',
-    label: 'From initial evaluation to long-term support.',
+    title: 'Custom Keychains',
+    label: 'Metal, enamel, leather, PU, ring, chain, and packaging formats',
     image: homePlaceholderImages.delivery,
   },
 ];
 
 export const factoryGallery = [
-  { title: 'Strategy and sales workspace', image: homePlaceholderImages.strategyRoom },
-  { title: 'Product content review', image: homePlaceholderImages.productReview },
-  { title: 'Operations dashboard', image: homePlaceholderImages.operationsDesk },
-  { title: 'Quality workflow', image: homePlaceholderImages.qualityWorkflow },
-  { title: 'Inventory and logistics', image: homePlaceholderImages.warehouse },
-  { title: 'Client workshop', image: homePlaceholderImages.clientWorkshop },
+  { title: 'Enamel and surface detail', image: homePlaceholderImages.strategyRoom },
+  { title: 'Coin relief and edge profile', image: homePlaceholderImages.productReview },
+  { title: 'Medal, ribbon, and attachment', image: homePlaceholderImages.operationsDesk },
+  { title: 'Engraved metal detail', image: homePlaceholderImages.qualityWorkflow },
+  { title: 'Finish and format comparison', image: homePlaceholderImages.warehouse },
+  { title: 'Pins, dies, and color direction', image: homePlaceholderImages.clientWorkshop },
 ];
 
 export const faqs = [
   {
     question: `What does ${siteInfo.name} offer?`,
     answer:
-      'Use the published catalog, applications, and technical details to understand the available offerings. Contact the team with project, market, and specification requirements for a precise response.',
+      'The public catalog is structured for custom lapel pins, challenge coins, sports medals, and keychains. Published product pages will show only the formats and options confirmed by the company.',
   },
   {
-    question: 'How can a buyer request a quotation or technical discussion?',
+    question: 'What should a buyer include in a custom quotation request?',
     answer:
-      'Share the company, target market, product or service scope, quantities, timeline, and any required standards through the inquiry form.',
+      'Share the intended product, artwork, dimensions, finish, attachment or ribbon, packaging, quantity, delivery destination, and target timeline. Leave any unknown fields open for discussion.',
   },
   {
-    question: 'How are technical and commercial claims verified?',
+    question: 'Can buyers compare finish and construction options before ordering?',
     answer:
-      'Only verified specifications, certifications, application guidance, and commercial commitments should be published. Ask the supplier team for current documentation before making a purchase decision.',
+      'Use the category and product pages to compare published materials, enamel or relief styles, plating, hardware, and packaging. Confirm the final specification in the approved artwork and quotation.',
   },
   {
-    question: 'Which markets and languages does the business support?',
+    question: 'Are prices, minimum quantities, and lead times shown online?',
     answer:
-      'Review the contact page for the current market coverage and language support, then send your project requirements for a tailored response.',
+      'These values should be published only when they are current and verified. Until then, request a project-specific quotation with quantity, specification, packaging, destination, and timing details.',
   },
 ];

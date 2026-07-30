@@ -31,6 +31,7 @@ import {
   type Locale,
 } from '../data/i18n';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
+import { isPublicBlogPost } from '../data/publicContent';
 import { translateProductCategory } from '../data/i18n';
 
 export type NonEnglishLocale = Exclude<Locale, 'en'>;
@@ -87,7 +88,7 @@ export const getLocalizedProductCategoryStaticPaths = async (locale: NonEnglishL
 };
 
 export const getLocalizedBlogStaticPaths = async () => {
-  const posts = await getCollection('blog');
+  const posts = (await getCollection('blog')).filter(isPublicBlogPost);
   return posts.map(post => ({ params: { slug: post.id.replace(/\.mdoc$/, '') }, props: { post } }));
 };
 

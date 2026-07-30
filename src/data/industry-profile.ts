@@ -27,12 +27,12 @@ export const visualTokens = {
 };
 
 export const publicSiteCopy = {
-  heroEyebrow: `${industryName} / International B2B`,
-  heroTitle: `${primaryKeyword} for buyers who need confidence before they specify.`,
+  heroEyebrow: 'Pins / Coins / Medals / Keychains',
+  heroTitle: 'Custom metal gifts, shaped around your brief.',
   heroDescription: clean(industryProfile.brand.description) || clean(industryProfile.market.positioning),
   positioning: clean(industryProfile.market.positioning) || 'A trusted specialist partner for international B2B buyers.',
-  catalogDescription: `Explore ${industryName.toLowerCase()} offerings with buyer-facing detail, applications, and quotation support.`,
-  insightDescription: `Practical guidance for evaluating, specifying, and operating ${industryName.toLowerCase()} solutions.`,
+  catalogDescription: 'Compare product formats, materials, finishes, attachments, ribbons, and packaging before preparing a quotation request.',
+  insightDescription: `Practical guidance for planning artwork, finishes, attachments, packaging, and purchasing requirements for ${industryName.toLowerCase()}.`,
 };
 
 export const profileKeywords = (extra: string[] = []) =>

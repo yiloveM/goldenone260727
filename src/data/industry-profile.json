@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "lifecycle": "template",
+  "lifecycle": "briefed",
   "brand": {
-    "name": "BusinessWeb",
-    "tagline": "International B2B brand platform",
-    "legalName": "",
-    "description": "A high-trust international website for a specialist B2B business.",
+    "name": "Golden One",
+    "tagline": "Custom metal objects, made clear",
+    "legalName": "Golden One (Jiangmen) Gifts Co., Limited",
+    "description": "Custom pins, coins, medals, and keychains organized around the choices buyers need to prepare a precise quotation request.",
     "email": "sales@example.com",
     "phone": "+1 555 010 2000",
     "whatsapp": "https://wa.me/15550102000",
@@ -14,50 +14,129 @@
     "socialProfiles": []
   },
   "market": {
-    "industry": "Your industry",
-    "businessModel": "undetermined",
+    "industry": "Metal Gifts and Crafts",
+    "businessModel": "discrete-products",
     "primaryLocale": "en",
     "markets": [],
-    "buyerRoles": ["Procurement teams", "Technical evaluators", "Project decision makers"],
-    "positioning": "A trusted specialist partner for international B2B buyers."
+    "buyerRoles": [
+      "Promotional product distributors",
+      "Brand and merchandise teams",
+      "Event organizers and race directors",
+      "Recognition program coordinators",
+      "Licensed merchandise and entertainment buyers",
+      "Importers and sourcing agents"
+    ],
+    "positioning": "A buyer-focused custom metal gift catalog for comparing form, finish, attachments, packaging, and project requirements before quotation."
   },
   "seo": {
-    "coreKeywords": [],
+    "coreKeywords": [
+      "lapel pin",
+      "challenge coin",
+      "medal",
+      "keychain",
+      "custom enamel pin",
+      "custom metal lapel pin",
+      "military challenge coins",
+      "3d challenge coin",
+      "custom sports medals",
+      "running medals",
+      "luxury leather keychain designer",
+      "pu leather keychain blanks",
+      "anime keychain",
+      "promotional keychains"
+    ],
     "longTailKeywords": [],
-    "entityTopics": [],
-    "searchIntentSummary": "Research required before production launch.",
+    "entityTopics": [
+      "custom metal gifts",
+      "enamel pins",
+      "lapel pin backings",
+      "challenge coin relief",
+      "coin edge options",
+      "medal ribbons",
+      "metal keychains",
+      "leather key fobs",
+      "plating and finishes",
+      "custom packaging"
+    ],
+    "searchIntentSummary": "Phase-one taxonomy only. Current SERP, competitor, and keyword-to-page research remains pending until verified company and product content is available.",
     "competitorReferences": [],
     "lastResearchDate": ""
   },
   "productArchitecture": {
-    "offeringType": "undetermined",
+    "offeringType": "discrete-products",
     "categoryPlans": [
       {
-        "name": "Solutions",
-        "description": "Core offerings for international buyers.",
-        "highlights": ["Clear selection", "Technical support", "Quote-ready"]
+        "name": "Custom Lapel Pins",
+        "description": "Enamel, die-struck, printed, and sculpted pin formats organized by finish, attachment, and intended use.",
+        "highlights": [
+          "Enamel and metal styles",
+          "Plating and finish choices",
+          "Clutch and backing options"
+        ]
       },
       {
-        "name": "Services & Support",
-        "description": "Commercial, project, and lifecycle support.",
-        "highlights": ["Project guidance", "Documentation", "After-sales"]
+        "name": "Challenge Coins",
+        "description": "Custom coin programs compared by dimensions, relief, edge, finish, color, and presentation.",
+        "highlights": [
+          "2D and 3D relief",
+          "Edge and finish options",
+          "Front and reverse design"
+        ]
+      },
+      {
+        "name": "Sports Medals",
+        "description": "Custom sports and running medals organized around medal construction, ribbon, finish, and event presentation.",
+        "highlights": [
+          "Custom shapes and relief",
+          "Ribbon specifications",
+          "Event packaging"
+        ]
+      },
+      {
+        "name": "Custom Keychains",
+        "description": "Metal, enamel, promotional, anime-style, leather, and PU keychain formats for branded merchandise programs.",
+        "highlights": [
+          "Metal and enamel formats",
+          "Leather and PU options",
+          "Rings, chains, and packaging"
+        ]
       }
     ],
-    "commonAttributes": [],
-    "modelAttributes": []
+    "commonAttributes": [
+      "Product category and intended use",
+      "Artwork format and design complexity",
+      "Dimensions and thickness",
+      "Base material",
+      "Plating color and surface finish",
+      "Color application or enamel style",
+      "Front and reverse treatment",
+      "Attachment or hardware",
+      "Packaging requirement",
+      "Quantity and delivery destination"
+    ],
+    "modelAttributes": [
+      "Shape or outline",
+      "2D or 3D relief",
+      "Coin edge style",
+      "Pin clutch or backing",
+      "Medal loop and ribbon specification",
+      "Key ring, chain, or leather construction",
+      "Individual finish or color variant",
+      "Presentation packaging"
+    ]
   },
   "visual": {
-    "archetype": "precise editorial",
-    "accentColor": "#0f766e",
-    "accentColorStrong": "#075985",
-    "accentColorSoft": "#ccfbf1",
-    "heroDirection": "Use real product, process, project, or environment imagery. Avoid generic office imagery after industry setup.",
-    "imageRules": "Show what buyers evaluate: the actual product, material, installation, process, team, or outcome."
+    "archetype": "gallery-grade industrial object study",
+    "accentColor": "#236b63",
+    "accentColorStrong": "#174f49",
+    "accentColorSoft": "#dceae7",
+    "heroDirection": "Use close, sharply lit compositions of pins, coins, medals, keychains, dies, ribbons, and finish samples. Keep headline space clear and avoid generic offices.",
+    "imageRules": "Show the actual object, edge depth, enamel fill, relief, plating, attachment, ribbon, leather grain, reverse side, and packaging. Treat all temporary imagery as replaceable reference material, never as proof of company work."
   },
   "governance": {
     "factsVerified": false,
     "contentOwner": "",
-    "lastUpdated": "",
-    "notes": "Complete the industry brief before publishing public pages."
+    "lastUpdated": "2026-07-30",
+    "notes": "Phase-one industry architecture completed. Golden One is the confirmed public brand and Golden One (Jiangmen) Gifts Co., Limited is the confirmed legal company name. Target markets, contacts, product claims, certifications, production facts, prices, lead times, and real imagery remain unverified and must be completed through Keystatic. Complete current SEO/GEO research only after verified content is present."
   }
 }

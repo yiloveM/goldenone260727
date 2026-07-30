@@ -141,13 +141,18 @@ const contracts = [
     markers: ['tailwindcss/theme', 'tailwindcss/utilities', '@source'],
   },
   {
-    area: 'English Tailwind homepage adoption',
+    area: 'English shared homepage adoption',
     file: 'src/pages/index.astro',
-    markers: ["../styles/home-tailwind.css", 'data-tailwind-homepage', 'tw:'],
+    markers: ["../components/IndustryHome.astro", '<IndustryHome'],
   },
   {
-    area: 'Localized Tailwind homepage adoption',
+    area: 'Localized shared homepage adoption',
     file: 'src/templates/LocalizedHomePage.astro',
+    markers: ["../components/IndustryHome.astro", '<IndustryHome'],
+  },
+  {
+    area: 'Shared Tailwind homepage implementation',
+    file: 'src/components/IndustryHome.astro',
     markers: ["../styles/home-tailwind.css", 'data-tailwind-homepage', 'tw:'],
   },
   {

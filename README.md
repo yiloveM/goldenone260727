@@ -294,7 +294,7 @@ Codex 必须完成：
 5. 把 `public/template-logo.svg` 和 `public/template-icon.svg` 一起替换为客户品牌；网站图标必须取自同一 logo 的可辨认图形，并同步生成 `favicon-32x32.png`、`apple-touch-icon.png`、`icon-192.png`、`icon-512.png` 及更新 `site.webmanifest`。
 6. 按行业重做前端视觉与公开信息架构，但不能删除 `/keystatic/`、`/manager/`、R2、D1、KV、AI 翻译、联系表单或发布流程。
 
-首次阶段可以通过 `/keystatic/ -> Brand and industry foundation` 复查或补充行业基础资料，并通过 `/keystatic/ -> 网站语言` 确认实际启用语种。没有真实企业资料时只使用中性占位说明，不要杜撰公司能力、认证、价格、客户、案例或联系方式。
+首次阶段可以通过 `/keystatic/ -> Brand and industry foundation` 复查或补充行业基础资料，并通过 `/keystatic/ -> 网站语言` 确认实际启用语种。为了查看前端视觉层和字段长度，`template` 或 `briefed` 阶段可以保留明显可识别的示例邮箱、电话、WhatsApp、办公地址和运营地址；这些内容只作为模板示例，不能改写成看似真实但未经核实的企业资料。不要杜撰公司能力、认证、价格、客户或案例，正式上线前必须替换或核实全部示例联系方式。
 
 ### 第二阶段：全站 SEO 与 GEO
 
@@ -401,7 +401,7 @@ npm run build
 npm run check:template:production
 ```
 
-`npm run check:template -- --production` 与最后一条等价；现在生产参数会正确传递到模板审计脚本。生产检查会阻止以下情况：行业/品牌仍是占位符、目标语言没有完整静态本地化、事实未标为已核实，或 `template-example-` 演示内容仍存在。`npm run build` 结束前还会检查 Keystatic 浏览器包中是否确实写入当前仓库名和 GitHub App slug，避免部署成功后才发现登录页仍指向模板仓库。
+`npm run check:template -- --production` 与最后一条等价；现在生产参数会正确传递到模板审计脚本。生产检查会阻止以下情况：行业/品牌仍是占位符、示例联系方式仍未替换或核实、目标语言没有完整静态本地化、事实未标为已核实，或 `template-example-` 演示内容仍存在。`npm run build` 结束前还会检查 Keystatic 浏览器包中是否确实写入当前仓库名和 GitHub App slug，避免部署成功后才发现登录页仍指向模板仓库。
 
 最后用浏览器检查：
 

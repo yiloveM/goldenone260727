@@ -1,19 +1,19 @@
 {
-  "name": "BusinessWeb",
-  "short_name": "BusinessWeb",
+  "name": "Golden One",
+  "short_name": "Golden One",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/goldenone-icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/goldenone-icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
   ],
-  "theme_color": "#0f766e",
+  "theme_color": "#b4232d",
   "background_color": "#ffffff",
   "display": "standalone"
 }

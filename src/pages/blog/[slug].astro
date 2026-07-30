@@ -2,9 +2,10 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { articleStructuredData, breadcrumbStructuredData } from '../../data/seo';
+import { isPublicBlogPost } from '../../data/publicContent';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = (await getCollection('blog')).filter(isPublicBlogPost);
   return posts.map(post => ({ params: { slug: post.id.replace(/\.mdoc$/, '') }, props: { post } }));
 }
 

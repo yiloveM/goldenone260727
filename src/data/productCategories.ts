@@ -65,7 +65,8 @@ export const getCategoryMeta = (categoryName: string): ProductCategoryMeta => {
 const getProductSortOrder = (product: ProductEntry) =>
   Number.isFinite(product.data.sortOrder) ? product.data.sortOrder : Number.MAX_SAFE_INTEGER;
 
-export const isProductPublished = (product: ProductEntry) => product.data.published !== false;
+export const isProductPublished = (product: ProductEntry) =>
+  product.data.published !== false && !product.id.startsWith('template-example-');
 
 export const sortProductsByPriority = (products: ProductEntry[]) =>
   [...products].sort((a, b) => {

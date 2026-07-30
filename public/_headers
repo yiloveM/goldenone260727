@@ -8,12 +8,6 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
-/jquery-3.7.1.min.js
-  Cache-Control: public, max-age=31536000, immutable
-
-/rippleeffect.js
-  Cache-Control: public, max-age=31536000, immutable
-
 /icons/*
   Cache-Control: public, max-age=31536000, immutable
 

@@ -110,6 +110,7 @@ const fontHrefByLocale: Record<Locale, string> = {
   ko: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap',
 };
 const fontHref = fontHrefByLocale[pageLocale];
+const visualTokenStyle = `:root { --aqua: ${visualTokens.accent}; --accent-strong: ${visualTokens.accentStrong}; --mint: ${visualTokens.accentSoft}; }`;
 const imageOrigins = Array.from(new Set([image, brandAssets.heroRippleDesktop, ...brandAssets.heroFloatingProducts]
   .filter(Boolean)
   .map(item => {
@@ -122,6 +123,9 @@ const imageOrigins = Array.from(new Set([image, brandAssets.heroRippleDesktop, .
   .filter(origin => origin && origin !== new URL(siteBase).origin)));
 const preloadPageImage = !preloadHomeHero && image;
 const footerCategoryLinks = navCategories.slice(0, 6);
+const hasEmail = Boolean(siteInfo.email);
+const hasPhone = Boolean(siteInfo.phone);
+const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
 ---
 <!doctype html>
 <html lang={localeInfo.htmlLang} dir={localeInfo.dir}>
@@ -135,9 +139,9 @@ const footerCategoryLinks = navCategories.slice(0, 6);
     <meta name="theme-color" content={visualTokens.accent} />
     <meta name="application-name" content={siteInfo.name} />
     <meta name="apple-mobile-web-app-title" content={siteInfo.name} />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-goldenone-32.png" />
     <link rel="icon" type="image/svg+xml" href={brandAssets.icon} />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/goldenone-apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="canonical" href={canonicalUrl} />
     {locales.map(locale => <link rel="alternate" hreflang={localeMeta[locale].htmlLang} href={alternates[locale]} />)}
@@ -167,7 +171,7 @@ const footerCategoryLinks = navCategories.slice(0, 6);
       </>
     )}
     {structuredDataItems.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
-    <style is:inline>{`:root { --aqua: ${visualTokens.accent}; --accent-strong: ${visualTokens.accentStrong}; --mint: ${visualTokens.accentSoft}; }`}</style>
+    <style is:inline set:html={visualTokenStyle}></style>
   </head>
   <body>
     <header class="site-header astrowind-site-header" data-visual-foundation="astrowind">
@@ -245,7 +249,7 @@ const footerCategoryLinks = navCategories.slice(0, 6);
     {!isContactPage && <InquiryCart locale={pageLocale} />}
     <BackToTop label={dictionary.common.backToTop} />
     <div class:list={['side-contact', { 'side-contact--contact-page': isContactPage }]} aria-label={dictionary.sideContact.label}>
-      <a class="side-contact-link side-contact-link--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" title="WhatsApp" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
+      {hasWhatsApp && <a class="side-contact-link side-contact-link--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" title="WhatsApp" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
         <span class="side-contact-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" role="img">
             <path d="M20.5 11.8a8.4 8.4 0 0 1-12.4 7.4L4 20l.9-3.9a8.4 8.4 0 1 1 15.6-4.3Z" />
@@ -253,7 +257,7 @@ const footerCategoryLinks = navCategories.slice(0, 6);
           </svg>
         </span>
         <span class="side-contact-note"><strong>{dictionary.sideContact.whatsapp}</strong><small>{dictionary.sideContact.whatsappNote}</small></span>
-      </a>
+      </a>}
       <a class="side-contact-link" href={localizePath('/contact/', pageLocale)} title="Contact" aria-label="Send inquiry">
         <span class="side-contact-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" role="img">
@@ -298,13 +302,13 @@ const footerCategoryLinks = navCategories.slice(0, 6);
               <strong>{dictionary.footer.company}</strong>
               <a href={localizePath('/about/', pageLocale)}>{dictionary.nav.about}</a>
               <a href={localizePath('/contact/', pageLocale)}>{dictionary.nav.contact}</a>
-              <a href={siteInfo.whatsapp} target="_blank" rel="noopener">{dictionary.footer.whatsappInquiry}</a>
-              <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a>
+              {hasWhatsApp && <a href={siteInfo.whatsapp} target="_blank" rel="noopener">{dictionary.footer.whatsappInquiry}</a>}
+              {hasPhone && <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a>}
             </div>
           </div>
           <div class="footer-contact-strip">
             <span>{dictionary.footer.contactStrip}</span>
-            <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a>
+            {hasEmail && <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a>}
           </div>
         </div>
       </div>

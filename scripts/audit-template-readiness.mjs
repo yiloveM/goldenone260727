@@ -99,7 +99,18 @@ try {
   add('error', 'src/data/site-origin.json', `Invalid JSON: ${error.message}`);
 }
 
-const placeholder = value => /^(|businessweb|your industry|sales@example\.com|replace with)/i.test(String(value || '').trim());
+const placeholder = value => {
+  const text = String(value || '').trim();
+  return !text || /^(businessweb|your industry|sales@example\.com|replace with)/i.test(text);
+};
+const sampleContact = (field, value) => {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  if (field === 'email') return /@example\.(com|org|net)$/i.test(text);
+  if (field === 'phone') return /(?:^|\D)555(?:\D|$)|010[ -]?2000/i.test(text);
+  if (field === 'whatsapp') return /15550102000|example/i.test(text);
+  return /^replace with/i.test(text);
+};
 const validHex = value => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
 const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz']);
 const targetLocaleCodes = [...supportedLocales].filter(locale => locale !== 'en');
@@ -164,6 +175,17 @@ if (profile) {
   }
   if (production && profile.governance?.factsVerified !== true) {
     add('error', 'src/data/industry-profile.json', 'Set governance.factsVerified to true only after real claims, contacts, products, and SEO research are verified.');
+  }
+  if (production) {
+    const remainingSampleContacts = ['email', 'phone', 'whatsapp', 'address', 'factoryAddress']
+      .filter(field => sampleContact(field, profile.brand?.[field]));
+    if (remainingSampleContacts.length) {
+      add(
+        'error',
+        'src/data/industry-profile.json',
+        `Replace or verify sample contact fields before production: ${remainingSampleContacts.map(field => `brand.${field}`).join(', ')}.`
+      );
+    }
   }
 
   if (siteLocales) {

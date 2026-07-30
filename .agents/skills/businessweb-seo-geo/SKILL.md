@@ -49,6 +49,8 @@ When the owner asks for SEO/GEO optimization after real content is present:
 
 ## Reuse Checklist
 
+- During template and phase-one visual work, clearly recognizable sample contact values may remain visible so page layouts can be compared. Treat them as examples, not verified company facts.
 - Replace `BusinessWeb`, `businessweb.pages.dev`, `your-org/businessweb`, `cdn.example.com`, and `inquiries@example.com` before production launch.
+- Replace or verify all sample email, phone, WhatsApp, office, and operating-address values before production launch.
 - Configure Cloudflare Pages, R2, D1, GitHub App OAuth, `KEYSTATIC_SECRET`, `CONTACT_FORM_SECRET`, Resend, and Gemini keys per deployment.
 - Populate product and article collections through `/keystatic/` or `/manager/`; do not add template demo content to production without editing it for the target industry.

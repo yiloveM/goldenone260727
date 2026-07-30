@@ -4,14 +4,16 @@ import InquiryForm from '../components/InquiryForm.astro';
 import PageBanner from '../components/PageBanner.astro';
 import { brandAssets } from '../data/assets';
 import { pageImages, siteInfo } from '../data/site';
-import { industryProfile } from '../data/industry-profile';
 import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
+import { getPageCopy } from '../data/i18n';
 
+const pages = getPageCopy('en');
 const mapAddress = siteInfo.address;
 const hasMapAddress = Boolean(mapAddress && !/^replace with/i.test(mapAddress));
+const hasDirectContact = Boolean(siteInfo.email || siteInfo.phone || siteInfo.address || siteInfo.factoryAddress || siteInfo.whatsapp);
 const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed`;
 const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapAddress)}`;
-const contactDescription = `Contact ${siteInfo.name} about ${industryProfile.market.industry} requirements, projects, and commercial support.`;
+const contactDescription = pages.contact.description;
 const contactStructuredData = [
   organizationStructuredData(Astro.site),
   {
@@ -33,43 +35,43 @@ const contactStructuredData = [
 <BaseLayout title="Contact" description={contactDescription} image={pageImages.contact} structuredData={contactStructuredData}>
   <main>
     <PageBanner
-      eyebrow="Contact"
-      title="Talk to the team about your requirements."
-      description="Send the company, market, offering, quantity, timeline, or service details needed for a useful response."
+      eyebrow={pages.contact.bannerEyebrow}
+      title={pages.contact.bannerTitle}
+      description={pages.contact.bannerDescription}
       image={pageImages.contact}
       ctaHref="#contact-form"
-      ctaLabel="Start inquiry"
+      ctaLabel={pages.contact.startInquiry}
       variant="interior"
       share
     />
     <section class="section container interior-section contact-page-section" id="contact-form">
       <div class="section-heading">
-        <span class="eyebrow">Inquiry form</span>
-        <h2>Share the request.</h2>
-        <p class="prose">Include the application, target market, quantity, timeline, and technical or commercial requirements needed for a useful response.</p>
+        <span class="eyebrow">{pages.contact.formEyebrow}</span>
+        <h2>{pages.contact.formTitle}</h2>
+        <p class="prose">{pages.contact.formDescription}</p>
       </div>
-      <div class="card-grid contact-grid">
+      <div class="card-grid contact-grid" style={hasDirectContact ? undefined : 'grid-template-columns:1fr;'}>
         <InquiryForm
           locale="en"
           labels={{
-            name: 'Your name',
-            email: 'Email',
-            company: 'Company / project',
-            country: 'Country / Region',
-            message: 'Requirements, product or service scope, quantity, timeline, and target market',
-            sendInquiry: 'Send inquiry',
+            name: pages.contact.name,
+            email: pages.contact.email,
+            company: pages.contact.company,
+            country: pages.contact.country,
+            message: pages.contact.message,
+            sendInquiry: pages.contact.sendInquiry,
           }}
         />
-        <aside class="glass-panel contact-card contact-direct-card">
-          <h2>Direct contact</h2>
+        {hasDirectContact && <aside class="glass-panel contact-card contact-direct-card">
+          <h2>{pages.contact.direct}</h2>
           <p class="prose" style="margin-top:14px;">
-            Email: <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a><br />
-            Phone: <a href={`tel:${siteInfo.phone}`}>{siteInfo.phone}</a><br />
-            Sales office: {siteInfo.address}<br />
-            Operating address: {siteInfo.factoryAddress}
+            {siteInfo.email && <>Email: <a href={`mailto:${siteInfo.email}`}>{siteInfo.email}</a><br /></>}
+            {siteInfo.phone && <>Phone: <a href={`tel:${siteInfo.phone}`}>{siteInfo.phone}</a><br /></>}
+            {siteInfo.address && <>{pages.contact.salesOffice}: {siteInfo.address}<br /></>}
+            {siteInfo.factoryAddress && <>{pages.contact.factoryAddress}: {siteInfo.factoryAddress}</>}
           </p>
-          <a class="btn primary" href={siteInfo.whatsapp} target="_blank" rel="noopener" style="margin-top:20px;">Contact by WhatsApp</a>
-        </aside>
+          {siteInfo.whatsapp && <a class="btn primary" href={siteInfo.whatsapp} target="_blank" rel="noopener" style="margin-top:20px;">{pages.contact.whatsapp}</a>}
+        </aside>}
       </div>
     </section>
     {hasMapAddress && <section class="section container contact-map-section">

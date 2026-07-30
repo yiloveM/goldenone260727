@@ -5,8 +5,9 @@ import PageBanner from '../../components/PageBanner.astro';
 import { pageImages, siteInfo } from '../../data/site';
 import { industryProfile, primaryKeyword, profileKeywords, publicSiteCopy } from '../../data/industry-profile';
 import { collectionStructuredData } from '../../data/seo';
+import { isPublicBlogPost } from '../../data/publicContent';
 
-const posts = (await getCollection('blog')).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
+const posts = (await getCollection('blog')).filter(isPublicBlogPost).sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 const blogDescription = publicSiteCopy.insightDescription;
 const blogStructuredData = collectionStructuredData(
   {
