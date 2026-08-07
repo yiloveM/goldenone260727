@@ -275,36 +275,11 @@ $bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumber
 
 只有站长需要步骤 1 至 10 的账户、密钥和部署权限。内容管理员从本 README 的“内容管理员使用”部分开始，不需要接触 Cloudflare、GitHub App、API Token 或任何 Secret。
 
-### R2 CDN 防盗链、边缘 WebP 与 PDF
+### R2 CDN、防盗链、边缘 WebP 与 PDF：建设期先不要开启
 
-完成上面的 R2 自定义域后，再按以下顺序配置。以下设置保护公开分发而不把媒体变成私有文件，Google 抓取、图片搜索、SEO/OG 和 PDF 前台引用都不会因此改用后台路由。
+当前 GoldenOne 仍使用 `https://goldenone.arkalpooltech.workers.dev/r2`。这是建设期 Worker 代理，不是你自己的 Cloudflare Zone，不能可靠配置 R2 自定义 CDN、WAF、缓存或 Images Transformations。**在网站绑定真实正式域名之前，保持 `PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"`，不要开启原生 Hotlink Protection，也不要尝试把 `workers.dev` 填进 R2 Custom Domains。**
 
-1. 在 **R2 -> 当前 bucket -> Settings -> Custom Domains** 确认自定义域状态为 **Active**，然后在 **R2 -> Settings** 关闭 `r2.dev` 公共开发地址。把 `wrangler.toml` 的 `PUBLIC_R2_ASSET_BASE_URL` 改为这个自定义域根地址，例如 `https://cdn.example.com`，不要继续使用 `/r2` Worker 代理作为 CDN 正式地址。
-2. 在该自定义域对应的 Cloudflare Zone 创建缓存规则：匹配 `cdn.example.com/*`，浏览器和边缘 TTL 选择长期缓存。不要对 HTML、后台路径或站点主域套用此规则。
-3. 不要启用 Cloudflare 原生 **Hotlink Protection**。它会阻断部分第三方图片展示场景，包括 Google Images。改用 **Security -> WAF -> Custom rules** 的软防盗链规则；将下面的两个示例域名替换为你实际的网站主域和 R2 自定义域：
-
-```text
-(http.host eq "cdn.example.com"
- and http.referer ne ""
- and not cf.client.bot
- and not starts_with(lower(http.referer), "https://www.example.com/")
- and not starts_with(lower(http.referer), "https://cdn.example.com/")
- and not (lower(http.referer) contains "://www.google.")
- and not (lower(http.referer) contains "://images.google.")
- and not (lower(http.referer) contains "://lens.google."))
-```
-
-先把规则动作设为 **Log** 并观察至少 7 天；确认没有正常访客、监控、Google 流量或合作渠道被命中后，才改为 **Block**。规则有意放行空 Referer 和 Cloudflare 已验证机器人，以避免影响搜索抓取和图片搜索；它是防止常见页面盗用的软保护，而不是私有文件访问控制。不要把 Cloudflare Access 加到这个公开 R2 自定义域，也不要给 `/manager/` 额外加入 Access JWT 校验。
-4. 到 **Images -> Transformations** 启用 Cloudflare Images Transformations。选择一张真实 `.jpg`、`.jpeg` 或 `.png`，访问：
-
-```text
-https://cdn.example.com/cdn-cgi/image/format=webp,quality=82/你的图片路径.jpg
-```
-
-必须同时确认图片可见、没有重写循环，并且响应 `Content-Type` 为 `image/webp`。通过后才把 `wrangler.toml` 的 `PUBLIC_R2_IMAGE_DELIVERY_MODE` 从 `original` 改为 `edge-webp`，提交并部署。该开关只会为同一 R2 自定义域的 `.jpg`、`.jpeg`、`.png` 输出 WebP `<source>`；已有 `.webp`、外部图片，以及 canonical、OG、结构化数据和内容字段中的原图 URL 均保持不变。
-5. 不需要也不应为每张图片在 R2 再保存一份 WebP，也不需要双文件路由。R2 只保存原图，`/cdn-cgi/image/` 的转换结果由 Cloudflare 边缘缓存，因此存储层与分发层保持解耦。PDF 不走图片转换：`/keystatic/` 和 `/manager/` 都可上传不超过 10 MiB 的 PDF，系统会写入 `Content-Type: application/pdf`、`Content-Disposition: inline` 与公开缓存头，前台可直接打开或通过内容引用展示。
-
-官方参考：[R2 public buckets and custom domains](https://developers.cloudflare.com/r2/buckets/public-buckets/)、[Cloudflare Images URL transformations](https://developers.cloudflare.com/images/optimization/transformations/overview/)、[Hotlink Protection limitations](https://developers.cloudflare.com/waf/tools/scrape-shield/hotlink-protection/)。
+正式域名可打开后，执行本 README 第八节的“GoldenOne R2 CDN 小白部署”。那里会一步一步完成 CDN、缓存、SEO 安全防盗链和可选 WebP；不需要手动处理两个可视化后台的日常图片/PDF 使用。
 
 ## 四、两阶段 Codex 建站流程
 
@@ -411,15 +386,143 @@ AI 翻译保留型号、SKU、单位、链接和数字，但仍必须人工审�
 
 语言菜单使用 `/zh/`、`/de/...` 这类同站相对地址，因此更换域名不会把访客带回旧站。Canonical、`hreflang`、站点地图和分享链接需要绝对地址；构建脚本会从 `wrangler.toml` 读取 `SITE_URL`，如果它仍指向 `retiredHosts` 中的旧域名，构建会自动改用 `productionUrl` 并输出警告。
 
-### 给 R2 图片绑定 CDN 域名
+### GoldenOne R2 CDN 小白部署：正式域名可用后再照着点
 
-1. 在 Cloudflare 添加并接管域名，例如 `cdn.example.com`。
-2. 打开 **R2 -> 本客户 bucket -> Settings -> Custom Domains**。
-3. 添加 CDN 域名并等待 Active。
-4. 编辑 `wrangler.toml` 的 `PUBLIC_R2_ASSET_BASE_URL`，例如 `https://cdn.example.com`。
-5. 提交后，后续从图片池插入的图片会使用 CDN 地址。
+> **当前状态：** GoldenOne 现在使用 `goldenone.arkalpooltech.workers.dev/r2` 作为建设期地址。不要把 `workers.dev` 当作 CDN 域名。以下步骤必须等网站已绑定真实正式域名后执行，例如网站 `https://www.goldenone.com`、媒体 `https://cdn.goldenone.com`。
 
-不要把 R2 S3 API token 写入浏览器、GitHub、`wrangler.toml` 或内容字段。
+公开图片与前台 PDF 要允许买家和 Google 访问；这里减少普通外站盗链并统一缓存，不把公开文件变成私有文件。敏感合同、报价或客户资料不要上传 R2。
+
+### 先在记事本写好两项
+
+| 项目 | 示例 | 不能填 |
+| --- | --- | --- |
+| 网站正式地址 | `https://www.goldenone.com` | `workers.dev`、临时地址 |
+| R2 CDN 地址 | `https://cdn.goldenone.com` | `r2.dev`、S3 API 地址、别的项目域名 |
+
+两项必须属于同一个已经添加到 Cloudflare 的真实域名。
+
+### 第 1 步：先让网站正式域名能打开
+
+1. 完成本节上方“给网站绑定正式域名”。
+2. 浏览器打开正式网站地址，确认首页能加载。
+3. GitHub 中检查 `wrangler.toml` 的 `SITE_URL` 已为该正式地址，提交并等 Worker 部署成功。
+4. 没完成这一步就停止，不能在 `goldenone.arkalpooltech.workers.dev` 下创建 `cdn` 子域名。
+
+### 第 2 步：给现有 R2 bucket 接 CDN 子域名
+
+1. Cloudflare 左上角确认是 GoldenOne 所在 Account。
+2. 进入 **R2 object storage -> goldenone -> Settings**。
+3. 在 **Custom Domains** 点 **Add** 或 **Connect Domain**。
+4. 输入 `cdn.goldenone.com`。只填域名，不填 `https://`，不加 `/r2`。
+5. Cloudflare 显示 DNS 记录后直接点 **Connect Domain**。不要手工创建 CNAME，不要指向 `r2.dev`。
+6. 等状态变为 **Active**。
+7. 在 **Public Development URL**，如为 Allowed，点 **Disable**，输入 `disallow`，最后应显示 **Not allowed** 或 **Disabled**。
+
+R2 根地址不列出文件是正常现象。
+
+### 第 3 步：从建设期 `/r2` 切到 CDN 地址
+
+1. GitHub 打开 `wrangler.toml` 并点击编辑。
+2. 把两行改为实际 CDN 地址；第二行先保持 `original`：
+
+```toml
+PUBLIC_R2_ASSET_BASE_URL = "https://cdn.goldenone.com"
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"
+```
+
+3. 提交到 `main`，在 **Workers & Pages -> goldenone -> Deployments** 等待部署成功。
+4. 不要在 Cloudflare Build Variables、GitHub Actions Variables 或浏览器代码重复添加 R2 地址。
+
+### 第 4 步：让图片和 PDF 被 CDN 缓存
+
+1. 打开 **Rules -> Cache Rules -> Create rule**。
+2. Rule name 填 `GoldenOne R2 public media cache`。
+3. 选择 **Custom filter expression**，粘贴：
+
+```text
+http.host eq "cdn.goldenone.com"
+```
+
+4. **Cache eligibility** 选 **Eligible for cache**；旧界面显示 **Cache Everything** 时选它。
+5. **Browser TTL**、**Edge TTL** 都选 **Respect existing headers**。
+6. 点 **Deploy**。
+
+更新媒体时请换新文件名并更新内容链接，不要覆盖同名文件。
+
+### 第 5 步：SEO 安全的防盗链，只创建这条 WAF 规则
+
+**不要开启** Cloudflare 的全局 **Hotlink Protection**。官方说明该开关会让 Google Images、Pinterest、Facebook 等无法展示图片预览。
+
+1. 打开 **Security -> WAF -> Custom rules -> Create rule**。
+2. Rule name 填 `GoldenOne R2 public media hotlink guard`。
+3. Filter 选 **Custom filter expression**。
+4. 粘贴下方整段。只改网站与 CDN 两处域名：
+
+```text
+(http.host eq "cdn.goldenone.com"
+ and http.request.method in {"GET" "HEAD"}
+ and http.referer ne ""
+ and not cf.client.bot
+ and not starts_with(lower(http.referer), "https://www.goldenone.com/")
+ and not starts_with(lower(http.referer), "https://cdn.goldenone.com/")
+ and not starts_with(lower(http.referer), "https://www.google.")
+ and not starts_with(lower(http.referer), "https://images.google.")
+ and not starts_with(lower(http.referer), "https://lens.google."))
+```
+
+5. 打开 **Choose action** 下拉菜单：
+   - 有 **Log**：选择 **Log**，点 **Deploy**，保持 7 天；这是 Enterprise 套餐可用的无拦截观察模式。
+   - 没有 **Log**：这是 Cloudflare Free、Pro、Business 的正常套餐限制，不是配置出错。点 **Save as Draft**，先不要部署 Block；继续读下一步的“无 Log 检查”。
+6. 观察与检查：
+   - **有 Log**：7 天后到 **Security -> Events** 按规则名筛选。没有正常客户、Google 或合作方请求被记录时才改成 **Block**。
+   - **无 Log**：挑一个访问量较低的时段，把草稿的 Action 选 **Block** 并 Deploy；马上打开 GoldenOne 首页、一个含图片的产品/文章页、一个前台 PDF，以及一张 CDN 图片的直接链接。它们必须都正常打开。任一项异常就立刻把规则切回 **Draft**。
+7. 不要选 **Managed Challenge** 或 **JS Challenge**，因为图片和 PDF 请求无法完成交互验证。合作方确实被误拦时，先停用/改回 Draft，再由熟悉规则表达式的人添加该合作方的精确 `https://` 域名例外后重新检查。
+
+规则允许空 Referer、Cloudflare 已验证机器人、Google Images 与 Lens，不影响 SEO、OG、图片搜索或前台 PDF。它只能减少普通网页盗链，不能阻止伪造 Referer 的脚本。不要给 CDN 域名加 Cloudflare Access，也不要把 CDN 域名放进 `/manager/` 的 Access 规则。
+
+### 第 6 步：可选开启边缘 WebP，R2 只保存原图
+
+1. 打开 **Images -> Transformations**，选择 CDN 所在 Zone，点 **Enable transformations**。
+2. 找一张能直接打开的 JPG、JPEG 或 PNG，例如：
+
+```text
+https://cdn.goldenone.com/products/sample.jpg
+```
+
+3. 新标签页打开：
+
+```text
+https://cdn.goldenone.com/cdn-cgi/image/format=webp,quality=82/products/sample.jpg
+```
+
+4. 图片正常显示后，按 `F12` -> **Network** -> 刷新 -> 点击请求，在 **Headers** 确认 `content-type: image/webp`。
+5. 只有确认成功，才把：
+
+```toml
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"
+```
+
+改为：
+
+```toml
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "edge-webp"
+```
+
+6. 提交 `main`，等待部署完成并打开产品页检查。测试失败、Images 要求开通你暂不使用的付费能力，或图片异常时保持/改回 `original`；不要删除或重传媒体。
+
+WebP 在 Cloudflare 边缘生成和缓存，R2 不保存第二份 WebP，PDF 不参与转换，原图 URL 继续用于 canonical、OG、schema 和内容数据。
+
+### GoldenOne 完成检查
+
+- [ ] 网站正式域名和 CDN 子域名在同一个 Cloudflare Account。
+- [ ] CDN Custom Domain 为 Active，`r2.dev` 已关闭。
+- [ ] `PUBLIC_R2_ASSET_BASE_URL` 是 `https://cdn.你的域名`，没有 `/r2`。
+- [ ] Cache Rule 只匹配 CDN 子域名。
+- [ ] 原生 Hotlink Protection 关闭，WAF 先 Log 7 天。
+- [ ] CDN 没有 Cloudflare Access。
+- [ ] 测试返回 `image/webp` 后才启用 `edge-webp`。
+
+官方参考：[R2 自定义域名](https://developers.cloudflare.com/r2/buckets/public-buckets/)、[R2 缓存](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)、[Cloudflare Images 转换](https://developers.cloudflare.com/images/optimization/transformations/overview/)、[WAF 自定义规则的套餐动作差异](https://developers.cloudflare.com/waf/custom-rules/)、[Hotlink Protection 限制](https://developers.cloudflare.com/waf/tools/scrape-shield/hotlink-protection/)、[Google 图片 SEO 与 CDN](https://developers.google.com/search/docs/appearance/google-images)。
 
 ## 九、上线前最后检查
 
