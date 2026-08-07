@@ -1,4 +1,5 @@
 ---
+import PublicImage from './public/PublicImage.astro';
 interface Props {
   images?: string[];
   title: string;
@@ -17,7 +18,7 @@ const hasControls = carouselImages.length > 1;
 >
   <div class="product-image-carousel__viewport">
     {carouselImages.map((image, index) => (
-      <img
+      <PublicImage
         class={`product-image-carousel__image${index === 0 ? ' is-active' : ''}`}
         src={image}
         alt={`${title} ${index + 1}`}

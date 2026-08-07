@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import SeriesCard from '../../../components/SeriesCard.astro';
 import ShareButtons from '../../../components/ShareButtons.astro';
+import PublicImage from '../../../components/public/PublicImage.astro';
+import { getR2WebpDeliveryUrl } from '../../../lib/r2-image-delivery';
 import { brandAssets } from '../../../data/assets';
 import { buildProductCategories, isProductPublished } from '../../../data/productCategories';
 import { breadcrumbStructuredData, categoryKeywords, categorySeoDescription, collectionStructuredData } from '../../../data/seo';
@@ -18,6 +20,7 @@ export async function getStaticPaths() {
 const { category } = Astro.props;
 const seoDescription = categorySeoDescription(category.name, category.description);
 const categoryName = category.displayName || category.name;
+const categoryHeroImage = getR2WebpDeliveryUrl(category.image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || category.image;
 const categoryStructuredData = [
   collectionStructuredData(
     {
@@ -47,7 +50,7 @@ const categoryStructuredData = [
 <BaseLayout title={`${categoryName} Series`} description={seoDescription} image={category.image} structuredData={categoryStructuredData}>
   <main>
     <section class="category-hero">
-      <div class="category-hero-bg" style={`--category-hero-image: url('${category.image}');`}></div>
+      <div class="category-hero-bg" style={`--category-hero-image: url('${categoryHeroImage}');`}></div>
       <div class="container category-hero-inner">
         <div class="category-hero-copy">
           <span class="eyebrow">{category.accent}</span>
@@ -65,7 +68,7 @@ const categoryStructuredData = [
           />
         </div>
         <div class="category-hero-media">
-          <img src={category.image || brandAssets.heroCenter} alt={category.imageAlt} fetchpriority="high" decoding="async" width="1100" height="820" />
+          <PublicImage src={category.image || brandAssets.heroCenter} alt={category.imageAlt} fetchpriority="high" decoding="async" width="1100" height="820" />
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 ---
 import ShareButtons from './ShareButtons.astro';
+import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 
 interface Props {
   eyebrow: string;
@@ -16,8 +17,9 @@ interface Props {
 
 const { eyebrow, title, description, image, ctaHref, ctaLabel, variant, share = false, shareLabel = 'Share page', dir } = Astro.props;
 const classes = ['page-banner', variant ? `page-banner--${variant}` : ''];
+const bannerImage = getR2WebpDeliveryUrl(image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || image;
 ---
-<section class:list={classes} style={`--page-banner-image: url('${image}');`}>
+<section class:list={classes} style={`--page-banner-image: url('${bannerImage}');`}>
   <div class="container page-banner-inner">
     <div class="page-banner-copy" dir={dir}>
       <span class="eyebrow">{eyebrow}</span>

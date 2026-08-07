@@ -16,6 +16,7 @@ type R2File = {
   uploaded: string | null;
   contentType: string;
   isImage: boolean;
+  isDocument: boolean;
 };
 
 type R2AssetResponse = {
@@ -116,7 +117,7 @@ const getBreadcrumbs = (prefix: string) => {
 };
 
 const isAcceptedAsset = (file: File) =>
-  file.type.startsWith('image/') || /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(file.name);
+  file.type.startsWith('image/') || file.type === 'application/pdf' || /\.(avif|gif|jpe?g|png|svg|webp|pdf)$/i.test(file.name);
 
 const getAcceptedFiles = (files: FileList | File[]) => Array.from(files).filter(isAcceptedAsset);
 
@@ -450,7 +451,7 @@ function R2ImagePoolInput() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp"
+                accept="image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp,application/pdf,.pdf"
                 multiple
                 onChange={handleFileChange}
               />
@@ -499,6 +500,8 @@ function R2ImagePoolInput() {
                   <button type="button" className="r2-pool__thumb" onClick={() => setSelected(file)}>
                     <img src={file.url} alt={file.name} loading="lazy" />
                   </button>
+                ) : file.isDocument ? (
+                  <span className="r2-pool__pdf-icon" aria-hidden="true">PDF</span>
                 ) : (
                   <span className="r2-pool__file-icon" aria-hidden="true" />
                 )}
@@ -821,6 +824,18 @@ function R2ImagePoolInput() {
           height: 100%;
           object-fit: contain;
           width: 100%;
+        }
+        .r2-pool__pdf-icon {
+          align-items: center;
+          background: #0f766e;
+          border-radius: 6px;
+          color: #fff;
+          display: inline-flex;
+          font-size: 14px;
+          font-weight: 800;
+          height: 96px;
+          justify-content: center;
+          width: 96px;
         }
 
         .r2-pool__folder-icon,

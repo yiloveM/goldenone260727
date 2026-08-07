@@ -12,6 +12,8 @@ SITE_URL = "https://goldenone.arkalpooltech.workers.dev"
 PUBLIC_KEYSTATIC_GITHUB_REPO = "yiloveM/goldenone260727"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "goldenone260727"
 PUBLIC_R2_ASSET_BASE_URL = "https://goldenone.arkalpooltech.workers.dev/r2"
+# Change to "edge-webp" only after the custom domain transformation check in README succeeds.
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"

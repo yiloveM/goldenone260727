@@ -1844,6 +1844,10 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         color: #344054;
         font-weight: 900;
       }
+      .asset-placeholder.asset-document {
+        background: #0f766e;
+        color: #fff;
+      }
 
       .asset-name {
         display: block;
@@ -3493,7 +3497,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
             <button class="button" id="assetUploadButton" type="button">上传图片</button>
             <button class="button secondary" id="assetCutButton" type="button">剪切选中</button>
             <button class="button secondary" id="assetPasteButton" type="button">粘贴到当前文件夹</button>
-            <input id="assetUploadInput" type="file" accept="image/*" multiple hidden />
+            <input id="assetUploadInput" type="file" accept="image/*,application/pdf,.pdf" multiple hidden />
             <span class="status" id="assetStatus">图片池未加载。</span>
           </div>
           <div class="asset-grid" id="assetGrid"></div>
@@ -4134,6 +4138,13 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       };
       const insertRichEditorImage = (editorId, url) => {
         insertHtmlInRichEditor(editorId, richImageHtml({ src: url, alt: 'BusinessWeb content image', caption: '' }));
+      };
+      const insertRichEditorDocument = (editorId, url, filename) => {
+        const title = filename || 'PDF document';
+        insertHtmlInRichEditor(
+          editorId,
+          `<p data-rich-type="document"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(title)}</a></p>`
+        );
       };
       const selectedRichText = () => {
         const selection = window.getSelection();
@@ -5634,12 +5645,13 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
                 ${
                   file.isImage
                     ? `<button class="asset-card__preview" data-asset-preview="${escapeHtml(file.url)}" data-asset-name="${escapeHtml(file.name)}" data-asset-key="${escapeHtml(file.key)}" type="button" aria-label="预览 ${escapeHtml(file.name)}">${thumbnailMarkup(file.url, file.name)}</button>`
-                    : `<div class="asset-placeholder">文件</div>`
+                    : `<div class="asset-placeholder${file.isDocument ? ' asset-document' : ''}">${file.isDocument ? 'PDF' : '文件'}</div>`
                 }
                 <div class="asset-name" title="${escapeHtml(file.key)}">${escapeHtml(file.name)}</div>
                 <div class="asset-meta">${escapeHtml(formatBytes(file.size))}</div>
                 <div class="asset-tools">
                   <button data-copy="${escapeHtml(file.url)}" type="button">复制链接</button>
+                  ${file.isDocument ? `<button data-asset-insert-document="${escapeHtml(file.url)}" data-asset-document-name="${escapeHtml(file.name)}" type="button">插入 PDF</button>` : ''}
                   <button data-delete="${escapeHtml(file.key)}" type="button">删除</button>
                 </div>
               </div>
@@ -6481,6 +6493,17 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         const folder = event.target.closest('[data-folder]');
         if (folder) {
           loadAssets(folder.dataset.folder).catch(error => setStatus('assetStatus', error.message, true));
+          return;
+        }
+        const insertDocument = event.target.closest('[data-asset-insert-document]');
+        if (insertDocument) {
+          const editorId = state.richEditorSelection?.editorId;
+          if (!editorId) {
+            setStatus('assetStatus', '请先点击需要插入 PDF 的富文本字段。', true);
+            return;
+          }
+          insertRichEditorDocument(editorId, insertDocument.dataset.assetInsertDocument, insertDocument.dataset.assetDocumentName);
+          setStatus('assetStatus', 'PDF 链接已插入当前富文本字段。');
           return;
         }
         const preview = event.target.closest('[data-asset-preview]');

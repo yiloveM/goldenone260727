@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { getCategoryMeta } from '../data/productCategories';
 import { type Locale, localizedProduct, productPath } from '../data/i18n';
+import PublicImage from './public/PublicImage.astro';
 
 interface Props {
   product: CollectionEntry<'products'>;
@@ -18,7 +19,7 @@ const tags = localized.tags;
 <article class="card">
   <a href={productPath(slug, locale)}>
     {product.data.image && (
-      <img src={product.data.image} alt={localized.title} loading="lazy" decoding="async" width="900" height="560" />
+      <PublicImage src={product.data.image} alt={localized.title} loading="lazy" decoding="async" width="900" height="560" />
     )}
     <div class="card-body" dir={locale === 'ar' || locale === 'ur' ? 'rtl' : undefined}>
       <span class="eyebrow">{categoryName}</span>

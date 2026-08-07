@@ -5,6 +5,9 @@ export const prerender = false;
 
 const IMAGE_EXTENSIONS = new Set(['avif', 'gif', 'jpg', 'jpeg', 'png', 'svg', 'webp']);
 const DEFAULT_PUBLIC_BASE_URL = 'https://cdn.example.com';
+const PDF_EXTENSION = 'pdf';
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const PUBLIC_MEDIA_CACHE_CONTROL = 'public, max-age=31536000, immutable';
 const MAX_LIMIT = 500;
 const MAX_UPLOAD_FILES = 12;
 const MAX_MOVE_FILES = 50;
@@ -63,7 +66,7 @@ const getFolderName = (prefix: string) => {
 };
 
 const getContentType = (filename: string, fallback = '') => {
-  if (fallback.startsWith('image/')) return fallback;
+  if (fallback.startsWith('image/') || fallback === 'application/pdf') return fallback;
 
   const extension = filename.split('.').pop()?.toLowerCase() || '';
   const mimeTypes: Record<string, string> = {
@@ -71,6 +74,7 @@ const getContentType = (filename: string, fallback = '') => {
     gif: 'image/gif',
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
+    pdf: 'application/pdf',
     png: 'image/png',
     svg: 'image/svg+xml',
     webp: 'image/webp',
@@ -85,6 +89,8 @@ const isImageFileName = (filename: string, type = '') => {
   return IMAGE_EXTENSIONS.has(extension);
 };
 
+const isPdfFileName = (filename: string, type = '') => type === 'application/pdf' || filename.split('.').pop()?.toLowerCase() === PDF_EXTENSION;
+const isSupportedMediaFile = (filename: string, type = '') => isImageFileName(filename, type) || isPdfFileName(filename, type);
 const sanitizeFilename = (filename: string) => {
   const fallbackName = `image-${Date.now()}`;
   const cleanName = (filename || fallbackName)
@@ -223,7 +229,16 @@ const isImageObject = (object: any) => {
   return IMAGE_EXTENSIONS.has(extension);
 };
 
-export const GET: APIRoute = async ({ locals, url }) => {
+const isDocumentObject = (object: any) => {
+  const contentType = getObjectContentType(object);
+  if (contentType === 'application/pdf') return true;
+  return object.key.split('.').pop()?.toLowerCase() === PDF_EXTENSION;
+};
+export const GET: APIRoute = async ({ locals, request, url }) => {
+  const env = getRuntimeEnv(locals);
+  const writeError = await requireWriteAccess(request, env);
+  if (writeError) return writeError;
+
   let prefix: string;
 
   try {
@@ -232,7 +247,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     return new Response(error instanceof Error ? error.message : 'Bad R2 prefix', { status: 400 });
   }
 
-  const env = getRuntimeEnv(locals);
   const bucket = env?.CONTENT_BUCKET as any;
 
   if (!bucket) {
@@ -272,9 +286,11 @@ export const GET: APIRoute = async ({ locals, url }) => {
       uploaded: object.uploaded ? object.uploaded.toISOString() : null,
       contentType: getObjectContentType(object),
       isImage: isImageObject(object),
+      isDocument: isDocumentObject(object),
     }));
 
   const images = files.filter((file: any) => file.isImage);
+  const documents = files.filter((file: any) => file.isDocument);
 
   return new Response(
     JSON.stringify({
@@ -282,6 +298,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
       folders,
       files,
       images,
+      documents,
       truncated: list.truncated,
       cursor: list.truncated ? list.cursor : undefined,
     }),
@@ -293,7 +310,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     }
   );
 };
-
 export const POST: APIRoute = async ({ locals, request }) => {
   const env = getRuntimeEnv(locals);
   const bucket = env?.CONTENT_BUCKET as any;
@@ -317,7 +333,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const files = formData.getAll('files').filter((value): value is File => value instanceof File && value.size > 0);
 
   if (!files.length) {
-    return new Response('No image files were provided', { status: 400 });
+    return new Response('No supported media files were provided', { status: 400 });
   }
 
   if (files.length > MAX_UPLOAD_FILES) {
@@ -328,8 +344,13 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const publicBaseUrl = normalizeBaseUrl(env?.PUBLIC_R2_ASSET_BASE_URL || import.meta.env.PUBLIC_R2_ASSET_BASE_URL);
 
   for (const file of files) {
-    if (!isImageFileName(file.name, file.type)) {
-      return new Response(`Unsupported image file: ${file.name}`, { status: 400 });
+    if (!isSupportedMediaFile(file.name, file.type)) {
+      return new Response(`Unsupported media file: ${file.name}`, { status: 400 });
+    }
+
+    const isPdf = isPdfFileName(file.name, file.type);
+    if (isPdf && file.size > MAX_PDF_BYTES) {
+      return new Response(`PDF files must not exceed ${MAX_PDF_BYTES} bytes: ${file.name}`, { status: 400 });
     }
 
     let key = keyFromPrefixAndFilename(prefix, file.name);
@@ -343,6 +364,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
     const object = await bucket.put(key, file, {
       httpMetadata: {
+        cacheControl: PUBLIC_MEDIA_CACHE_CONTROL,
+        contentDisposition: isPdf ? `inline; filename="${sanitizeFilename(file.name)}"` : undefined,
         contentType: getContentType(file.name, file.type),
       },
       customMetadata: {
@@ -367,7 +390,6 @@ export const POST: APIRoute = async ({ locals, request }) => {
     },
   });
 };
-
 export const PUT: APIRoute = async ({ locals, request }) => {
   const env = getRuntimeEnv(locals);
   const bucket = env?.CONTENT_BUCKET as any;

@@ -8,6 +8,7 @@ type R2ImageUrlFieldOptions = {
   description?: string;
   pickerTitle?: string;
   defaultValue?: string;
+  assetKind?: 'image' | 'document';
 };
 
 const parseStoredValue = (value: FormFieldStoredValue) => (typeof value === 'string' ? value : '');
@@ -20,13 +21,16 @@ function R2ImageUrlInput({
   autoFocus,
   description,
   pickerTitle,
-}: FormFieldInputProps<string> & Pick<R2ImageUrlFieldOptions, 'description' | 'pickerTitle'>) {
+  assetKind = 'image',
+}: FormFieldInputProps<string> & Pick<R2ImageUrlFieldOptions, 'description' | 'pickerTitle' | 'assetKind'>) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   useSyncedSurfaceTheme(rootRef, 'r2');
 
   const trimmedValue = value.trim();
+  const isDocument = assetKind === 'document';
+  const canPreview = Boolean(trimmedValue) && (isDocument || looksLikeImage(trimmedValue));
 
   return (
     <div ref={rootRef} className="r2-url-field">
@@ -39,9 +43,9 @@ function R2ImageUrlInput({
           placeholder="https://cdn.example.com/..."
           onChange={event => onChange(event.currentTarget.value)}
         />
-        {trimmedValue && looksLikeImage(trimmedValue) ? (
+        {canPreview ? (
           <button type="button" className="r2-url-field__preview" onClick={() => setIsPickerOpen(true)} aria-label="閲嶆柊閫夋嫨鍥剧墖">
-            <img src={trimmedValue} alt="" loading="lazy" />
+            {isDocument ? <span className="r2-url-field__pdf-icon" aria-hidden="true">PDF</span> : <img src={trimmedValue} alt="" loading="lazy" />}
           </button>
         ) : (
           <span className="r2-url-field__preview r2-url-field__preview--empty" aria-hidden="true" />
@@ -53,6 +57,7 @@ function R2ImageUrlInput({
       <R2ImagePicker
         isOpen={isPickerOpen}
         title={pickerTitle || '閫夋嫨鍥剧墖'}
+        assetKind={assetKind}
         onClose={() => setIsPickerOpen(false)}
         onSelect={url => {
           onChange(url);
@@ -140,6 +145,17 @@ function R2ImageUrlInput({
           object-fit: contain;
           width: 100%;
         }
+        .r2-url-field__pdf-icon {
+          align-items: center;
+          background: #0f766e;
+          color: #fff;
+          display: inline-flex;
+          font-size: 11px;
+          font-weight: 800;
+          height: 100%;
+          justify-content: center;
+          width: 100%;
+        }
 
         .r2-url-field__preview--empty {
           cursor: default;
@@ -182,7 +198,26 @@ export const r2ImageUrlField = ({
 }: R2ImageUrlFieldOptions): BasicFormField<string> => ({
   kind: 'form',
   label,
-  Input: props => <R2ImageUrlInput {...props} description={description} pickerTitle={pickerTitle || label} />,
+  Input: props => <R2ImageUrlInput {...props} description={description} pickerTitle={pickerTitle || label} assetKind="image" />,
+  defaultValue: () => defaultValue,
+  parse: parseStoredValue,
+  serialize: value => ({ value: value.trim() }),
+  validate: value => value,
+  reader: {
+    parse: parseStoredValue,
+  },
+});
+
+
+export const r2DocumentUrlField = ({
+  label,
+  description,
+  pickerTitle,
+  defaultValue = '',
+}: R2ImageUrlFieldOptions): BasicFormField<string> => ({
+  kind: 'form',
+  label,
+  Input: props => <R2ImageUrlInput {...props} description={description} pickerTitle={pickerTitle || label} assetKind="document" />,
   defaultValue: () => defaultValue,
   parse: parseStoredValue,
   serialize: value => ({ value: value.trim() }),

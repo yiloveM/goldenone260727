@@ -1,4 +1,5 @@
 ---
+import PublicImage from './public/PublicImage.astro';
 type Props = {
   src?: string;
   alt?: string;
@@ -10,7 +11,7 @@ const { src = '', alt = '', caption = '' } = Astro.props;
 
 {src ? (
   <figure class="r2-content-image">
-    <img src={src} alt={alt} loading="lazy" decoding="async" />
+    <PublicImage src={src} alt={alt} loading="lazy" decoding="async" />
     {caption ? <figcaption>{caption}</figcaption> : null}
   </figure>
 ) : null}

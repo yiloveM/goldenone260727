@@ -11,5 +11,14 @@ export default defineMarkdocConfig({
         caption: { type: String },
       },
     },
+    r2Document: {
+      render: component('./src/components/R2ContentDocument.astro'),
+      selfClosing: true,
+      attributes: {
+        src: { type: String, required: true },
+        title: { type: String },
+        description: { type: String },
+      },
+    },
   },
 });

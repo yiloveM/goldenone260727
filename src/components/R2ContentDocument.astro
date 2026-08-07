@@ -1,0 +1,87 @@
+---
+type Props = {
+  src?: string;
+  title?: string;
+  description?: string;
+};
+
+const { src = '', title = '', description = '' } = Astro.props;
+const displayName = title.trim() || src.split('/').filter(Boolean).pop() || 'PDF document';
+---
+
+{src ? (
+  <aside class="r2-content-document">
+    <span class="r2-content-document__icon" aria-hidden="true">PDF</span>
+    <div class="r2-content-document__body">
+      <strong>{displayName}</strong>
+      {description ? <span>{description}</span> : null}
+    </div>
+    <a href={src} type="application/pdf" target="_blank" rel="noopener">View PDF</a>
+  </aside>
+) : null}
+
+<style>
+  .r2-content-document {
+    align-items: center;
+    background: rgba(239, 248, 250, 0.74);
+    border: 1px solid rgba(14, 116, 144, 0.2);
+    border-radius: 8px;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    margin: clamp(20px, 3vw, 34px) 0;
+    padding: 14px 16px;
+  }
+
+  .r2-content-document__icon {
+    align-items: center;
+    background: #0f766e;
+    border-radius: 4px;
+    color: #fff;
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 800;
+    height: 34px;
+    justify-content: center;
+    letter-spacing: 0;
+    width: 38px;
+  }
+
+  .r2-content-document__body {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .r2-content-document__body strong,
+  .r2-content-document__body span {
+    overflow-wrap: anywhere;
+  }
+
+  .r2-content-document__body span {
+    color: rgba(22, 63, 82, 0.72);
+    font-size: 0.9rem;
+  }
+
+  .r2-content-document a {
+    color: #0f5d73;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .r2-content-document a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 620px) {
+    .r2-content-document {
+      align-items: start;
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .r2-content-document a {
+      grid-column: 2;
+    }
+  }
+</style>

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { fields } from '@keystatic/core';
 import { block } from '@keystatic/core/content-components';
 import { R2ImagePicker } from './r2-image-picker';
-import { r2ImageUrlField } from './r2-image-url-field';
+import { r2DocumentUrlField, r2ImageUrlField } from './r2-image-url-field';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
 type R2ImageValue = {
@@ -154,5 +154,18 @@ export const r2MarkdocComponents = {
       caption: fields.text({ label: '图片说明', multiline: true, defaultValue: '' }),
     },
     NodeView: R2ImageNodeView,
+  }),
+  r2Document: block({
+    label: 'R2 PDF \u6587\u6863',
+    description: '\u4ece R2 \u6587\u4ef6\u6c60\u9009\u62e9 PDF\uff0c\u53ef\u4ee5\u63d2\u5165\u4ea7\u54c1\u8be6\u60c5\u6216\u6587\u7ae0\u6b63\u6587\u3002',
+    schema: {
+      src: r2DocumentUrlField({
+        label: 'PDF URL',
+        pickerTitle: '\u9009\u62e9 R2 PDF',
+        description: '\u53ea\u663e\u793a R2 \u4e2d\u7684 PDF \u6587\u4ef6\u3002',
+      }),
+      title: fields.text({ label: '\u6587\u6863\u6807\u9898', defaultValue: '' }),
+      description: fields.text({ label: '\u6587\u6863\u8bf4\u660e', multiline: true, defaultValue: '' }),
+    },
   }),
 };

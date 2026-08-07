@@ -1,6 +1,8 @@
 ---
 import type { ProductCategory } from '../data/productCategories';
 import { type Locale, localizedProduct, translateProductCategory, ui } from '../data/i18n';
+import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
+import PublicImage from './public/PublicImage.astro';
 
 interface Props {
   category: ProductCategory;
@@ -12,13 +14,14 @@ const { category: inputCategory, priority = false, locale = 'en' } = Astro.props
 const category = translateProductCategory(inputCategory, locale);
 const sampleProducts = category.products.slice(0, 3);
 const categoryName = category.displayName || category.name;
+const categoryAccentImage = getR2WebpDeliveryUrl(category.image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || category.image;
 const viewLabel = `${ui[locale].nav.viewAll} ${categoryName}`;
 const highlightsLabel = `${categoryName} ${ui[locale].common.exploreRange}`;
 ---
-<article class="category-card" style={`--category-accent-image: url('${category.image}');`}>
+<article class="category-card" style={`--category-accent-image: url('${categoryAccentImage}');`}>
   <a class="category-card-link" href={category.href} aria-label={viewLabel}>
     <div class="category-card-media">
-      <img
+      <PublicImage
         src={category.image}
         alt={category.imageAlt}
         loading={priority ? 'eager' : 'lazy'}

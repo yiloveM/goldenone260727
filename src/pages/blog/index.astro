@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageBanner from '../../components/PageBanner.astro';
+import PublicImage from '../../components/public/PublicImage.astro';
 import { pageImages, siteInfo } from '../../data/site';
 import { industryProfile, primaryKeyword, profileKeywords, publicSiteCopy } from '../../data/industry-profile';
 import { collectionStructuredData } from '../../data/seo';
@@ -38,7 +39,7 @@ const blogStructuredData = collectionStructuredData(
         {posts.length ? posts.map(post => (
           <article class="card">
             <a href={`/blog/${post.id.replace(/\.mdoc$/, '')}/`}>
-              {post.data.image && <img src={post.data.image} alt={post.data.title} loading="lazy" decoding="async" width="1200" height="760" />}
+              {post.data.image && <PublicImage src={post.data.image} alt={post.data.title} loading="lazy" decoding="async" width="1200" height="760" />}
               <div class="card-body">
                 <span class="eyebrow">{post.data.category} / {post.data.publishDate.toLocaleDateString('en-US')}</span>
                 <h2>{post.data.title}</h2>
@@ -48,7 +49,7 @@ const blogStructuredData = collectionStructuredData(
           </article>
         )) : (
           <article class="card">
-            <img src={pageImages.engineeringNotes} alt={`${industryProfile.market.industry} insights`} loading="lazy" decoding="async" width="1200" height="760" />
+            <PublicImage src={pageImages.engineeringNotes} alt={`${industryProfile.market.industry} insights`} loading="lazy" decoding="async" width="1200" height="760" />
             <div class="card-body"><span class="eyebrow">Insights</span><h2>Practical guidance is in preparation</h2><p>{blogDescription}</p></div>
           </article>
         )}

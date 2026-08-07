@@ -275,6 +275,37 @@ $bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumber
 
 只有站长需要步骤 1 至 10 的账户、密钥和部署权限。内容管理员从本 README 的“内容管理员使用”部分开始，不需要接触 Cloudflare、GitHub App、API Token 或任何 Secret。
 
+### R2 CDN 防盗链、边缘 WebP 与 PDF
+
+完成上面的 R2 自定义域后，再按以下顺序配置。以下设置保护公开分发而不把媒体变成私有文件，Google 抓取、图片搜索、SEO/OG 和 PDF 前台引用都不会因此改用后台路由。
+
+1. 在 **R2 -> 当前 bucket -> Settings -> Custom Domains** 确认自定义域状态为 **Active**，然后在 **R2 -> Settings** 关闭 `r2.dev` 公共开发地址。把 `wrangler.toml` 的 `PUBLIC_R2_ASSET_BASE_URL` 改为这个自定义域根地址，例如 `https://cdn.example.com`，不要继续使用 `/r2` Worker 代理作为 CDN 正式地址。
+2. 在该自定义域对应的 Cloudflare Zone 创建缓存规则：匹配 `cdn.example.com/*`，浏览器和边缘 TTL 选择长期缓存。不要对 HTML、后台路径或站点主域套用此规则。
+3. 不要启用 Cloudflare 原生 **Hotlink Protection**。它会阻断部分第三方图片展示场景，包括 Google Images。改用 **Security -> WAF -> Custom rules** 的软防盗链规则；将下面的两个示例域名替换为你实际的网站主域和 R2 自定义域：
+
+```text
+(http.host eq "cdn.example.com"
+ and http.referer ne ""
+ and not cf.client.bot
+ and not starts_with(lower(http.referer), "https://www.example.com/")
+ and not starts_with(lower(http.referer), "https://cdn.example.com/")
+ and not (lower(http.referer) contains "://www.google.")
+ and not (lower(http.referer) contains "://images.google.")
+ and not (lower(http.referer) contains "://lens.google."))
+```
+
+先把规则动作设为 **Log** 并观察至少 7 天；确认没有正常访客、监控、Google 流量或合作渠道被命中后，才改为 **Block**。规则有意放行空 Referer 和 Cloudflare 已验证机器人，以避免影响搜索抓取和图片搜索；它是防止常见页面盗用的软保护，而不是私有文件访问控制。不要把 Cloudflare Access 加到这个公开 R2 自定义域，也不要给 `/manager/` 额外加入 Access JWT 校验。
+4. 到 **Images -> Transformations** 启用 Cloudflare Images Transformations。选择一张真实 `.jpg`、`.jpeg` 或 `.png`，访问：
+
+```text
+https://cdn.example.com/cdn-cgi/image/format=webp,quality=82/你的图片路径.jpg
+```
+
+必须同时确认图片可见、没有重写循环，并且响应 `Content-Type` 为 `image/webp`。通过后才把 `wrangler.toml` 的 `PUBLIC_R2_IMAGE_DELIVERY_MODE` 从 `original` 改为 `edge-webp`，提交并部署。该开关只会为同一 R2 自定义域的 `.jpg`、`.jpeg`、`.png` 输出 WebP `<source>`；已有 `.webp`、外部图片，以及 canonical、OG、结构化数据和内容字段中的原图 URL 均保持不变。
+5. 不需要也不应为每张图片在 R2 再保存一份 WebP，也不需要双文件路由。R2 只保存原图，`/cdn-cgi/image/` 的转换结果由 Cloudflare 边缘缓存，因此存储层与分发层保持解耦。PDF 不走图片转换：`/keystatic/` 和 `/manager/` 都可上传不超过 10 MiB 的 PDF，系统会写入 `Content-Type: application/pdf`、`Content-Disposition: inline` 与公开缓存头，前台可直接打开或通过内容引用展示。
+
+官方参考：[R2 public buckets and custom domains](https://developers.cloudflare.com/r2/buckets/public-buckets/)、[Cloudflare Images URL transformations](https://developers.cloudflare.com/images/optimization/transformations/overview/)、[Hotlink Protection limitations](https://developers.cloudflare.com/waf/tools/scrape-shield/hotlink-protection/)。
+
 ## 四、两阶段 Codex 建站流程
 
 ### 第一阶段：行业视觉与信息架构

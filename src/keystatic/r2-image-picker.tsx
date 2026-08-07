@@ -16,6 +16,7 @@ type R2File = {
   uploaded: string | null;
   contentType: string;
   isImage: boolean;
+  isDocument: boolean;
 };
 
 type R2AssetResponse = {
@@ -35,6 +36,7 @@ type LoadState =
 type R2ImagePickerProps = {
   isOpen: boolean;
   title?: string;
+  assetKind?: 'image' | 'document';
   onSelect(url: string): void;
   onClose(): void;
 };
@@ -94,7 +96,7 @@ const copyText = async (text: string) => {
   input.remove();
 };
 
-export function R2ImagePicker({ isOpen, title = '选择图片', onSelect, onClose }: R2ImagePickerProps) {
+export function R2ImagePicker({ isOpen, title = '选择图片', assetKind = 'image', onSelect, onClose }: R2ImagePickerProps) {
   const rootRef = useRef<HTMLDialogElement | null>(null);
   const [prefix, setPrefix] = useState('');
   const [cursor, setCursor] = useState<string | undefined>();
@@ -102,6 +104,7 @@ export function R2ImagePicker({ isOpen, title = '选择图片', onSelect, onClos
   const [copiedUrl, setCopiedUrl] = useState('');
 
   useSyncedSurfaceTheme(rootRef, 'r2');
+  const isDocumentPicker = assetKind === 'document';
 
   const loadAssets = useCallback(async (nextPrefix: string, nextCursor?: string, append = false) => {
     const normalizedPrefix = normalizeAdminPrefix(nextPrefix);
@@ -173,7 +176,7 @@ export function R2ImagePicker({ isOpen, title = '选择图片', onSelect, onClos
   }, [isOpen, onClose]);
 
   const folders = state.kind === 'ready' ? state.data.folders : [];
-  const files = state.kind === 'ready' ? state.data.files.filter(file => file.isImage) : [];
+  const files = state.kind === 'ready' ? state.data.files.filter(file => (isDocumentPicker ? file.isDocument : file.isImage)) : [];
   const hasMore = state.kind === 'ready' && state.data.truncated && cursor;
   const parentPrefix = useMemo(() => getParentPrefix(prefix), [prefix]);
   const breadcrumbs = useMemo(() => getBreadcrumbs(prefix), [prefix]);
@@ -283,9 +286,13 @@ export function R2ImagePicker({ isOpen, title = '选择图片', onSelect, onClos
                   onClick={() => onSelect(file.url)}
                   onKeyDown={event => handleKeyActivate(event, () => onSelect(file.url))}
                 >
-                  <span className="r2-picker__thumb">
-                    <img src={file.url} alt="" loading="lazy" />
-                  </span>
+                  {isDocumentPicker ? (
+                    <span className="r2-picker__pdf-icon" aria-hidden="true">PDF</span>
+                  ) : (
+                    <span className="r2-picker__thumb">
+                      <img src={file.url} alt="" loading="lazy" />
+                    </span>
+                  )}
                   <span className="r2-picker__tile-name" title={file.name}>
                     {file.name}
                   </span>
@@ -541,6 +548,18 @@ export function R2ImagePicker({ isOpen, title = '选择图片', onSelect, onClos
           height: 100%;
           object-fit: contain;
           width: 100%;
+        }
+        .r2-picker__pdf-icon {
+          align-items: center;
+          background: #0f766e;
+          border-radius: 6px;
+          color: #fff;
+          display: inline-flex;
+          font-size: 13px;
+          font-weight: 800;
+          height: 94px;
+          justify-content: center;
+          width: 94px;
         }
 
         .r2-picker__folder-icon {

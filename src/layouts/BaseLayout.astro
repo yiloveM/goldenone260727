@@ -7,6 +7,7 @@ import { siteInfo, socialLinks } from '../data/site';
 import { industryProfile, visualTokens } from '../data/industry-profile';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
 import { absoluteUrl, organizationStructuredData, siteUrl, webPageStructuredData, websiteStructuredData } from '../data/seo';
+import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 import InquiryCart from '../components/InquiryCart.astro';
 import BackToTop from '../components/BackToTop.astro';
 import {
@@ -121,7 +122,8 @@ const imageOrigins = Array.from(new Set([image, brandAssets.heroRippleDesktop, .
     }
   })
   .filter(origin => origin && origin !== new URL(siteBase).origin)));
-const preloadPageImage = !preloadHomeHero && image;
+const webpPreloadImage = getR2WebpDeliveryUrl(image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE);
+const preloadPageImage = !preloadHomeHero && (webpPreloadImage || image);
 const footerCategoryLinks = navCategories.slice(0, 6);
 const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
