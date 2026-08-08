@@ -1,0 +1,52 @@
+Golden One：如何在 Cloudflare 部署并查看预览分支
+=================================================
+
+本次设计改动所在分支：redesign/custom-gift-conversion
+生产分支请继续保持为：main
+
+这份说明适用于本项目当前的 Cloudflare Workers Git 部署方式。预览分支不会覆盖 main 的线上版本，也不会自动绑定正式域名。
+
+一、第一次开启预览分支构建（站长只需做一次）
+
+1. 登录 Cloudflare，打开 Workers & Pages。
+2. 选择本项目对应的 Worker（名称应与仓库 wrangler.toml 第一行的 name 一致）。
+3. 打开 Settings > Build > Branch control。
+4. 确认 Production branch 是 main。不要将本次 redesign/custom-gift-conversion 设为生产分支。
+5. 打开 “Builds for non-production branches”。
+6. 到 Settings > Build，确认：
+   - Build command：npm run build
+   - Deploy command：npx wrangler deploy
+   - Preview deploy command：保持 Cloudflare 默认的 npx wrangler versions upload；不要填写会把预览版本提升为生产版本的 deploy 命令。
+7. 保存设置。
+
+二、让本分支产生预览
+
+1. 将本地分支推送到 GitHub：
+
+   git push -u origin redesign/custom-gift-conversion
+
+2. 在 GitHub 打开仓库 yiloveM/goldenone260727，创建 Pull Request：
+   - Base：main
+   - Compare：redesign/custom-gift-conversion
+   创建草稿 PR 即可，不代表合并。
+3. Cloudflare 会为非生产分支构建一个预览版本。构建成功后，可从以下任一处打开：
+   - GitHub Pull Request 下的 Cloudflare Workers and Pages 评论；
+   - Cloudflare Worker 的 Deployments / Version History 中对应版本的 “Preview URL”；
+   - Cloudflare Worker 的 Build history 中的该次构建详情。
+4. 每次继续 push 到同一分支，预览会更新；main 和正式域名不会变化。
+
+三、预览时重点检查
+
+1. 首页的“Upload your design sketch”能选择 JPG、PNG、WEBP 或 PDF（最大 5 MB）。
+2. 填写姓名、邮箱和验证码后提交。该文件会作为询盘邮件附件投递，不会进入公开 R2/CDN。
+3. 浏览 Products、分类页、产品详情、About、FAQ、Blog、Contact，确认新的统一视觉在桌面端与手机端均正常。
+4. /keystatic/ 和 /manager/ 仍应按原有 Cloudflare Access 策略受保护；不要为了预览而开放它们。
+
+四、完成预览后的处理
+
+确认无误后再合并 PR 到 main。只有 main 的构建才会更新正式线上版本。若暂不采用该设计，只需关闭 PR 或停止使用该分支即可；不会影响 main。
+
+官方参考（Cloudflare Workers Builds）：
+https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/
+https://developers.cloudflare.com/workers/ci-cd/builds/configuration/
+https://developers.cloudflare.com/workers/versions-and-deployments/preview-urls/
