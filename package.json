@@ -15,6 +15,7 @@
     "check": "node scripts/run-astro.mjs check",
     "check:template": "node scripts/run-template-check.mjs",
     "check:template:production": "node scripts/run-template-check.mjs --production",
+    "check:admin-portals": "node scripts/check-admin-portal-rewrite.mjs",
     "check:continuity": "node scripts/audit-feature-continuity.mjs",
     "industry:brief": "node scripts/initialize-industry-profile.mjs",
     "check:seo": "node scripts/audit-product-seo.mjs",

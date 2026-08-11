@@ -1,6 +1,6 @@
 # BusinessWeb 国际品牌网站模板
 
-这是面向海外买家、经销商、项目团队和决策者的通用 B2B 商业网站模板。公开网站采用 Astro 6、Tailwind 和 Cloudflare Workers；图片放在 Cloudflare R2；内容管理员在 `/manager/` 工作；站长在 `/keystatic/` 管理 Git 内容、行业基础信息、图片和发布。
+这是面向海外买家、经销商、项目团队和决策者的通用 B2B 商业网站模板。公开网站采用 Astro 6、Tailwind 和 Cloudflare Workers；图片放在 Cloudflare R2；内容管理员通过独立 Manager 专用域名与 UUID 工作；站长通过另一个独立 Keystatic 专用域名与 UUID 管理 Git 内容、行业基础信息、图片和发布。
 
 默认公开语言只有英语。站长在 `/keystatic/` 的 **网站语言** 页面用复选框管理其它语言。`/manager/` 和 AI 翻译只显示站长已勾选的语言；公开语言切换器、`hreflang` 和站点地图只纳入固定 UI、页面文案与 FAQ 已完成审核的语言。
 
@@ -9,9 +9,9 @@
 ```text
 客户提供真实资料
         |
-        +--> 站长 /keystatic/ --------------> GitHub 内容文件 ------> 自动部署或手动发布 ------> 公开网站
+        +--> 站长 Keystatic 专用域名/UUID --> GitHub 内容文件 ------> 自动部署或手动发布 ------> 公开网站
         |
-        +--> 内容管理员 /manager/ ----------> D1 草稿 -> 审核/写回 Git -> 发布 -------------> 公开网站
+        +--> Manager 专用域名/UUID --------> D1 草稿 -> 审核/写回 Git -> 发布 -------------> 公开网站
         |
         +--> 图片 --------------------------> R2 图片池 -------------------------------> CDN 图片地址
 
@@ -21,11 +21,11 @@ AI 翻译：英语源内容 -> GitHub Actions 生成草稿 -> 人工审核 -> �
 | 地址 | 谁使用 | 用途 |
 | --- | --- | --- |
 | `/` | 海外访客 | 国际品牌公开网站 |
-| `/keystatic/` | 站长/网站所有者 | Git 内容、行业基础、图片、翻译审核、发布 |
-| `/manager/` | 内容级管理员 | D1 草稿、R2 图片、内容审批、翻译任务、发布记录 |
+| `https://站长后台专用域名/KEYSTATIC_UUID` | 站长/网站所有者 | Git 内容、行业基础、图片、翻译审核、发布 |
+| `https://内容后台专用域名/MANAGER_UUID` | 内容级管理员 | D1 草稿、R2 图片、内容审批、翻译任务、发布记录 |
 | `/r2/...` | 浏览器 | R2 图片代理地址，不应被搜索收录 |
 
-不要把 `/keystatic/`、`/manager/`、`/api/` 或 `/r2/` 当作公开页面推广；模板已经在 robots 中排除它们。
+公开主域上的 `/keystatic/`、`/manager/` 及受保护后台 API 会直接返回不可索引的 404；后台专用域名的根路径和错误 UUID 也不会回落到商业前台。不要公开、推广或搜索收录完整后台 UUID 地址；`/api/` 与 `/r2/` 也已在 robots 中排除。
 
 ## 一、复制给新客户
 
@@ -57,8 +57,9 @@ AI 翻译：英语源内容 -> GitHub Actions 生成草稿 -> 人工审核 -> �
 | 需要的东西 | 用在哪里 |
 | --- | --- |
 | GitHub 组织/账号 | 保存代码、Keystatic、GitHub Actions |
-| Cloudflare 账号 | Worker、R2、KV、D1、Access、域名 |
-| 一个正式域名，推荐 | 正式上线、Access、GitHub App 回调 |
+| Cloudflare 账号 | Worker、R2、KV、D1、Custom Domains、DNS 和 Secrets |
+| 一个公开网站正式域名，推荐 | 商业网站正式上线 |
+| 两个后台专用域名 | 一个只给站长，一个只给内容管理员；本方案要求来自不同主域名，并位于同一 Cloudflare Account |
 | GitHub App | Keystatic 的 Git 登录和内容写回 |
 | GitHub fine-grained token | `/manager/` 的发布、翻译、草稿写回 |
 | Gemini API Key，可选 | AI 翻译 |
@@ -105,6 +106,8 @@ SITE_URL = ""
 PUBLIC_KEYSTATIC_GITHUB_REPO = "你的组织/客户新仓库"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "你的-keystatic-github-app-slug"
 PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
+KEYSTATIC_PORTAL_HOST = "owner-admin.example.com"
+MANAGER_PORTAL_HOST = "content-admin.example.net"
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
@@ -116,7 +119,9 @@ database_name = "步骤 3 创建的数据库名称"
 database_id = "步骤 3 的 Database ID"
 ```
 
-首次部署前还不知道真实 `workers.dev` 地址，因此 `SITE_URL` 和 `src/data/site-origin.json` 的 `productionUrl` 都保持空字符串，`retiredHosts` 保持空数组。`PUBLIC_R2_ASSET_BASE_URL` 暂时保留明显的 CDN 占位值。`PUBLIC_KEYSTATIC_GITHUB_REPO` 必须立即改成**当前这个仓库**：例如仓库网址是 `https://github.com/customer-org/client-industry-site`，这里就填写 `customer-org/client-industry-site`。每次复制给新客户都必须重新填写，不能照抄模板仓库或上一个客户的仓库名。它带 `PUBLIC_` 是因为 Keystatic 登录页必须在浏览器中知道目标仓库；仓库名不是密钥。点击 **Commit changes**，直接提交到 `main`。
+首次部署前还不知道真实 `workers.dev` 地址，因此 `SITE_URL` 和 `src/data/site-origin.json` 的 `productionUrl` 都保持空字符串，`retiredHosts` 保持空数组。`PUBLIC_R2_ASSET_BASE_URL` 暂时保留明显的 CDN 占位值。`PUBLIC_KEYSTATIC_GITHUB_REPO` 必须立即改成**当前这个仓库**：例如仓库网址是 `https://github.com/customer-org/client-industry-site`，这里就填写 `customer-org/client-industry-site`。每次复制给新客户都必须重新填写，不能照抄模板仓库或上一个客户的仓库名。它带 `PUBLIC_` 是因为 Keystatic 登录页必须在浏览器中知道目标仓库；仓库名不是密钥。
+
+`KEYSTATIC_PORTAL_HOST` 和 `MANAGER_PORTAL_HOST` 先保留占位值，等步骤 5.2 选好两个后台域名后再替换。这里只写**主机名**，不写 `https://`、路径、斜杠或 UUID。两个值必须不同。点击 **Commit changes**，直接提交到 `main`。
 
 `wrangler.toml` 是这些非敏感配置的唯一来源。Astro 构建、Worker 运行时、Keystatic、Manager、AI 翻译和发布接口都会读取这一处；不要再去 Cloudflare **Build Variables and Secrets** 或 GitHub Actions Variables 重复创建 `SITE_URL`、仓库名、App slug 或 R2 地址。
 
@@ -171,24 +176,98 @@ src/content/blogTranslations/*
 
 这样普通产品、文章内容会自动部署，但 AI 翻译草稿不会在生成或审核过程中意外上线。
 
+#### 5.2 配置两个后台 Custom Domain、UUID 与签名会话
+
+本步骤是后台隔离的核心。Keystatic 和 Manager 各用一个完整专用地址：
+
+```text
+https://owner-admin.customer-owner.net/KEYSTATIC_UUID
+https://content-admin.customer-ops.com/MANAGER_UUID
+```
+
+两个 UUID 必须不同，两个后台主机必须来自不同主域名。它们可以与公开商业网站域名完全不同，但对应的两个 DNS Zone 必须位于当前 Worker 所在的同一个 Cloudflare Account。
+
+##### A. 先选主机名并部署 Worker 识别规则
+
+1. 在记事本写下两个尚未使用的完整主机名。不要用公开站点主域，不要用 CDN 域名，也不要复用其他项目的后台域名。
+2. 在 Cloudflare 分别打开这两个 Zone 的 **DNS -> Records**，确认精确主机名没有现存 A、AAAA、CNAME 或其他冲突记录。若已承载真实服务，不要删除；改选新主机名。
+3. 回到 GitHub 编辑 `wrangler.toml`，只把下面两个占位值换成刚选的**纯主机名**：
+
+```toml
+KEYSTATIC_PORTAL_HOST = "owner-admin.customer-owner.net"
+MANAGER_PORTAL_HOST = "content-admin.customer-ops.com"
+```
+
+4. 不要添加 `https://`、`/UUID` 或尾部斜杠。提交到 `main`，在 Worker 的 **Deployments** 等待本次部署成功后再继续。这样域名一旦接入，Worker 已知道它是后台 Host，不会把根路径误当成商业前台。
+
+##### B. 在本机生成三个互不复用的 Secret
+
+打开 Windows PowerShell，逐行执行：
+
+```powershell
+[guid]::NewGuid().ToString()
+[guid]::NewGuid().ToString()
+$bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create(); $rng.GetBytes($bytes); [Convert]::ToBase64String($bytes); $rng.Dispose()
+```
+
+把第一行输出标记为 `KEYSTATIC_PORTAL_UUID`，第二行标记为 `MANAGER_PORTAL_UUID`，第三行标记为 `ADMIN_PORTAL_SESSION_SECRET`，存进密码管理器。不要把这三个**生产值**写进 `wrangler.toml`、`.env.example`、README、GitHub Actions、聊天记录或普通链接清单；仓库里的固定 UUID 仅供本地示例，生产绝不能复用。
+
+##### C. 先把三个值保存为 Worker 加密 Secret
+
+1. Cloudflare Dashboard -> **Workers & Pages -> goldenone -> Settings -> Variables and Secrets**。
+2. 点击 **Add**，名称填写 `KEYSTATIC_PORTAL_UUID`，类型选择 **Secret**，值粘贴第一行 UUID，保存。
+3. 同样新增 `MANAGER_PORTAL_UUID`，值粘贴第二行 UUID。
+4. 同样新增 `ADMIN_PORTAL_SESSION_SECRET`，值粘贴第三行长随机字符串。
+5. 若页面要求创建新版本或部署，按提示部署；回到 **Deployments**，确认最新版本成功。三个值都必须显示为已加密，不能显示为普通 Variable。
+
+##### D. 添加域名时必须选 Custom Domain，不选 Route
+
+对两个主机名分别执行一次：
+
+1. 打开 **Workers & Pages -> goldenone -> Settings -> Domains & Routes**。
+2. 点击 **Add** 或 **Add route** 后，在弹出的类型选择中明确选择 **Custom Domain**。
+3. 输入第一个完整主机名，例如 `owner-admin.customer-owner.net`，确认添加；再用同样方式添加 `content-admin.customer-ops.com`。
+4. **不要选择 Route。** Route 用于让 Worker 拦截某个已有源站的 URL pattern；这里需要 Worker 本身成为整个专用主机的 origin，因此必须使用 Custom Domain。
+5. 不要提前手工创建 CNAME，也不要把后台域名指向 `workers.dev`。Cloudflare Custom Domain 会为该 Worker 创建或管理所需 DNS 记录和证书。
+6. 等待两个条目的状态都变成 **Active**。处于 Initializing、Pending 或证书错误时不要开始后台授权。
+
+`wrangler.toml` 的 `[assets] run_worker_first = true` 必须保留。它让每个请求先经过 `src/worker.ts` 的 Host、UUID 和签名会话判断，再读取 Astro 静态资源；删除它会破坏专用域名根路径隔离。
+
+##### E. 立即做未授权检查
+
+在无痕窗口逐项打开：
+
+1. `https://owner-admin.customer-owner.net/`：必须是纯文本 404，不能出现 Goldenone 商业前台。
+2. `https://owner-admin.customer-owner.net/随便写的错误UUID`：必须是 404。
+3. `https://content-admin.customer-ops.com/`：必须是纯文本 404，不能出现 Goldenone 商业前台。
+4. `https://content-admin.customer-ops.com/随便写的错误UUID`：必须是 404。
+5. 公开网站的 `/keystatic/`、`/manager/`、`/api/manager/status`：必须是 404。
+6. 两个正确的完整 UUID 地址：应建立各自 12 小时 `Secure; HttpOnly; SameSite=Strict` 签名会话。Manager 可打开；Keystatic 在步骤 6、7 未完成时可以提示 GitHub/OAuth 配置未完成，但不应显示 Astro `404: Not found, Path: /UUID`。
+
+如果专用域名根路径显示商业前台，先停止分享后台地址：检查 Custom Domain 是否连到**当前 Worker**、`wrangler.toml` 的 Host 是否精确一致、最新部署是否成功，以及 `run_worker_first = true` 是否仍存在。不要用重定向把根路径转去公开站，根路径必须保持 404。
+
+官方依据：[Workers Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/)、[Static Assets 先执行 Worker](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)。
+
 ### 步骤 6：创建 GitHub App，配置 Keystatic 登录
 
 每个客户必须使用独立 GitHub App。不要复用模板 App、旧客户 App、Client ID、Client secret 或 `KEYSTATIC_SECRET`，避免一个客户的权限或密钥影响另一个客户。
 
 1. GitHub 右上角头像 -> **Settings -> Developer settings -> GitHub Apps -> New GitHub App**。
 2. App name 填写一个新的、不与其他 App 重复的名称，建议包含客户简称。
-3. Homepage URL 填写步骤 5 的网站**根地址**。不要填 `/keystatic/`；末尾 `/` 可有可无。
+3. Homepage URL 填写步骤 5.2 记录的**站长后台完整 UUID 地址**，例如 `https://owner-admin.customer-owner.net/KEYSTATIC_UUID`。这里要有 UUID，不写 `/keystatic/`。
 4. Callback URL 填写下面的完整地址：
 
 ```text
-https://你的公开网站地址/api/keystatic/github/oauth/callback
+https://owner-admin.customer-owner.net/api/keystatic/github/oauth/callback
 ```
+
+Callback URL 只使用站长后台专用域名，路径必须逐字是 `/api/keystatic/github/oauth/callback`，**不能添加 UUID**。这是 Keystatic GitHub mode 的固定 OAuth 回调；Worker 只对此路径保留受控例外，登录后的管理页面仍必须经 UUID 会话进入。
 
 5. Repository permissions 中给 **Contents** 选择 **Read and write**。
 6. 创建 App，复制 **Client ID**，生成并立即复制 **Client secret**。两项都标记为当前客户，存进密码管理器。
 7. 点击 **Install App**，选择 **Only select repositories**，只勾选**当前这个客户仓库**。只创建 App 而没有安装到当前仓库，仍会出现“Keystatic isn't able to access this repo”。
 8. 记下 App 的 slug：App 设置页网址中 `/apps/` 后面的短名称就是 slug。
-9. 回到当前仓库编辑 `wrangler.toml`，确认 `PUBLIC_KEYSTATIC_GITHUB_REPO` 是当前真实 `owner/repo`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为这个 slug；同时将 `SITE_URL` 改为步骤 5 的网址，并把 `PUBLIC_R2_ASSET_BASE_URL` 改为同一网址加 `/r2`，例如 `https://client-industry-site.<你的账户>.workers.dev/r2`。
+9. 回到当前仓库编辑 `wrangler.toml`，确认 `PUBLIC_KEYSTATIC_GITHUB_REPO` 是当前真实 `owner/repo`，把 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 改为这个 slug；同时将 `SITE_URL` 改为步骤 5 的公开站点网址，并把 `PUBLIC_R2_ASSET_BASE_URL` 改为同一网址加 `/r2`，例如 `https://client-industry-site.<你的账户>.workers.dev/r2`。两个后台 Host 保持步骤 5.2 的值，不要改成公开站点 Host。
 10. 编辑 `src/data/site-origin.json`，把 `productionUrl` 改为同一个网站根地址。提交到 `main`，等待第二次自动部署成功。
 
 > 若页面提示 Keystatic 仍配置为 `your-org/businessweb`，或提示没有 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`，说明打开的是修复前构建产物，或本步骤第 9、10 项尚未提交成功。当前模板会在构建时读取 `wrangler.toml`，并在生产构建仍为占位仓库或缺少 slug 时直接报错，不再生成错误站点。重新检查当前仓库名和 slug，提交后等待新部署。
@@ -199,16 +278,18 @@ https://你的公开网站地址/api/keystatic/github/oauth/callback
 
 | 名称 | 类型 | 填什么 | 是否必需 |
 | --- | --- | --- | --- |
-| `KEYSTATIC_SECRET` | Secret | 按步骤 7.1 生成的随机字符串 | Keystatic 必需；同时复用于表单校验和图片池写入 |
+| `KEYSTATIC_PORTAL_UUID` | Secret | 步骤 5.2 生成的第一个 UUID | 必需；若已添加只核对，不重复创建 |
+| `MANAGER_PORTAL_UUID` | Secret | 步骤 5.2 生成的第二个 UUID | 必需；若已添加只核对，不重复创建 |
+| `ADMIN_PORTAL_SESSION_SECRET` | Secret | 步骤 5.2 生成的独立长随机值 | 必需；只签名双后台短期会话 |
+| `KEYSTATIC_SECRET` | Secret | 按步骤 7.1 另行生成的随机字符串 | Keystatic 必需；同时复用于表单校验和图片池写入，但不复用于 UUID 会话 |
 | `KEYSTATIC_GITHUB_CLIENT_ID` | Secret | 步骤 6 的 Client ID | Keystatic 必需 |
 | `KEYSTATIC_GITHUB_CLIENT_SECRET` | Secret | 步骤 6 的 Client secret | Keystatic 必需 |
 | `BUSINESSWEB_GITHUB_TOKEN` | Secret | 仅授权当前仓库的 fine-grained GitHub token | manager 发布、翻译、草稿写回 |
-| `MANAGER_ALLOWED_EMAILS` | Variable | 可选的第二层邮箱白名单，英文逗号分隔 | 可选；Cloudflare Access policy 已限制邮箱时可不填 |
 | `RESEND_API_KEY` | Secret | 已配置 Resend 时的 API Key | 联系表单按需 |
 | `CONTACT_FROM_EMAIL` | Variable | 已在 Resend 验证过的发件人地址 | 联系表单按需 |
 | `CONTACT_TO_EMAIL` | Variable | 仅在收件邮箱不同于站点公开联系邮箱时填写 | 可选覆盖 |
 
-不需要创建 `CONTACT_FORM_SECRET`、`R2_IMAGE_POOL_WRITE_TOKEN`、`MANAGER_ACCESS_BYPASS_TOKEN` 或多个发布 token。模板已经复用 `KEYSTATIC_SECRET`，并用一个 `BUSINESSWEB_GITHUB_TOKEN` 处理 Manager 写回、AI 任务、草稿读取和手动发布调度。
+不需要创建 `CONTACT_FORM_SECRET`、`R2_IMAGE_POOL_WRITE_TOKEN`、`MANAGER_ACCESS_BYPASS_TOKEN`、`MANAGER_ALLOWED_EMAILS` 或多个发布 token。生产 Manager 由专用 Host、UUID 和签名会话控制，不从浏览器读取 Token，也不依赖 Cloudflare Access 邮箱头。模板用一个 `BUSINESSWEB_GITHUB_TOKEN` 处理 Manager 写回、AI 任务、草稿读取和手动发布调度。
 
 #### 7.1 生成 `KEYSTATIC_SECRET`
 
@@ -218,7 +299,7 @@ https://你的公开网站地址/api/keystatic/github/oauth/callback
 $bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create(); $rng.GetBytes($bytes); [Convert]::ToBase64String($bytes); $rng.Dispose()
 ```
 
-输出只显示一次；复制它，作为 `KEYSTATIC_SECRET` 的值保存。不要把它提交到 GitHub，也不要发给内容管理员。
+输出只显示一次；复制它，作为 `KEYSTATIC_SECRET` 的值保存。它必须与 `ADMIN_PORTAL_SESSION_SECRET` 不同。不要把它提交到 GitHub，也不要发给内容管理员。
 
 #### 7.2 创建 `BUSINESSWEB_GITHUB_TOKEN`
 
@@ -252,25 +333,27 @@ $bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumber
 
 不要把 Account ID 误填成 D1 Database ID。前者只供 GitHub Actions 部署，后者已经写在 `wrangler.toml`。如果暂不配置这两项，自动部署仍正常；只有手动 **Publish Site** 会失败。多语言翻译目录已从自动监听中排除，所以要发布审核后的翻译时必须配置手动发布。
 
-### 步骤 9：用 Cloudflare Access 保护内容后台
+### 步骤 9：确认后台不使用 Cloudflare Access，并保管完整入口
 
-公开首页和 `/api/contact` 不要加整站 Access。只创建两条 Self-hosted Access Application：
+本项目有意不依赖 Cloudflare Access。后台边界是专用 Host + 不可猜 UUID + Worker 签名会话；Keystatic 内部仍有 GitHub OAuth 和仓库写权限作为第二层。请按下面顺序确认：
 
-1. **Zero Trust -> Access -> Applications -> Add an application -> Self-hosted**。
-2. 第一条路径填 `/manager/*`，Allow policy 只加入内容管理员邮箱。
-3. 第二条路径填 `/api/manager/*`，使用同一批邮箱。
-4. 使用管理员邮箱打开 `https://你的域名/manager/`，应先出现 Cloudflare Access 登录页。
+1. 打开 **Zero Trust -> Access -> Applications**，确认没有覆盖两个后台专用域名的 Self-hosted Application；也不要给公开站点整站添加会改写后台 OAuth 的 Access 规则。
+2. 打开 Worker 的 **Settings -> Domains & Routes**，确认两个后台条目都是 **Custom Domain / Active**，不是 Route。
+3. 只把 Manager 完整地址通过密码管理器的安全共享功能发给指定内容管理员。不要只发域名，不要把链接放进公司官网、搜索可见文档、普通群聊、邮件签名或浏览器公共书签同步。
+4. 站长完整 Keystatic 地址只保存在站长的密码管理器。内容管理员不需要知道 Keystatic UUID、GitHub App Client secret、`KEYSTATIC_SECRET`、`ADMIN_PORTAL_SESSION_SECRET` 或 `BUSINESSWEB_GITHUB_TOKEN`。
+5. UUID 本质上是入口 bearer secret，不等于人员身份、MFA 或细粒度账号审计。Keystatic 因 GitHub OAuth 多一层身份校验；Manager 在当前模型中拿到完整 URL 即可建立 12 小时会话。因此 Manager URL 泄露时必须立即轮换，不能只清浏览器 Cookie。
+6. 轮换时同时生成新的对应 UUID 和新的 `ADMIN_PORTAL_SESSION_SECRET`，在 Worker Secrets 中更新并部署。更新签名 Secret 会立即使两个后台所有旧 Cookie 失效；然后只向仍获授权的人员重新安全分享新地址。
 
-若还填写了 `MANAGER_ALLOWED_EMAILS`，它必须与 Access policy 使用同一批邮箱；不填时直接以 Access policy 为准。
+更改 GitHub App 的 Homepage/Callback 或后台 UUID **不会自动撤销 GitHub App 安装或授权**。只要仍是同一个 App 且安装在同一个仓库，通常不需要卸载重装；但更换 `KEYSTATIC_SECRET` 会使 Keystatic 加密会话失效，站长下一次需要重新点击 GitHub 登录，这是正常安全结果。
 
 ### 步骤 10：首次部署后按顺序验收
 
 完成步骤 1 至 9，且第二次自动部署显示成功后，再开始上传真实资料。用浏览器逐项检查：
 
 1. 打开网站根地址，确认页面可以加载；这时仍是模板示例内容，不能对外推广。
-2. 用站长的 GitHub 账号打开 `/keystatic/`，点击 **Login with GitHub**；授权后应能进入管理界面。若失败，先检查步骤 6 的仓库安装、Callback URL 和 App slug，再检查步骤 7 的三个 Keystatic Secret。
-3. 用已加入 Access policy 的邮箱打开 `/manager/`；先经过 Cloudflare Access，随后能看到内容管理员界面。
-4. 在 `/manager/` 的 **Assets** 试传一张无敏感信息的测试图片，确认图片可显示，再删除测试文件。
+2. 用站长的 GitHub 账号打开 `https://站长后台专用域名/KEYSTATIC_PORTAL_UUID`，点击 **Login with GitHub**；授权后应能进入管理界面。若失败，先检查步骤 6 的仓库安装、Callback URL 和 App slug，再检查步骤 7 的三个 Keystatic OAuth Secret 及步骤 5.2 的入口 Secret。
+3. 打开 `https://内容后台专用域名/MANAGER_PORTAL_UUID`，确认不要求输入浏览器口令，随后能看到内容管理员界面。关闭页面再访问专用域名根路径，根路径仍必须是 404。
+4. 在 Manager 的 **Assets** 试传一张无敏感信息的测试图片，确认图片可显示，再删除测试文件。
 5. 确认 GitHub Actions 页面可以看到 `Publish Site` 与 `AI Translation Drafts` 两个工作流。只测试已经按步骤 8 配置过的可选功能。
 
 只有站长需要步骤 1 至 10 的账户、密钥和部署权限。内容管理员从本 README 的“内容管理员使用”部分开始，不需要接触 Cloudflare、GitHub App、API Token 或任何 Secret。
@@ -320,7 +403,7 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 ### 在 `/keystatic/` 填真实内容
 
-1. 打开 `https://你的域名/keystatic/`，使用对当前 GitHub 仓库有写入权限的账号登录。
+1. 打开密码管理器中保存的 `https://站长后台专用域名/KEYSTATIC_PORTAL_UUID`，使用对当前 GitHub 仓库有写入权限的账号登录。
 2. 先打开 **Brand and industry foundation**，保存品牌、行业、目标市场、联系资料和已核实的定位。
 3. 打开 **Image pool**，上传真实图片到 R2。
 4. 在 **Products and offerings** 新建或编辑产品：先选公开分类、供应类型、型号结构、主图、应用、参数表和 FAQ，再保存。
@@ -329,7 +412,7 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 ### 在 `/keystatic/` 选择网站语言
 
-1. 打开 `/keystatic/`，在左侧 **Foundation** 分组点击 **网站语言**。
+1. 打开站长后台完整 UUID 地址，在左侧 **Foundation** 分组点击 **网站语言**。
 2. **English（英语）· en** 是固定源语言，不能关闭；不要把其它语言当作新的源内容。
 3. 每种语言都同时显示英文名、中文名和语言代码。可以逐项勾选，也可以使用 **全选全部目标语言** 或 **反选当前选择**；没有多语需求时全部不勾选，网站就是英语单语。
 4. 点击页面底部 **Save**。保存会提交 `src/data/site-language-settings.json`，这是全站唯一的启用语言配置。
@@ -341,9 +424,9 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 ### 内容管理员使用手册：在 `/manager/` 工作
 
-内容管理员只需公司邮箱和 Cloudflare Access 登录，不需要 GitHub、Cloudflare 控制台、API Token、GitHub App 或任何 Secret。站长负责配置和发布权限；内容管理员负责创建、补全和审核业务资料。
+内容管理员只需要站长通过密码管理器安全共享的 Manager 完整 UUID 地址，不需要 GitHub、Cloudflare 控制台、API Token、GitHub App 或任何 Secret。站长负责配置、入口轮换和发布权限；内容管理员负责创建、补全和审核业务资料。
 
-1. 内容管理员打开 `https://你的域名/manager/`，先通过 Cloudflare Access。
+1. 内容管理员打开 `https://内容后台专用域名/MANAGER_PORTAL_UUID`。正确入口会自动建立 12 小时签名会话；页面不要求输入后台口令。
 2. 使用 **Products** 或 **Articles** 创建 D1 草稿；草稿此时不在公开站点，也不等于 Git 内容。
 3. 在 **Assets** 上传或挑选 R2 图片。
 4. 内容负责人审核后执行页面中的写回/审批操作，系统才会通过 GitHub Actions 把草稿转换为仓库内容。
@@ -381,8 +464,8 @@ AI 翻译保留型号、SKU、单位、链接和数字，但仍必须人工审�
 1. **Workers & Pages -> 你的 Worker -> Settings -> Domains & Routes -> Add**。
 2. 域名生效后，回到 GitHub 编辑 `src/data/site-origin.json`：把 `productionUrl` 改为正式根地址，并把旧 `SITE_URL` 中的 `workers.dev` 主机名加入 `retiredHosts`。这里只填写 Cloudflare 实际分配给你的旧主机名，不要带 `https://` 和路径。
 3. 编辑 `wrangler.toml`，把 `SITE_URL` 改成同一个正式根地址。
-4. 更新 GitHub App 的 Homepage URL 和 Callback URL。
-5. 提交后等待部署完成。`site-origin.json`、`wrangler.toml` 与 GitHub App 必须使用同一个正式根地址；不需要在 GitHub Actions 或 Cloudflare Build Variables 再建一份 `SITE_URL`。
+4. 不要因为公开网站域名变化而修改 GitHub App。Homepage 与 Callback 始终使用步骤 5.2 的站长后台专用域名；只有站长后台域名或 UUID 改变时才更新对应配置。
+5. 提交后等待部署完成。`site-origin.json` 与 `wrangler.toml` 的 `SITE_URL` 必须使用同一个公开正式根地址；两个后台 Host 和 GitHub App 保持独立，不需要在 GitHub Actions 或 Cloudflare Build Variables 再建一份 `SITE_URL`。
 
 语言菜单使用 `/zh/`、`/de/...` 这类同站相对地址，因此更换域名不会把访客带回旧站。Canonical、`hreflang`、站点地图和分享链接需要绝对地址；构建脚本会从 `wrangler.toml` 读取 `SITE_URL`，如果它仍指向 `retiredHosts` 中的旧域名，构建会自动改用 `productionUrl` 并输出警告。
 
@@ -478,7 +561,7 @@ http.host eq "cdn.goldenone.com"
    - **无 Log**：挑一个访问量较低的时段，把草稿的 Action 选 **Block** 并 Deploy；马上打开 GoldenOne 首页、一个含图片的产品/文章页、一个前台 PDF，以及一张 CDN 图片的直接链接。它们必须都正常打开。任一项异常就立刻把规则切回 **Draft**。
 7. 不要选 **Managed Challenge** 或 **JS Challenge**，因为图片和 PDF 请求无法完成交互验证。合作方确实被误拦时，先停用/改回 Draft，再由熟悉规则表达式的人添加该合作方的精确 `https://` 域名例外后重新检查。
 
-规则允许空 Referer、Cloudflare 已验证机器人、Google Images 与 Lens，不影响 SEO、OG、图片搜索或前台 PDF。它只能减少普通网页盗链，不能阻止伪造 Referer 的脚本。不要给 CDN 域名加 Cloudflare Access，也不要把 CDN 域名放进 `/manager/` 的 Access 规则。
+规则允许空 Referer、Cloudflare 已验证机器人、Google Images 与 Lens，不影响 SEO、OG、图片搜索或前台 PDF。它只能减少普通网页盗链，不能阻止伪造 Referer 的脚本。不要给 CDN 域名加 Cloudflare Access，也不要把 CDN 域名与两个后台 Custom Domain 混用。
 
 ### 第 6 步：可选开启边缘 WebP，R2 只保存原图
 
@@ -529,8 +612,10 @@ WebP 在 Cloudflare 边缘生成和缓存，R2 不保存第二份 WebP，PDF 不
 站长在本机或 CI 中执行：
 
 ```powershell
+npm run types:cloudflare -- --check
 npm run check
 npm run check:template
+npm run check:admin-portals
 npm run build
 npm run check:template:production
 ```
@@ -540,7 +625,7 @@ npm run check:template:production
 最后用浏览器检查：
 
 1. 首页、产品页、文章页、FAQ、About、Contact 都可访问。
-2. `/manager/` 与 `/api/manager/` 被 Access 保护。
+2. 两个后台专用域名的根路径和错误 UUID 都返回 404；两个正确 UUID 可进入；公开主域的 `/keystatic/`、`/manager/` 和后台 API 返回 404。
 3. 语言切换器只显示已启用语言，且每种语言页面的 UI、固定文案和 FAQ 已本地化。
 4. 真实图片从 R2/CDN 加载。
 5. 联系表单实际投递到指定收件箱。
@@ -550,8 +635,10 @@ npm run check:template:production
 
 | 现象 | 先检查 |
 | --- | --- |
-| `/keystatic/` 登录后不能保存 | GitHub App 是否安装到当前新仓库；Client ID/secret、repo 名称和 Callback URL 是否一致 |
-| `/manager/` 进不去 | Access policy 是否包含当前邮箱；路径是否为 `/manager/*`；若额外设置了 `MANAGER_ALLOWED_EMAILS`，再检查两处是否一致 |
+| Keystatic 完整 UUID 地址显示 Astro 标志与 `404: Not found, Path: /UUID` | 最新 Worker 是否已部署；`main` 是否为 `src/worker.ts`；`run_worker_first = true` 是否存在；专用 Host/UUID Secret 是否精确；不要改成 `/keystatic/UUID` |
+| Keystatic 登录后不能保存 | GitHub App 是否安装到当前仓库；Client ID/secret、repo 名称和 Callback URL 是否一致；Callback 不带 UUID |
+| Manager 完整 UUID 地址进不去 | `MANAGER_PORTAL_HOST` 是否与浏览器 Host 精确一致；UUID 和 `ADMIN_PORTAL_SESSION_SECRET` 是否为当前 Worker 加密 Secret；Custom Domain 是否 Active |
+| 后台专用域名不带 UUID 却显示商业前台 | 立即停止分享该域名；检查 Domains & Routes 是否选择当前 Worker 的 Custom Domain、Host 配置、最新部署及 `run_worker_first = true` |
 | Manager 显示 D1/R2 未连接 | `wrangler.toml` 的 D1 ID、R2 bucket 名称和 binding 名称 |
 | AI 翻译没有语言可选 | 站长进入 `/keystatic/ -> 网站语言` 勾选目标语言、点击 Save，并等待该提交部署完成 |
 | 已勾选语言但公开站点没有显示 | 该语言的 `site-locales.json` 固定 UI、页面文案或 FAQ 尚未补全并审核；查看 `npm run check:template` 的警告 |
@@ -562,7 +649,7 @@ npm run check:template:production
 | 构建报 R2/D1 不存在 | Cloudflare 资源是否在同一 Account；D1 ID 或 R2 bucket 名称是否仍是占位符 |
 | 部署提示创建 `SESSION` 时发生同名冲突 | 这通常是旧 Worker/Pages 迁移，不是新站问题；把现有 KV 的 ID 显式绑定到 `SESSION`，不要再创建或删除原 KV |
 
-**Keystatic 维修说明：** Astro 6 已移除旧的 `locals.runtime.env`。模板通过本地 Cloudflare 兼容路由读取三个 Keystatic Worker Secret；不要改回 `@keystatic/astro` 自动注入的 API 路由。若点击 GitHub 登录直接出现空白 HTTP 500，先确认已部署当前模板，再检查三个 Secret，Homepage 不需要填写 `/keystatic/`，Callback 必须使用 `/api/keystatic/github/oauth/callback`。若提示仓库仍是 `your-org/businessweb` 或缺少 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`，则是旧构建没有取得运行时 `[vars]`：当前模板已让 Astro 构建直接读取 `wrangler.toml`，请确认其中是当前客户真实 `owner/repo` 和当前 App slug，然后提交并等待新部署。
+**Keystatic 维修说明：** Astro 6 已移除旧的 `locals.runtime.env`。项目通过本地 Cloudflare 兼容路由读取三个 Keystatic OAuth Secret；不要改回 `@keystatic/astro` 自动注入的 API 路由。若点击 GitHub 登录直接出现空白 HTTP 500，先确认已部署当前代码，再检查三个 OAuth Secret。GitHub App Homepage 填站长后台完整 UUID 地址；Callback 必须使用同一站长后台 Host 的 `/api/keystatic/github/oauth/callback`，且不能带 UUID。更新 UUID、Homepage 或 Callback 不要求重新安装同一个 GitHub App；更新 `KEYSTATIC_SECRET` 后需要重新登录。若完整 UUID 地址出现 Astro 404，问题发生在入口重写而不是 GitHub 授权，按上表第一行检查 Worker 与 Custom Domain。
 
 **网站语言维修说明：** Keystatic 的 JSON singleton 路径必须写成无扩展名的 `src/data/site-language-settings`，`format: 'json'` 会自动补 `.json`。模板自检会阻止错误的 `site-language-settings.json.json`；保存语言并等待部署后，前台、Manager 和 AI 才会统一读取新配置。
 

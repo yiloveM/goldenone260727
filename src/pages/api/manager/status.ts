@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getEnvString, getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
+import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import { ensureManagerSchema, getManagerDb } from '../../../lib/manager/d1';
 import { getDispatchToken } from '../../../lib/manager/github';
 
@@ -31,18 +31,16 @@ export const GET: APIRoute = async ({ locals, request }) => {
 
   const r2 = status(Boolean(env?.CONTENT_BUCKET), 'Image bucket', env?.CONTENT_BUCKET ? 'Image bucket is connected.' : 'Image bucket is not connected.');
   const dispatchToken = getDispatchToken(env, 'manager');
-  const bypassToken = getEnvString(env, 'MANAGER_ACCESS_BYPASS_TOKEN') || getEnvString(env, 'KEYSTATIC_SECRET');
 
   return new Response(
     JSON.stringify({
       ok: d1.ok && r2.ok,
       manager: { email: access.email },
       checks: [
-        status(true, 'Manager access', access.email.includes('bypass') ? 'Connected through manager bypass token.' : `Connected as ${access.email}.`),
+        status(true, 'Portal access', 'Dedicated domain and signed portal session are verified.'),
         d1,
         r2,
         status(Boolean(dispatchToken), 'Task authorization', dispatchToken ? 'Publish, translation, and write-back token is configured.' : 'Missing backend task token.'),
-        status(Boolean(bypassToken), 'Access token', bypassToken ? 'Manager access token is available.' : 'Manager access token is not configured.'),
       ],
     }),
     {

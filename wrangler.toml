@@ -1,15 +1,20 @@
 name = "goldenone"
 # Wrangler resolves the Worker entry point as a file path in Workers Builds.
-main = "./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js"
+main = "./src/worker.ts"
 compatibility_date = "2026-05-15"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./dist"
+# The public site and both private portal domains share one asset bundle. Host
+# isolation must therefore run before every static-asset lookup, including `/`.
+run_worker_first = true
 
 [vars]
 SITE_URL = "https://goldenone.arkalpooltech.workers.dev"
 PUBLIC_KEYSTATIC_GITHUB_REPO = "yiloveM/goldenone260727"
+KEYSTATIC_PORTAL_HOST = "owner-admin.example.com"
+MANAGER_PORTAL_HOST = "content-admin.example.net"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "goldenone260727"
 PUBLIC_R2_ASSET_BASE_URL = "https://goldenone.arkalpooltech.workers.dev/r2"
 # Change to "edge-webp" only after the custom domain transformation check in README succeeds.

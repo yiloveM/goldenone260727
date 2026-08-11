@@ -14,6 +14,7 @@ const run = args => new Promise((resolve, reject) => {
 
 try {
   await run(['scripts/run-wrangler-types.mjs', '--check']);
+  await run(['scripts/check-admin-portal-rewrite.mjs']);
   await run(['scripts/audit-template-readiness.mjs', ...(production ? ['--production'] : [])]);
   await run(['scripts/audit-feature-continuity.mjs']);
   await run(['scripts/audit-product-seo.mjs']);
