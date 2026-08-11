@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getKeystaticBasePath } from './keystatic-path';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
 type ProductSummary = {
@@ -31,11 +32,7 @@ const fallbackImage = 'https://cdn.example.com/logo1.svg';
 const pageSize = 12;
 
 const getProductEditUrl = (slug: string) => {
-  if (typeof window === 'undefined') return `/keystatic/collection/products/item/${slug}`;
-
-  const match = window.location.pathname.match(/^(.*?\/keystatic(?:\/branch\/[^/]+)?)/);
-  const basePath = match?.[1] || '/keystatic';
-  return `${basePath}/collection/products/item/${encodeURIComponent(slug)}`;
+  return `${getKeystaticBasePath()}/collection/products/item/${encodeURIComponent(slug)}`;
 };
 
 function ProductManagerInput() {

@@ -15,6 +15,8 @@ Read `.agents/skills/businessweb-seo-geo/SKILL.md` before acting. Use `src/data/
 
 - Keep `/keystatic/` as the owner-only Git-backed surface.
 - Keep `/manager/` as the content-administrator portal with D1 drafts, R2 media, review, and approval/write-back flow.
+- In production, expose those surfaces only through two different dedicated custom domains plus two different secret UUID entry paths. Keep the UUIDs and portal signing secret in Cloudflare Worker encrypted Secrets, never in committed files.
+- Do not add Cloudflare Access JWT/email verification or browser-stored Manager bearer tokens unless the owner explicitly requests a separate identity layer.
 - Preserve the custom Keystatic fields, AI translation APIs/workflow, R2 routes, Astro 6 Cloudflare Workers adapter, KV session binding, D1 binding, contact workflow, and publish workflow.
 - Keep `/keystatic/`, `/manager/`, `/api/`, and `/r2/` out of public indexing.
 - Do not use fabricated prices, availability, reviews, ratings, certifications, manufacturing claims, customer logos, dates, or case studies.

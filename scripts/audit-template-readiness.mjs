@@ -1,11 +1,18 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { loadWranglerVars } from './load-wrangler-vars.mjs';
 
 const root = process.cwd();
 const production = process.argv.includes('--production');
+const wranglerVars = loadWranglerVars(root);
 const findings = [];
 const requiredFiles = [
+  'src/worker.ts',
+  'src/middleware.ts',
+  'src/lib/admin-portals.ts',
+  'src/lib/admin-portal-rewrite.ts',
+  'src/keystatic/keystatic-path.ts',
   'src/data/industry-profile.json',
   'src/data/industry-profile.ts',
   'src/data/site-language-settings.json',
@@ -40,6 +47,7 @@ const requiredFiles = [
   'docs/CODEX-INDUSTRY-WORKFLOW.md',
   'docs/ASTROWIND-VISUAL-FOUNDATION.md',
   'scripts/audit-feature-continuity.mjs',
+  'scripts/check-admin-portal-rewrite.mjs',
   'scripts/load-wrangler-vars.mjs',
   'scripts/run-astro.mjs',
   'scripts/verify-keystatic-build.mjs',
@@ -138,6 +146,21 @@ if (siteOrigin) {
   }
 }
 
+if (production) {
+  const keystaticPortalHost = String(wranglerVars.KEYSTATIC_PORTAL_HOST || '').trim().toLowerCase();
+  const managerPortalHost = String(wranglerVars.MANAGER_PORTAL_HOST || '').trim().toLowerCase();
+  const validHost = value => /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(value);
+  if (!validHost(keystaticPortalHost) || keystaticPortalHost === 'owner-admin.example.com') {
+    add('error', 'wrangler.toml', 'Set KEYSTATIC_PORTAL_HOST to the real owner portal custom domain before production.');
+  }
+  if (!validHost(managerPortalHost) || managerPortalHost === 'content-admin.example.net') {
+    add('error', 'wrangler.toml', 'Set MANAGER_PORTAL_HOST to the real content portal custom domain before production.');
+  }
+  if (keystaticPortalHost && keystaticPortalHost === managerPortalHost) {
+    add('error', 'wrangler.toml', 'The Keystatic and Manager portal hosts must be different.');
+  }
+}
+
 if (languageSettings) {
   if (languageSettings.sourceLocale !== 'en') {
     add('error', 'src/data/site-language-settings.json', 'The source language must remain English.');
@@ -218,7 +241,11 @@ if (profile) {
 const structuralChecks = [
   ['src/layouts/BaseLayout.astro', ['rel="canonical"', 'hreflang', 'application/ld+json', 'max-image-preview:large', 'astrowind-visual-foundation.css', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest']],
   ['astro.config.mjs', ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', "from './src/integrations/keystatic-cloudflare.mjs'", "exclude: ['@keystatic/astro', '@keystatic/core']", "include: ['slate-react']"]],
-  ['wrangler.toml', ['./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js', 'directory = "./dist"', 'CONTENT_BUCKET', 'MANAGER_DB']],
+  ['wrangler.toml', ['./src/worker.ts', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'CONTENT_BUCKET', 'MANAGER_DB']],
+  ['src/worker.ts', ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'rewritePortalText', 'isProtectedPublicPath']],
+  ['src/middleware.ts', ['requireInternalPortalAccess', 'allowKeystaticOAuthCallback']],
+  ['src/lib/admin-portals.ts', ['KEYSTATIC_PORTAL_UUID', 'MANAGER_PORTAL_UUID', 'requireInternalPortalAccess']],
+  ['src/lib/admin-portal-rewrite.ts', ['rewritePortalText', '\\\/keystatic', 'rewritePortalLocation']],
   ['src/lib/runtime-env.ts', ['cloudflare:workers', 'cfContext?.env']],
   ['src/styles/home-tailwind.css', ['tailwindcss/theme', 'tailwindcss/utilities', 'prefix(tw)']],
   ['src/pages/robots.txt.ts', ['Disallow: /keystatic/', 'Disallow: /manager/', 'Disallow: /api/', 'Disallow: /r2/']],
@@ -241,6 +268,15 @@ for (const [file, terms] of structuralChecks) {
   } catch {
     // The missing file error above is enough context.
   }
+}
+
+try {
+  const managerUi = await source('src/pages/manager/index.astro');
+  for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
+    if (managerUi.includes(forbidden)) add('error', 'src/pages/manager/index.astro', `Manager must not store or request a browser bearer token: ${forbidden}`);
+  }
+} catch {
+  // The missing-file error above is enough context.
 }
 
 try {

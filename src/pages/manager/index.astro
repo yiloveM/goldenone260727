@@ -301,10 +301,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         background: #fff;
       }
 
-      .connection-panel.is-connected .connection-login {
-        display: none;
-      }
-
       .connection-copy strong {
         display: block;
         color: #111827;
@@ -318,28 +314,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         color: var(--muted);
         font-size: 12px;
         line-height: 1.45;
-      }
-
-      .connection-login {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 8px;
-        min-width: 0;
-      }
-
-      .connection-login input {
-        min-width: 0;
-        width: 100%;
-        height: 36px;
-        border: 1px solid #d0d5dd;
-        border-radius: 6px;
-        padding: 0 10px;
-        outline: none;
-      }
-
-      .connection-login .button {
-        width: 100%;
-        min-height: 34px;
       }
 
       .health-grid {
@@ -740,8 +714,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       .form-row input:not([type='checkbox']):focus,
       .form-row textarea:focus,
       .table-card input:not([type='checkbox']):focus,
-      .table-card textarea:focus,
-      .connection-login input:focus {
+      .table-card textarea:focus {
         border-color: var(--accent);
         box-shadow: 0 0 0 2px rgba(14, 116, 144, 0.14);
       }
@@ -3020,11 +2993,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
           grid-template-columns: 1fr;
         }
 
-        .connection-login {
-          min-width: 0;
-          flex-wrap: wrap;
-        }
-
         .product-manager-header,
         .product-manager-toolbar {
           grid-template-columns: 1fr;
@@ -3148,11 +3116,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
             <div class="connection-copy">
               <strong id="connectionTitle"></strong>
               <span id="connectionDetail"></span>
-            </div>
-            <div class="connection-login">
-              <input id="managerTokenInput" type="password" autocomplete="current-password" />
-              <button class="button" id="managerConnectButton" type="button">连接后台</button>
-              <button class="button secondary" id="managerLogoutButton" type="button">清除口令</button>
             </div>
           </section>
           <div class="theme-switch" aria-label="显示模式">
@@ -3833,7 +3796,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         },
         richEditorSelection: null,
         themeChoice: localStorage.getItem('businessweb-manager-theme') || 'system',
-        managerToken: localStorage.getItem('businessweb-manager-token') || '',
         formData: {
           galleryImages: [],
           detailImages: [],
@@ -4359,7 +4321,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         const date = value ? new Date(value) : new Date();
         return Number.isNaN(date.valueOf()) ? new Date().toISOString() : date.toISOString();
       };
-      const authHeaders = () => (state.managerToken ? { authorization: `Bearer ${state.managerToken}` } : {});
+      const authHeaders = () => ({});
       const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
       const resolveTheme = choice => (choice === 'system' ? (themeMedia.matches ? 'dark' : 'light') : choice);
       const themeLabels = { light: '浅色', dark: '深色', system: '跟随系统' };
@@ -4528,8 +4490,8 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         $('connectionPanel').classList.toggle('is-connected', connected);
         $('connectionTitle').textContent = connected ? '内容后台已连接' : '连接内容后台';
         $('connectionDetail').textContent = connected
-          ? detail || '当前浏览器已通过内容管理口令验证。'
-          : detail || '请输入站长提供的后台访问口令，验证后可管理网站内容。';
+          ? detail || '当前浏览器已通过内容管理专用域名和签名会话验证。'
+          : detail || '请从站长提供的完整专用域名和 UUID 地址重新进入。';
       };
 
       const checkManagerStatus = async () => {
@@ -4543,26 +4505,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
           setConnectedUi(false, error.message);
           return false;
         }
-      };
-
-      const connectManager = async () => {
-        const token = $('managerTokenInput').value.trim();
-        if (!token) {
-          setConnectedUi(false, '请输入站长提供的后台访问口令。');
-          return;
-        }
-        state.managerToken = token;
-        localStorage.setItem('businessweb-manager-token', token);
-        const connected = await checkManagerStatus();
-        if (connected) await bootstrapManager();
-      };
-
-      const logoutManager = () => {
-        state.managerToken = '';
-        localStorage.removeItem('businessweb-manager-token');
-        $('managerTokenInput').value = '';
-        $('managerEmail').textContent = '未连接';
-        setConnectedUi(false, '已清除本机保存的后台访问口令。');
       };
 
       const translationDraftTabForType = type => (type === 'blog' ? 'blog-drafts' : 'product-drafts');
@@ -6385,12 +6327,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       };
 
       document.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => activateTab(button.dataset.tab)));
-      $('managerTokenInput').value = state.managerToken;
-      $('managerConnectButton').addEventListener('click', () => connectManager().catch(error => setConnectedUi(false, error.message)));
-      $('managerLogoutButton').addEventListener('click', logoutManager);
-      $('managerTokenInput').addEventListener('keydown', event => {
-        if (event.key === 'Enter') connectManager().catch(error => setConnectedUi(false, error.message));
-      });
       $('searchInput').addEventListener('input', () => {
         state.productPage = 1;
         renderProducts();

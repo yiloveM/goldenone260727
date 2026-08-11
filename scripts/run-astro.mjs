@@ -10,10 +10,18 @@ const wranglerVars = loadWranglerVars(projectRoot);
 const configuredWranglerVars = Object.fromEntries(
   Object.entries(wranglerVars).filter(([, value]) => value.trim())
 );
+const configuredHeapMb = /^\d+$/.test(process.env.BUSINESSWEB_NODE_HEAP_MB || '')
+  ? process.env.BUSINESSWEB_NODE_HEAP_MB
+  : '8192';
+const existingNodeOptions = process.env.NODE_OPTIONS || '';
+const nodeOptions = /--max-old-space-size(?:=|\s)/.test(existingNodeOptions)
+  ? existingNodeOptions
+  : `${existingNodeOptions} --max-old-space-size=${configuredHeapMb}`.trim();
 const sharedOptions = {
   cwd: projectRoot,
   env: {
     ...process.env,
+    NODE_OPTIONS: nodeOptions,
     // Non-empty committed values override any legacy dashboard build variables.
     ...configuredWranglerVars,
     // Astro 6 uses workerd through the Cloudflare adapter. Keep its local state ignored.

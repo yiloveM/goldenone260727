@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getKeystaticBasePath } from './keystatic-path';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
 type DraftType = 'product' | 'blog';
@@ -49,12 +50,6 @@ const localeName = (locale: string) => ({
   uz: 'Uzbek',
 }[locale] || locale);
 
-const keystaticBasePath = () => {
-  if (typeof window === 'undefined') return '/keystatic';
-  const match = window.location.pathname.match(/^(.*?\/keystatic(?:\/branch\/[^/]+)?)/);
-  return match?.[1] || '/keystatic';
-};
-
 function TranslationDraftReviewInput({ type }: { type: DraftType }) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState<LoadState>({ kind: 'idle' });
@@ -101,7 +96,7 @@ function TranslationDraftReviewInput({ type }: { type: DraftType }) {
   const selectedVisibleCount = selectableDrafts.filter(draft => selectedDrafts.has(draft.draftSlug)).length;
   const allVisibleSelected = selectableDrafts.length > 0 && selectedVisibleCount === selectableDrafts.length;
 
-  const editHref = (draft: TranslationDraft) => `${keystaticBasePath()}${draft.editPath}`;
+  const editHref = (draft: TranslationDraft) => `${getKeystaticBasePath()}${draft.editPath}`;
   const toggleDraft = (draftSlug: string, checked: boolean) => {
     setSelectedDrafts(current => {
       const next = new Set(current);

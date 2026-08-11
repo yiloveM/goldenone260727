@@ -23,7 +23,22 @@ const contracts = [
   {
     area: 'Cloudflare bindings',
     file: 'wrangler.toml',
-    markers: ['main = "./node_modules/@astrojs/cloudflare/dist/entrypoints/server.js"', 'directory = "./dist"', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'nodejs_compat'],
+    markers: ['main = "./src/worker.ts"', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'nodejs_compat'],
+  },
+  {
+    area: 'Private portal host gateway',
+    file: 'src/worker.ts',
+    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath'],
+  },
+  {
+    area: 'Private portal configuration boundary',
+    file: 'src/lib/admin-portals.ts',
+    markers: ['KEYSTATIC_PORTAL_UUID', 'MANAGER_PORTAL_UUID', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'ADMIN_PORTAL_HEADER', 'requireInternalPortalAccess'],
+  },
+  {
+    area: 'Private portal response rewrite regression check',
+    file: 'scripts/check-admin-portal-rewrite.mjs',
+    markers: ['rewritePortalText', 'rewritePortalLocation', 'Admin portal gateway and response rewrite checks passed.'],
   },
   {
     area: 'Cloudflare runtime environment access',
@@ -68,7 +83,7 @@ const contracts = [
   {
     area: 'Manager access and GitHub write-back',
     file: 'src/lib/manager/access.ts',
-    markers: ['MANAGER_ALLOWED_EMAILS', 'MANAGER_ACCESS_BYPASS_TOKEN'],
+    markers: ['requireInternalPortalAccess', 'manager-portal@goldenone.local', 'MANAGER_ACCESS_BYPASS_TOKEN', 'import.meta.env.PROD'],
   },
   {
     area: 'Manager GitHub integration',
@@ -163,7 +178,7 @@ const contracts = [
   {
     area: 'Wrangler variables available during Astro builds',
     file: 'scripts/run-astro.mjs',
-    markers: ['loadWranglerVars', '...configuredWranglerVars', '...process.env', 'verify-keystatic-build.mjs'],
+    markers: ['loadWranglerVars', '...configuredWranglerVars', '...process.env', 'BUSINESSWEB_NODE_HEAP_MB', '--max-old-space-size=', 'verify-keystatic-build.mjs'],
   },
   {
     area: 'Keystatic browser build configuration verification',
@@ -178,6 +193,11 @@ const contracts = [
 ];
 
 const requiredFiles = [
+  'src/worker.ts',
+  'src/middleware.ts',
+  'src/lib/admin-portals.ts',
+  'src/lib/admin-portal-rewrite.ts',
+  'src/keystatic/keystatic-path.ts',
   'src/data/site-language-settings.json',
   'src/data/site-origin.json',
   'src/integrations/keystatic-cloudflare.mjs',
@@ -197,6 +217,7 @@ const requiredFiles = [
   'scripts/apply-manager-product-draft.mjs',
   'scripts/apply-manager-blog-draft.mjs',
   'scripts/audit-product-seo.mjs',
+  'scripts/check-admin-portal-rewrite.mjs',
   'scripts/run-astro.mjs',
   'scripts/run-deploy.mjs',
   'scripts/run-wrangler.mjs',
@@ -236,6 +257,10 @@ function auditProject(root, label) {
 
   for (const file of requiredFiles) {
     if (!existsSync(resolve(root, file))) addError(`${label}: required functionality file is missing: ${file}`);
+  }
+  const managerUi = readText(resolve(root, 'src/pages/manager/index.astro'));
+  for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
+    if (managerUi.includes(forbidden)) addError(`${label}: Manager must not store or request a browser bearer token: ${forbidden}`);
   }
   if (existsSync(resolve(root, 'src/data/site-language-settings.json.json'))) {
     addError(`${label}: unexpected duplicate language settings file exists: src/data/site-language-settings.json.json`);
