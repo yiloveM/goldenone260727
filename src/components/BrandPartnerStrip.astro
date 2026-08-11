@@ -1,0 +1,127 @@
+---
+import { partnerLogos } from '../data/partnerLogos';
+
+const visiblePartners = partnerLogos.filter(partner => partner.name.trim() && partner.logo.trim());
+---
+
+{visiblePartners.length > 0 && (
+  <section class="partner-band" aria-labelledby="partner-band-title">
+    <div class="metal-shell partner-band__header">
+      <p class="metal-kicker">Selected collaborations</p>
+      <h2 id="partner-band-title">Partner brands</h2>
+    </div>
+    <div class="partner-band__viewport" role="region" aria-label="Partner brand marks">
+      <div class="partner-band__rail" role="list">
+        {[...visiblePartners, ...visiblePartners].map((partner, index) => {
+          const duplicate = index >= visiblePartners.length;
+          return (
+            <div class="partner-band__mark" role={duplicate ? undefined : 'listitem'} aria-hidden={duplicate ? 'true' : undefined}>
+              <img
+                src={partner.logo}
+                alt={duplicate ? '' : `${partner.name} logo`}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .partner-band {
+    overflow: hidden;
+    padding: 78px 0 84px;
+    color: #fff;
+    background: #1a1d22;
+  }
+
+  .partner-band__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 38px;
+  }
+
+  .partner-band__header .metal-kicker {
+    margin: 0 0 8px;
+  }
+
+  .partner-band__header h2 {
+    margin: 0;
+    font-size: clamp(2.25rem, 4vw, 4rem);
+    font-weight: 750;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .partner-band__viewport {
+    width: 100%;
+    overflow: hidden;
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    border-bottom: 1px solid rgba(255, 255, 255, .16);
+  }
+
+  .partner-band__rail {
+    display: flex;
+    width: max-content;
+    animation: partner-band-scroll 34s linear infinite;
+  }
+
+  .partner-band__viewport:hover .partner-band__rail {
+    animation-play-state: paused;
+  }
+
+  .partner-band__mark {
+    display: grid;
+    flex: 0 0 clamp(160px, 17vw, 238px);
+    min-height: 132px;
+    place-items: center;
+    padding: 26px 34px;
+    border-right: 1px solid rgba(255, 255, 255, .16);
+    background: #1a1d22;
+    transition: background-color .25s ease;
+  }
+
+  .partner-band__mark:hover {
+    background: #262a31;
+  }
+
+  .partner-band__mark img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 48px;
+    object-fit: contain;
+    filter: invert(1) grayscale(1);
+    opacity: .62;
+    transition: filter .25s ease, opacity .25s ease, transform .25s ease;
+  }
+
+  .partner-band__mark:hover img {
+    filter: invert(78%) sepia(38%) saturate(717%) hue-rotate(356deg) brightness(94%);
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+
+  @keyframes partner-band-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 620px) {
+    .partner-band { padding: 64px 0 70px; }
+    .partner-band__header { display: block; margin-bottom: 28px; }
+    .partner-band__header h2 { font-size: 2.55rem; }
+    .partner-band__mark { flex-basis: 148px; min-height: 104px; padding: 22px 28px; }
+    .partner-band__mark img { max-height: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partner-band__rail { animation: none; }
+    .partner-band__mark,
+    .partner-band__mark img { transition: none; }
+  }
+</style>
