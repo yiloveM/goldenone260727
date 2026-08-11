@@ -13,8 +13,8 @@ run_worker_first = true
 [vars]
 SITE_URL = "https://goldenone.arkalpooltech.workers.dev"
 PUBLIC_KEYSTATIC_GITHUB_REPO = "yiloveM/goldenone260727"
-KEYSTATIC_PORTAL_HOST = "admin.ebr.kdns.fr/745b4f57-a455-401e-a6f6-705d0f4e69d6"
-MANAGER_PORTAL_HOST = "manager.ebr.kdns.fr/c4b74037-3926-4ea6-b75b-5dd46f0b692f"
+KEYSTATIC_PORTAL_HOST = "admin.ebr.kdns.fr"
+MANAGER_PORTAL_HOST = "manager.ebr.kdns.fr"
 PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "goldenone260727"
 PUBLIC_R2_ASSET_BASE_URL = "https://goldenone.arkalpooltech.workers.dev/r2"
 # Change to "edge-webp" only after the custom domain transformation check in README succeeds.
