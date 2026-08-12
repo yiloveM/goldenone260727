@@ -118,6 +118,7 @@ const mapPortalPath = (pathname: string, portal: AdminPortalConfig) => {
   if (suffix === '/') return portal.name === 'keystatic' ? '/keystatic/' : '/manager/';
   if (suffix.startsWith('/api/')) return suffix;
   if (portal.name === 'keystatic') return `/keystatic${suffix}`;
+  if (portal.name === 'manager' && (suffix === '/reviews' || suffix === '/reviews/')) return '/manager/reviews/';
   return null;
 };
 

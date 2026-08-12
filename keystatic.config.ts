@@ -118,12 +118,67 @@ export default config({
   ui: {
     brand: { name: '通用企业网站内容管理' },
     navigation: {
-      '站点设置': ['siteFoundation', 'siteLanguages'],
+      '站点设置': ['siteFoundation', 'siteLanguages', 'customerReviews'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
   },
   singletons: {
+    customerReviews: singleton({
+      label: '评价系统',
+      path: 'src/data/customer-reviews',
+      format: 'json',
+      schema: {
+        enabled: fields.checkbox({
+          label: '启用前台评价系统（总开关）',
+          defaultValue: true,
+          description: '关闭后，首页和全部产品详情页不显示评价区，评价 Review 结构化数据也不会输出。数据会保留，重新开启即可恢复。',
+        }),
+        summary: fields.object({
+          rating: fields.text({ label: '店铺聚合评分', defaultValue: '4.9', description: '只能填写已经核实的公开评分，例如 4.9。' }),
+          reviewCount: fields.integer({ label: '店铺评价数量', defaultValue: 0, description: '填写公开页面当前可核实的评价总数。' }),
+          source: fields.text({ label: '评分来源名称', defaultValue: 'Alibaba.com' }),
+          profileUrl: fields.text({ label: '店铺评价页链接', defaultValue: '' }),
+          checkedOn: fields.text({ label: '最后核实日期（YYYY-MM-DD）', defaultValue: '' }),
+        }, { label: '店铺总评分' }),
+        reviews: fields.array(
+          fields.object({
+            id: fields.text({ label: '唯一 ID', description: '使用英文小写、数字和短横线，例如 alibaba-order-20260813-01。' }),
+            published: fields.checkbox({ label: '前台显示', defaultValue: true }),
+            kind: fields.select({
+              label: '数据类型',
+              options: [
+                { label: '真实且已核实', value: 'verified' },
+                { label: '样式演示（不进入 SEO）', value: 'demo' },
+              ],
+              defaultValue: 'verified',
+            }),
+            rating: fields.select({
+              label: '星级',
+              options: [{ label: '5 星', value: '5' }, { label: '4 星', value: '4' }],
+              defaultValue: '5',
+            }),
+            quote: fields.text({ label: '评价原文', multiline: true }),
+            buyerLabel: fields.text({ label: '买家显示名称', defaultValue: 'Verified Alibaba buyer' }),
+            country: fields.text({ label: '国家/地区（可空）', defaultValue: '' }),
+            date: fields.text({ label: '评价日期（YYYY-MM-DD）', defaultValue: '' }),
+            projectType: fields.text({ label: '产品或项目类型', defaultValue: '' }),
+            source: fields.text({ label: '来源名称', defaultValue: 'Alibaba.com' }),
+            sourceUrl: fields.text({ label: '该评价的可核实链接', defaultValue: '' }),
+            productSlugs: fields.array(fields.text({ label: '产品 Slug' }), {
+              label: '关联产品 Slug（留空则仅作为通用评价）',
+              itemLabel: props => props.value || '产品 Slug',
+            }),
+            seoEligible: fields.checkbox({
+              label: '允许进入 Review SEO 结构化数据',
+              defaultValue: false,
+              description: '仅当数据类型为“真实且已核实”，并填写买家名称、日期、来源链接和关联产品后才能勾选。',
+            }),
+          }),
+          { label: '评价列表', itemLabel: props => props.fields.buyerLabel.value || props.fields.id.value || '评价' }
+        ),
+      },
+    }),
     siteLanguages: singleton({
       label: '网站语言',
       path: 'src/data/site-language-settings',

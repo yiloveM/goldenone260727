@@ -1,6 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { brandAssets } from './assets';
-import { seoReviewsForProduct } from './customerReviews';
+import { reviewSystemEnabled, seoReviewsForProduct } from './customerReviews';
 import { getProductCardKeywords } from './productCardKeywords';
 import { getCategoryMeta } from './productCategories';
 import { publicProductSpecs } from './productSpecs';
@@ -466,7 +466,7 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
     }));
   }
 
-  if (product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0) {
+  if (reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0) {
     baseProduct.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: product.data.aggregateRatingValue,

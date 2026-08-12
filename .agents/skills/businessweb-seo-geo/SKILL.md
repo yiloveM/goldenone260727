@@ -42,12 +42,14 @@ When the owner asks for SEO/GEO optimization after real content is present:
 
 ### Review and rating workflow
 
-1. Read `src/data/customerReviews.ts` before changing review copy or product JSON-LD. Treat its store summary and individual review records as different evidence classes.
-2. A store-level score may be displayed as supplier reputation only when its public source and last-checked date are present. Never copy that supplier score into every product's `AggregateRating`.
-3. An individual review may become Product `Review` JSON-LD only when it is verbatim, visible on the page, has a traceable source URL, includes reviewer and publication date, is explicitly assigned to that product through `productSlugs`, and has `seoEligible: true`.
-4. Product `AggregateRating` remains controlled by the product content fields. Populate it only from a real aggregate for that exact product or product group, not from the Alibaba supplier profile and not from a hand-counted subset of selected reviews.
-5. If evidence is incomplete, keep the review visible-data array empty or set `seoEligible: false`. Never synthesize buyer wording, names, dates, countries, product associations, scores, or counts.
-6. During full-site SEO/GEO work, audit visible review cards against emitted JSON-LD, test affected product URLs in Rich Results Test or Schema Markup Validator, and record the source check date.
+1. Read `src/data/customer-reviews.json` and `src/data/customerReviews.ts` before changing review copy or product JSON-LD. Treat the store summary and individual review records as different evidence classes.
+2. Respect the owner-controlled `enabled` switch. When it is false, public review sections and all review-derived structured data must be suppressed without deleting records.
+3. A store-level score may be displayed as supplier reputation only when its public source and last-checked date are present. Never copy that supplier score into every product's `AggregateRating`.
+4. An individual review may become Product `Review` JSON-LD only when `kind` is `verified`, it is verbatim and visible, has a traceable source URL, includes reviewer and publication date, is assigned through `productSlugs`, and has `seoEligible: true`.
+5. `kind: demo` records are construction previews only. They must be visibly labeled, must never enter JSON-LD, and must be removed or replaced before production launch.
+6. Product `AggregateRating` remains controlled by the product content fields. Populate it only from a real aggregate for that exact product or product group, not from the Alibaba supplier profile and not from a hand-counted subset of selected reviews.
+7. Manager review edits remain D1 drafts until the dedicated apply workflow writes the record to the Git-backed JSON source; only the owner controls the global switch through Keystatic.
+8. During full-site SEO/GEO work, audit visible review cards against emitted JSON-LD, test affected product URLs in Rich Results Test or Schema Markup Validator, and record the source check date.
 
 ## SEO Rules
 

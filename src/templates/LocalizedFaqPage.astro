@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
-import { pageImages } from '../data/site';
+import MediaCarousel from '../components/MediaCarousel.astro';
+import { factoryGallery, pageImages } from '../data/site';
 import { breadcrumbStructuredData } from '../data/seo';
 import { ui } from '../data/i18n';
 import { getLocalizedFaqs, getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
@@ -49,6 +50,14 @@ const faqStructuredData = [
       image={pageImages.faq}
       variant="interior"
       dir="ltr"
+    />
+    <MediaCarousel
+      items={factoryGallery}
+      eyebrow="Inside production"
+      title="A closer look before you order."
+      description="Production gallery"
+      id={`faq-production-${locale}`}
+      compact
     />
     <section class="section container interior-section faq-page-section">
       <div class="section-heading section-heading--compact" dir="ltr">

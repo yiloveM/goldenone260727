@@ -1,6 +1,7 @@
 ---
 import {
   customerReviewSummary,
+  reviewSystemEnabled,
   reviewsForProduct,
   type CustomerReview,
 } from '../data/customerReviews';
@@ -20,10 +21,10 @@ const sectionTitle = productSlug
   : 'See what our customers are saying';
 ---
 
-<section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
+{reviewSystemEnabled && <section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
   <div class="metal-shell customer-ratings__inner">
     <div class="customer-ratings__heading">
-      <p class="metal-kicker">Alibaba buyer feedback</p>
+      <p class="metal-kicker">Customer ratings</p>
       <h2 id={`customer-ratings-title-${productSlug || 'home'}`}>{sectionTitle}</h2>
     </div>
 
@@ -49,11 +50,12 @@ const sectionTitle = productSlug
           <div class="customer-ratings__track">
             {visibleReviews.map(review => (
             <article class="customer-review-card">
+              {review.kind === 'demo' && <span class="customer-review-card__demo">Sample review layout</span>}
               <header>
                 <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
                 <div>
                   <strong>{review.buyerLabel || 'Verified Alibaba buyer'}</strong>
-                  <small>{review.date || 'Alibaba.com feedback'}</small>
+                  <small>{review.date || review.source}</small>
                 </div>
               </header>
               <div class="customer-review-card__stars" aria-label={`${review.rating} out of 5 stars`}>
@@ -62,7 +64,8 @@ const sectionTitle = productSlug
               <blockquote>{review.quote}</blockquote>
               <footer>
                 <span>{review.projectType || 'Custom metal gift project'}{review.country ? ` / ${review.country}` : ''}</span>
-                <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer">View source</a>
+                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer">View source</a>}
+                {!review.sourceUrl && <small>Demonstration content</small>}
               </footer>
             </article>
             ))}
@@ -79,7 +82,7 @@ const sectionTitle = productSlug
       </div>
     )}
   </div>
-</section>
+</section>}
 
 <script is:inline>
   document.querySelectorAll('[data-review-carousel]').forEach((carousel) => {

@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import '../styles/global.css';
-import '../styles/astrowind-visual-foundation.css';
 import '../styles/goldenone-redesign.css';
 import { brandAssets } from '../data/assets';
 import { siteInfo, socialLinks } from '../data/site';
@@ -180,7 +179,7 @@ const utilityLabel = pageLocale === 'es'
     <style is:inline set:html={visualTokenStyle}></style>
   </head>
   <body>
-    <header class="site-header astrowind-site-header" data-visual-foundation="astrowind">
+    <header class="site-header signature-site-header" data-visual-foundation="signature-product">
       <div class="nav-utility">
         <div class="container nav-utility__inner">
           <span>{utilityLabel}</span>

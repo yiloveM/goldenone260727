@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkBriefForm from './ArtworkBriefForm.astro';
 import BrandPartnerStrip from './BrandPartnerStrip.astro';
 import CustomerReviews from './CustomerReviews.astro';
+import MediaCarousel from './MediaCarousel.astro';
 import '../styles/home-tailwind.css';
 import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
@@ -42,35 +43,38 @@ const homeStructuredData = [
 ];
 ---
 
-<BaseLayout
-  title={siteInfo.name}
-  description={pages.home.description}
-  image={brandAssets.heroRippleDesktop}
-  preloadHomeHero
-  structuredData={homeStructuredData}
-  locale={locale}
->
-  <main class="metal-home metal-home--conversion" data-tailwind-homepage="tw:gift-conversion">
+<BaseLayout title={siteInfo.name} description={pages.home.description} image={brandAssets.heroRippleDesktop} preloadHomeHero structuredData={homeStructuredData} locale={locale}>
+  <main class="metal-home signature-home" data-tailwind-homepage="tw:signature-product">
     <section class="conversion-hero" aria-labelledby="conversion-hero-title">
-      <div class="conversion-hero__art" aria-hidden="true">
-        <img src={brandAssets.heroRippleDesktop} alt="" width="1792" height="1024" fetchpriority="high" decoding="async" />
-      </div>
-      <div class="metal-shell conversion-hero__grid">
+      <img class="conversion-hero__image" src={brandAssets.heroRippleDesktop} alt="Custom metal gift collection" width="1792" height="1024" fetchpriority="high" decoding="async" />
+      <div class="conversion-hero__shade" aria-hidden="true"></div>
+      <div class="metal-shell conversion-hero__inner">
         <div class="conversion-hero__copy">
-          <p class="metal-kicker">Custom pins, coins, medals & keychains</p>
-          <h1 id="conversion-hero-title">Make the thing<br />they will keep.</h1>
-          <p>Bring a sketch, logo, or half-formed idea. We help turn it into a gift object with a clear shape, finish, and presentation direction.</p>
-          <div class="conversion-hero__links">
-            <a href={productHref}>Explore formats <span aria-hidden="true">↗</span></a>
-            <a href="#how-it-starts">How it starts <span aria-hidden="true">↓</span></a>
+          <span class="conversion-hero__pill">Free artwork support with every custom project</span>
+          <h1 id="conversion-hero-title">Premium Custom Metal Gifts That Honor Every Occasion</h1>
+          <p>Turn your logo, sketch, or idea into custom pins, challenge coins, medals, and keychains with a clear specification and presentation direction.</p>
+          <div class="conversion-hero__actions">
+            <a class="signature-button signature-button--orange" href="#free-design">Get a free design <span aria-hidden="true">&#8594;</span></a>
+            <a class="signature-button signature-button--outline" href={productHref}>Explore products</a>
           </div>
+          <ul class="conversion-hero__points">
+            <li>Artwork and specification guidance</li>
+            <li>Custom shape, finish, color, and packaging</li>
+            <li>Built for brands, events, recognition, and merchandise</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="design-upload" id="free-design" aria-labelledby="design-upload-title">
+      <div class="metal-shell design-upload__grid">
+        <div class="design-upload__intro">
+          <span class="metal-kicker">Start with your artwork</span>
+          <h2 id="design-upload-title">Ready to create something worth keeping?</h2>
+          <p>Upload a sketch, logo, reference image, or PDF. We will use it to begin a practical design and quotation conversation.</p>
+          <figure><img src="/images/metal-gifts/challenge-coin-collection-v2.webp" alt="Custom metal gift design reference" width="1456" height="1092" loading="lazy" decoding="async" /></figure>
         </div>
         <ArtworkBriefForm />
-      </div>
-      <div class="conversion-hero__foot">
-        <div class="metal-shell">
-          <span>Sketches welcome</span><span>For brands · events · recognition · merchandise</span><span>Start with a conversation</span>
-        </div>
       </div>
     </section>
 
@@ -79,15 +83,15 @@ const homeStructuredData = [
     <section class="collection-reframe metal-section" aria-labelledby="collection-title">
       <div class="metal-shell">
         <header class="collection-reframe__header">
-          <div><p class="metal-kicker">Choose the starting format</p><h2 id="collection-title">One idea.<br />Four ways to make it tangible.</h2></div>
-          <p>Each format changes what you can say with edge detail, relief, color, hardware, and the final hand-feel. Start with the object closest to your brief.</p>
+          <div><span class="metal-kicker">Challenge coins for every purpose</span><h2 id="collection-title">One idea. Four ways to make it tangible.</h2></div>
+          <p>Choose the object closest to your brief, then compare shape, relief, color, hardware, and presentation options.</p>
         </header>
         <div class="collection-reframe__grid">
           {categories.map(category => (
             <article class="format-card">
               <a href={productHref} aria-label={`Explore ${category.title}`}>
-                <img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" />
-                <div><span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p><i aria-hidden="true">↗</i></div>
+                <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
+                <div class="format-card__copy"><span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p><i aria-hidden="true">&#8594;</i></div>
               </a>
             </article>
           ))}
@@ -96,102 +100,40 @@ const homeStructuredData = [
     </section>
 
     <section class="briefing-rhythm" id="how-it-starts" aria-labelledby="briefing-title">
-      <div class="metal-shell briefing-rhythm__grid">
-        <header><p class="metal-kicker metal-kicker--light">A simpler way to begin</p><h2 id="briefing-title">From loose reference<br />to a usable brief.</h2></header>
+      <div class="metal-shell">
+        <header class="briefing-rhythm__header"><span class="metal-kicker">How we make it happen</span><h2 id="briefing-title">From your idea to a production-ready brief.</h2></header>
         <ol>
-          <li><span>01</span><div><strong>Send your visual cue</strong><p>A scribble, a brand mark, a photo, or a reference object gives the conversation something real to start from.</p></div></li>
-          <li><span>02</span><div><strong>Choose what matters</strong><p>Shape, size, relief, color, plating, backing, ribbon, ring, or packaging can be settled in the order that makes sense for your project.</p></div></li>
-          <li><span>03</span><div><strong>Move into quotation</strong><p>Share quantity, destination, and timing when ready, so the specification can become a focused quotation request.</p></div></li>
+          <li><span>1</span><strong>Send your idea</strong><p>Share a sketch, logo, photo, or reference object.</p></li>
+          <li><span>2</span><strong>Shape the design</strong><p>Confirm form, relief, color, plating, hardware, and packaging.</p></li>
+          <li><span>3</span><strong>Review the brief</strong><p>Align quantity, destination, timing, and the final specification.</p></li>
+          <li><span>4</span><strong>Move to production</strong><p>Use the approved direction to begin the order workflow.</p></li>
         </ol>
       </div>
     </section>
 
     <section class="material-edit metal-section" aria-labelledby="material-edit-title">
       <div class="metal-shell material-edit__grid">
-        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Reference view of custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
-        <div><p class="metal-kicker">Build the brief, not a guess</p><h2 id="material-edit-title">The details buyers need to compare.</h2><p>Use the catalogue to explore the choices that affect the final object, then upload your own idea when it is time to make the discussion specific.</p><dl><div><dt>Form</dt><dd>Shape, scale, thickness, front, reverse, and edge.</dd></div><div><dt>Surface</dt><dd>Enamel, print, relief, plating, polish, texture, and color.</dd></div><div><dt>Presentation</dt><dd>Backing, ribbon, hardware, leather, card, box, or individual packaging.</dd></div></dl><a class="material-edit__link" href={productHref}>Browse the custom gift catalogue <span aria-hidden="true">→</span></a></div>
+        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
+        <div><span class="metal-kicker">Explore our custom formats</span><h2 id="material-edit-title">Details that make the object distinctly yours.</h2><p>Use the catalogue to compare the choices that affect appearance, hand-feel, attachment, and presentation.</p><dl><div><dt>Form</dt><dd>Shape, scale, thickness, front, reverse, and edge.</dd></div><div><dt>Surface</dt><dd>Enamel, print, relief, plating, polish, texture, and color.</dd></div><div><dt>Presentation</dt><dd>Backing, ribbon, hardware, leather, card, box, or individual packaging.</dd></div></dl><a class="material-edit__link" href={productHref}>Browse the custom gift catalogue <span aria-hidden="true">&#8594;</span></a></div>
       </div>
     </section>
 
     <section class="closing-brief" aria-labelledby="closing-brief-title">
       <div class="metal-shell closing-brief__inner">
-        <p class="metal-kicker">Your idea can start rough</p><h2 id="closing-brief-title">Upload it. We will help give it form.</h2>
-        <a href="#conversion-hero-title">Get my free design <span aria-hidden="true">↑</span></a>
-        <small>Or <a href={contactHref}>send a detailed project inquiry</a> if the specifications are already defined.</small>
+        <span class="metal-kicker">Your idea can start rough</span><h2 id="closing-brief-title">Let us turn it into a clear custom brief.</h2>
+        <a class="signature-button signature-button--orange" href="#free-design">Upload your design <span aria-hidden="true">&#8593;</span></a>
+        <small>Specifications already defined? <a href={contactHref}>Send a detailed project inquiry.</a></small>
       </div>
     </section>
 
-    <section class="home-factory metal-section" aria-labelledby="home-factory-title">
-      <div class="metal-shell home-factory__heading">
-        <div>
-          <p class="metal-kicker">Inside production</p>
-          <h2 id="home-factory-title">A clear view of how custom work moves.</h2>
-        </div>
-        <p>From tooling and metalworking to finishing, inspection, packing, and storage, each stage keeps the custom brief moving toward a production-ready object.</p>
-      </div>
-      <div class="home-factory__carousel" data-marquee-shell data-marquee-direction="ltr" data-marquee-duration="46">
-        <div class="home-factory__rail" data-marquee-track>
-          {[...factoryGallery, ...factoryGallery].map((item, index) => (
-            <figure aria-hidden={index >= factoryGallery.length ? 'true' : undefined}>
-              <img src={item.image} alt={index >= factoryGallery.length ? '' : item.title} width="1200" height="800" loading="lazy" decoding="async" />
-              <figcaption>{item.title}</figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
+    <MediaCarousel
+      items={factoryGallery}
+      eyebrow="Inside production"
+      title="A closer look at how custom work moves."
+      description="Tooling, metalworking, finishing, inspection, packing, and storage in one consistent gallery experience."
+      id="home-factory"
+    />
 
     <CustomerReviews />
   </main>
 </BaseLayout>
-
-<script is:inline>
-  document.querySelectorAll('[data-marquee-shell]').forEach((carousel) => {
-    if (carousel.dataset.ready === 'true') return;
-    carousel.dataset.ready = 'true';
-    const track = carousel.querySelector('[data-marquee-track]');
-    if (!track) return;
-    let frame = 0;
-    let offset = 0;
-    let paused = false;
-    let pointerId = null;
-    let pointerX = 0;
-    const speed = 0.45;
-    const tick = () => {
-      if (!paused) {
-        offset -= speed;
-        const midpoint = track.scrollWidth / 2;
-        if (midpoint > 0 && Math.abs(offset) >= midpoint) offset += midpoint;
-        track.style.transform = `translate3d(${offset}px, 0, 0)`;
-      }
-      frame = window.requestAnimationFrame(tick);
-    };
-    carousel.addEventListener('mouseenter', () => { paused = true; });
-    carousel.addEventListener('mouseleave', () => { if (pointerId === null) paused = false; });
-    carousel.addEventListener('pointerdown', (event) => {
-      if (!event.isPrimary) return;
-      pointerId = event.pointerId;
-      pointerX = event.clientX;
-      paused = true;
-      carousel.classList.add('is-dragging');
-      carousel.setPointerCapture?.(event.pointerId);
-    });
-    carousel.addEventListener('pointermove', (event) => {
-      if (event.pointerId !== pointerId) return;
-      offset += event.clientX - pointerX;
-      pointerX = event.clientX;
-      track.style.transform = `translate3d(${offset}px, 0, 0)`;
-    });
-    const finish = (event) => {
-      if (event.pointerId !== pointerId) return;
-      pointerId = null;
-      paused = false;
-      carousel.classList.remove('is-dragging');
-      carousel.releasePointerCapture?.(event.pointerId);
-    };
-    carousel.addEventListener('pointerup', finish);
-    carousel.addEventListener('pointercancel', finish);
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) frame = window.requestAnimationFrame(tick);
-    window.addEventListener('pagehide', () => window.cancelAnimationFrame(frame), { once: true });
-  });
-</script>

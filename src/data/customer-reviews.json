@@ -1,0 +1,72 @@
+{
+  "enabled": true,
+  "summary": {
+    "rating": "5.0",
+    "reviewCount": 4,
+    "source": "Sample summary",
+    "profileUrl": "",
+    "checkedOn": ""
+  },
+  "reviews": [
+    {
+      "id": "sample-review-01",
+      "published": true,
+      "kind": "demo",
+      "rating": "5",
+      "quote": "The team communicated clearly about the artwork, finish options, and next steps.",
+      "buyerLabel": "Sample buyer - replace before launch",
+      "country": "",
+      "date": "",
+      "projectType": "Custom challenge coin",
+      "source": "Layout preview",
+      "sourceUrl": "",
+      "productSlugs": [],
+      "seoEligible": false
+    },
+    {
+      "id": "sample-review-02",
+      "published": true,
+      "kind": "demo",
+      "rating": "5",
+      "quote": "The sample presentation shows how a verified five-star buyer comment will appear on the website.",
+      "buyerLabel": "Sample buyer - replace before launch",
+      "country": "",
+      "date": "",
+      "projectType": "Custom lapel pin",
+      "source": "Layout preview",
+      "sourceUrl": "",
+      "productSlugs": [],
+      "seoEligible": false
+    },
+    {
+      "id": "sample-review-03",
+      "published": true,
+      "kind": "demo",
+      "rating": "5",
+      "quote": "Production updates, packaging details, and delivery information were easy to follow.",
+      "buyerLabel": "Sample buyer - replace before launch",
+      "country": "",
+      "date": "",
+      "projectType": "Custom medal program",
+      "source": "Layout preview",
+      "sourceUrl": "",
+      "productSlugs": [],
+      "seoEligible": false
+    },
+    {
+      "id": "sample-review-04",
+      "published": true,
+      "kind": "demo",
+      "rating": "5",
+      "quote": "The finished layout makes it simple to compare the project type, buyer feedback, and rating.",
+      "buyerLabel": "Sample buyer - replace before launch",
+      "country": "",
+      "date": "",
+      "projectType": "Custom keychain",
+      "source": "Layout preview",
+      "sourceUrl": "",
+      "productSlugs": [],
+      "seoEligible": false
+    }
+  ]
+}

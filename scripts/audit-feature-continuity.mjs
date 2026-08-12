@@ -148,7 +148,7 @@ const contracts = [
   {
     area: 'Visual-layer isolation',
     file: 'src/layouts/BaseLayout.astro',
-    markers: ["astrowind-visual-foundation.css", 'data-visual-foundation="astrowind"', 'href: localizePath(Astro.url.pathname, locale)', 'structuredDataItems', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest'],
+    markers: ["goldenone-redesign.css", 'data-visual-foundation="signature-product"', 'href: localizePath(Astro.url.pathname, locale)', 'structuredDataItems', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest'],
   },
   {
     area: 'Tailwind homepage foundation',
@@ -171,6 +171,21 @@ const contracts = [
     markers: ["../styles/home-tailwind.css", 'data-tailwind-homepage', 'tw:'],
   },
   {
+    area: 'Owner-controlled review system',
+    file: 'keystatic.config.ts',
+    markers: ["customerReviews: singleton", "path: 'src/data/customer-reviews'", '启用前台评价系统（总开关）'],
+  },
+  {
+    area: 'Manager review draft workflow',
+    file: 'src/pages/manager/index.astro',
+    markers: ['data-panel="reviews"', '/api/manager/review-drafts', '生成删除草稿'],
+  },
+  {
+    area: 'Review SEO evidence gate',
+    file: 'src/data/customerReviews.ts',
+    markers: ['reviewSystemEnabled', "review.kind === 'verified'", 'review.seoEligible === true'],
+  },
+  {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
     markers: ['npm run types:cloudflare -- --check', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
@@ -184,11 +199,6 @@ const contracts = [
     area: 'Keystatic browser build configuration verification',
     file: 'scripts/verify-keystatic-build.mjs',
     markers: ['PUBLIC_KEYSTATIC_GITHUB_REPO', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'clientBundle.includes'],
-  },
-  {
-    area: 'AstroWind visual foundation',
-    file: 'src/styles/astrowind-visual-foundation.css',
-    markers: ['AstroWind-style centered Hero', '.astrowind-home .hero', '.site-header', '.page-banner'],
   },
 ];
 
@@ -206,6 +216,9 @@ const requiredFiles = [
   'src/pages/api/manager/ai/translations.ts',
   'src/pages/api/manager/status.ts',
   'src/pages/api/manager/r2/assets.ts',
+  'src/pages/api/manager/review-drafts.ts',
+  'src/pages/api/manager/review-drafts/[id]/apply.ts',
+  'src/pages/manager/reviews.astro',
   'src/pages/api/deploy/site.ts',
   'src/pages/api/manager/deploy/site.ts',
   'src/pages/api/contact.ts',
@@ -216,6 +229,7 @@ const requiredFiles = [
   'src/keystatic/site-publisher-field.tsx',
   'scripts/apply-manager-product-draft.mjs',
   'scripts/apply-manager-blog-draft.mjs',
+  'scripts/apply-manager-review-draft.mjs',
   'scripts/audit-product-seo.mjs',
   'scripts/check-admin-portal-rewrite.mjs',
   'scripts/run-astro.mjs',
@@ -229,7 +243,8 @@ const requiredFiles = [
   'src/cloudflare-workers.d.ts',
   'worker-configuration.d.ts',
   'src/styles/home-tailwind.css',
-  'docs/ASTROWIND-VISUAL-FOUNDATION.md',
+  'src/data/customer-reviews.json',
+  '.github/workflows/manager-apply-review-draft.yml',
   'public/template-icon.svg',
   'public/favicon-32x32.png',
   'public/apple-touch-icon.png',

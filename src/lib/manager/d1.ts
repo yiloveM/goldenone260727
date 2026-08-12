@@ -41,6 +41,23 @@ export type ManagerBlogDraftPayload = {
   body: string;
 };
 
+export type ManagerReviewPayload = {
+  operation: 'upsert' | 'delete';
+  id: string;
+  published: boolean;
+  kind: 'verified' | 'demo';
+  rating: '4' | '5';
+  quote: string;
+  buyerLabel: string;
+  country: string;
+  date: string;
+  projectType: string;
+  source: string;
+  sourceUrl: string;
+  productSlugs: string[];
+  seoEligible: boolean;
+};
+
 type D1DatabaseLike = {
   prepare: (query: string) => {
     bind: (...values: unknown[]) => {
@@ -72,6 +89,21 @@ export type BlogDraftRecord = {
   id: string;
   blog_slug: string;
   blog_title: string;
+  payload_json: string;
+  status: string;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  applied_at: string | null;
+  workflow_request_id: string | null;
+  workflow_url: string | null;
+};
+
+export type ReviewDraftRecord = {
+  id: string;
+  review_id: string;
+  buyer_label: string;
   payload_json: string;
   status: string;
   created_by: string;
@@ -133,6 +165,30 @@ export const ensureManagerSchema = async (db: D1DatabaseLike) => {
     .run();
   await db
     .prepare('CREATE INDEX IF NOT EXISTS idx_manager_blog_drafts_blog_slug ON manager_blog_drafts(blog_slug)')
+    .run();
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS manager_review_drafts (
+        id TEXT PRIMARY KEY,
+        review_id TEXT NOT NULL,
+        buyer_label TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'draft',
+        created_by TEXT NOT NULL,
+        updated_by TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        applied_at TEXT,
+        workflow_request_id TEXT,
+        workflow_url TEXT
+      )`
+    )
+    .run();
+  await db
+    .prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_updated_at ON manager_review_drafts(updated_at DESC)')
+    .run();
+  await db
+    .prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_review_id ON manager_review_drafts(review_id)')
     .run();
 };
 
@@ -219,6 +275,45 @@ export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPaylo
     publishDate,
     featured: body.featured === true,
     body: content,
+  };
+};
+
+export const normalizeReviewDraftPayload = (value: unknown): ManagerReviewPayload => {
+  const body = (value || {}) as Partial<ManagerReviewPayload>;
+  const id = String(body.id || '').trim().toLowerCase();
+  const kind = body.kind === 'demo' ? 'demo' : 'verified';
+  const rating = String(body.rating) === '4' ? '4' : '5';
+  const quote = String(body.quote || '').trim();
+  const buyerLabel = String(body.buyerLabel || '').trim();
+  const date = String(body.date || '').trim();
+  const sourceUrl = String(body.sourceUrl || '').trim();
+  const productSlugs = normalizeStringArray(body.productSlugs).map(slug => slug.toLowerCase());
+  const seoEligible = body.seoEligible === true;
+  const operation = body.operation === 'delete' ? 'delete' : 'upsert';
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error('A valid review ID is required.');
+  if (operation === 'upsert' && !quote) throw new Error('Review text is required.');
+  if (operation === 'upsert' && !buyerLabel) throw new Error('Buyer display name is required.');
+  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Review date must use YYYY-MM-DD.');
+  if (seoEligible && (kind !== 'verified' || !date || !sourceUrl || productSlugs.length === 0)) {
+    throw new Error('SEO reviews must be verified and include a date, source URL, and at least one product slug.');
+  }
+
+  return {
+    operation,
+    id,
+    published: body.published !== false,
+    kind,
+    rating,
+    quote,
+    buyerLabel,
+    country: String(body.country || '').trim(),
+    date,
+    projectType: String(body.projectType || '').trim(),
+    source: String(body.source || (kind === 'verified' ? 'Alibaba.com' : 'Layout preview')).trim(),
+    sourceUrl,
+    productSlugs,
+    seoEligible: kind === 'verified' && seoEligible,
   };
 };
 
@@ -320,6 +415,8 @@ export const createDraftId = (productSlug: string) => `product-${productSlug}-${
 
 export const createBlogDraftId = (blogSlug: string) => `blog-${blogSlug}-${Date.now().toString(36)}`;
 
+export const createReviewDraftId = (reviewId: string) => `review-${reviewId}-${Date.now().toString(36)}`;
+
 export const productDraftToResponse = (record: ProductDraftRecord) => ({
   id: record.id,
   productSlug: record.product_slug,
@@ -338,6 +435,19 @@ export const blogDraftToResponse = (record: BlogDraftRecord) => ({
   blogSlug: record.blog_slug,
   blogTitle: record.blog_title,
   payload: JSON.parse(record.payload_json) as ManagerBlogDraftPayload,
+  status: record.status,
+  createdBy: record.created_by,
+  updatedBy: record.updated_by,
+  createdAt: record.created_at,
+  updatedAt: record.updated_at,
+  appliedAt: record.applied_at,
+});
+
+export const reviewDraftToResponse = (record: ReviewDraftRecord) => ({
+  id: record.id,
+  reviewId: record.review_id,
+  buyerLabel: record.buyer_label,
+  payload: JSON.parse(record.payload_json) as ManagerReviewPayload,
   status: record.status,
   createdBy: record.created_by,
   updatedBy: record.updated_by,

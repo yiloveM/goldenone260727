@@ -1,0 +1,63 @@
+---
+interface MediaItem { title: string; image: string }
+interface Props {
+  items: MediaItem[];
+  eyebrow: string;
+  title: string;
+  description?: string;
+  id: string;
+  compact?: boolean;
+}
+const { items, eyebrow, title, description = '', id, compact = false } = Astro.props;
+---
+
+<section class:list={['media-carousel-section', compact && 'media-carousel-section--compact']} aria-labelledby={`${id}-title`}>
+  <div class="container media-carousel-heading">
+    <div><span class="eyebrow">{eyebrow}</span><h2 id={`${id}-title`}>{title}</h2></div>
+    {description && <p>{description}</p>}
+  </div>
+  <div class="media-carousel" data-media-carousel>
+    <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label="Previous image" data-media-prev>&#8249;</button>
+    <div class="media-carousel-viewport" data-media-viewport tabindex="0" aria-label={title}>
+      <div class="media-carousel-track">
+        {items.map(item => (
+          <figure>
+            <div class="media-carousel-image"><img src={item.image} alt={item.title} width="1200" height="800" loading="lazy" decoding="async" /></div>
+            <figcaption>{item.title}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+    <button type="button" class="media-carousel-control media-carousel-control--next" aria-label="Next image" data-media-next>&#8250;</button>
+  </div>
+</section>
+
+<script is:inline>
+  document.querySelectorAll('[data-media-carousel]').forEach(carousel => {
+    if (carousel.dataset.ready === 'true') return;
+    carousel.dataset.ready = 'true';
+    const viewport = carousel.querySelector('[data-media-viewport]');
+    const previous = carousel.querySelector('[data-media-prev]');
+    const next = carousel.querySelector('[data-media-next]');
+    if (!viewport || !previous || !next) return;
+    const step = () => Math.max(300, viewport.clientWidth * .68);
+    const move = direction => {
+      const atEnd = viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - 8;
+      const atStart = viewport.scrollLeft <= 8;
+      if (direction > 0 && atEnd) viewport.scrollTo({ left: 0, behavior: 'smooth' });
+      else if (direction < 0 && atStart) viewport.scrollTo({ left: viewport.scrollWidth, behavior: 'smooth' });
+      else viewport.scrollBy({ left: direction * step(), behavior: 'smooth' });
+    };
+    previous.addEventListener('click', () => move(-1));
+    next.addEventListener('click', () => move(1));
+    let timer = window.setInterval(() => move(1), 4600);
+    const pause = () => window.clearInterval(timer);
+    const play = () => { pause(); timer = window.setInterval(() => move(1), 4600); };
+    carousel.addEventListener('mouseenter', pause);
+    carousel.addEventListener('mouseleave', play);
+    carousel.addEventListener('focusin', pause);
+    carousel.addEventListener('focusout', play);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) pause();
+    window.addEventListener('pagehide', pause, { once: true });
+  });
+</script>
