@@ -1,0 +1,19 @@
+---
+export const prerender = true;
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>评价管理</title>
+  </head>
+  <body>
+    <p>正在打开评价管理...</p>
+    <script is:inline>
+      const target = window.location.pathname.replace(/reviews\/?$/, '');
+      window.location.replace(`${target}?section=reviews`);
+    </script>
+  </body>
+</html>

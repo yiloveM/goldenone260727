@@ -1,0 +1,131 @@
+---
+import { partnerLogos } from '../data/partnerLogos';
+
+const visiblePartners = partnerLogos.filter(partner => partner.name.trim());
+---
+
+{visiblePartners.length > 0 && (
+  <section class="partner-band" aria-labelledby="partner-band-title">
+    <div class="metal-shell partner-band__header">
+      <p class="metal-kicker">Customer trust</p>
+      <h2 id="partner-band-title">Trusted by Customers Worldwide</h2>
+    </div>
+    <div class="partner-band__viewport" role="region" aria-label="Customer program groups">
+      <div class="partner-band__rail" role="list">
+        {[...visiblePartners, ...visiblePartners].map((partner, index) => {
+          const duplicate = index >= visiblePartners.length;
+          return (
+            <div class="partner-band__mark" role={duplicate ? undefined : 'listitem'} aria-hidden={duplicate ? 'true' : undefined}>
+              <span aria-hidden="true">{String((index % visiblePartners.length) + 1).padStart(2, '0')}</span>
+              <strong>{partner.name}</strong>
+              <small>{partner.descriptor}</small>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+
+<style>
+  .partner-band {
+    overflow: hidden;
+    padding: 58px 0 64px;
+    color: #202a31;
+    background: #fff;
+  }
+
+  .partner-band__header {
+    display: grid;
+    justify-items: center;
+    margin-bottom: 38px;
+    text-align: center;
+  }
+
+  .partner-band__header .metal-kicker {
+    margin: 0 0 8px;
+  }
+
+  .partner-band__header h2 {
+    margin: 0;
+    color: #202a31;
+    font-size: clamp(2rem, 3.5vw, 3.15rem);
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+  }
+
+  .partner-band__viewport {
+    width: 100%;
+    overflow: hidden;
+    border-top: 1px solid #d6e1e3;
+    border-bottom: 1px solid #d6e1e3;
+  }
+
+  .partner-band__rail {
+    display: flex;
+    width: max-content;
+    animation: partner-band-scroll 34s linear infinite;
+  }
+
+  .partner-band__viewport:hover .partner-band__rail {
+    animation-play-state: paused;
+  }
+
+  .partner-band__mark {
+    display: flex;
+    flex: 0 0 clamp(190px, 18vw, 250px);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 132px;
+    padding: 24px 32px;
+    border-right: 1px solid #d6e1e3;
+    background: #fff;
+    transition: background-color .25s ease;
+  }
+
+  .partner-band__mark:hover {
+    background: #effbfa;
+  }
+
+  .partner-band__mark span {
+    margin-bottom: 12px;
+    color: #0d8984;
+    font-size: .68rem;
+    font-weight: 800;
+  }
+
+  .partner-band__mark strong {
+    color: #202a31;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-transform: uppercase;
+  }
+
+  .partner-band__mark small {
+    margin-top: 5px;
+    color: #647378;
+    font-size: .72rem;
+    font-weight: 650;
+    text-transform: uppercase;
+  }
+
+  @keyframes partner-band-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (max-width: 620px) {
+    .partner-band { padding: 64px 0 70px; }
+    .partner-band__header { display: block; margin-bottom: 28px; }
+    .partner-band__header h2 { font-size: 2.55rem; }
+    .partner-band__mark { flex-basis: 170px; min-height: 104px; padding: 20px 24px; }
+    .partner-band__mark strong { font-size: .9rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .partner-band__rail { animation: none; }
+    .partner-band__mark { transition: none; }
+  }
+</style>

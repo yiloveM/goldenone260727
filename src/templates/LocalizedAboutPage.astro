@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
+import MediaCarousel from '../components/MediaCarousel.astro';
 import { factoryGallery, pageImages, siteInfo } from '../data/site';
-import { industryProfile } from '../data/industry-profile';
 import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 import { translateTechnicalText, ui } from '../data/i18n';
 import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
@@ -80,19 +80,6 @@ const aboutCards = locale === 'es'
         </div>
       </div>
     </section>
-    <section class="section container factory-section">
-      <div class="section-heading" dir="ltr">
-        <span class="eyebrow">{pages.about.factoryEyebrow}</span>
-        <h2>{pages.about.factoryTitle}</h2>
-      </div>
-      <div class="factory-carousel-shell" data-marquee-shell data-marquee-direction="ltr" data-marquee-duration="48">
-        <div class="brand-rail-hint" aria-hidden="true">{ui[locale].common.dragSwipe}</div>
-        <div class="factory-carousel" aria-label={`${industryProfile.market.industry} visual gallery`} data-marquee-track>
-          {[...localizedFactoryGallery, ...localizedFactoryGallery].map(item => (
-            <figure><img src={item.image} alt={item.title} loading="lazy" decoding="async" width="1200" height="800" /><figcaption>{item.title}</figcaption></figure>
-          ))}
-        </div>
-      </div>
-    </section>
+    <MediaCarousel items={localizedFactoryGallery} eyebrow={pages.about.factoryEyebrow} title={pages.about.factoryTitle} id={`about-factory-${locale}`} />
   </main>
 </BaseLayout>

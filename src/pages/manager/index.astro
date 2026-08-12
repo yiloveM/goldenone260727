@@ -3136,6 +3136,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
               <button class="tab is-active" data-tab="products" type="button">产品管理</button>
               <button class="tab" data-tab="product-order" type="button">产品排序</button>
               <button class="tab" data-tab="blog" type="button">博客</button>
+              <button class="tab" data-tab="reviews" type="button">客户评价</button>
               <button class="tab" data-tab="translation" type="button">AI 翻译助手</button>
               <button class="tab" data-tab="product-drafts" type="button">产品翻译草稿</button>
               <button class="tab" data-tab="blog-drafts" type="button">文章翻译草稿</button>
@@ -3444,6 +3445,97 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         </div>
       </section>
 
+      <section class="section" data-panel="reviews">
+        <div class="grid">
+          <aside class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>客户评价</h2>
+                <span id="reviewSystemStatus">站长在 Keystatic 控制评价系统总开关。</span>
+              </div>
+              <button class="button secondary" id="newReviewButton" type="button">新建评价草稿</button>
+            </div>
+            <div class="toolbar is-row">
+              <button class="button secondary" id="reviewRefreshButton" type="button">刷新评价</button>
+              <span class="status" id="reviewListStatus">评价列表未加载。</span>
+            </div>
+            <div class="blog-list" id="reviewList"></div>
+          </aside>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>评价草稿编辑器</h2>
+                <span>保存后仍在 D1 草稿库；点击“应用到网站”才会写回正式评价数据。</span>
+              </div>
+            </div>
+            <form class="form" id="reviewForm">
+              <div class="field">
+                <label for="reviewId">唯一 ID</label>
+                <input id="reviewId" placeholder="alibaba-order-20260813-01" />
+              </div>
+              <div class="field">
+                <label for="reviewBuyerLabel">买家显示名称</label>
+                <input id="reviewBuyerLabel" placeholder="Verified Alibaba buyer" />
+              </div>
+              <div class="field">
+                <label for="reviewKind">数据类型</label>
+                <select id="reviewKind">
+                  <option value="verified">真实且已核实</option>
+                  <option value="demo">样式演示（不进入 SEO）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="reviewRating">星级</label>
+                <select id="reviewRating"><option value="5">5 星</option><option value="4">4 星</option></select>
+              </div>
+              <div class="field is-wide">
+                <label for="reviewQuote">评价原文</label>
+                <textarea id="reviewQuote" required></textarea>
+              </div>
+              <div class="field">
+                <label for="reviewDate">评价日期</label>
+                <input id="reviewDate" type="date" />
+              </div>
+              <div class="field">
+                <label for="reviewCountry">国家 / 地区</label>
+                <input id="reviewCountry" />
+              </div>
+              <div class="field">
+                <label for="reviewProjectType">产品 / 项目类型</label>
+                <input id="reviewProjectType" />
+              </div>
+              <div class="field">
+                <label for="reviewSource">来源名称</label>
+                <input id="reviewSource" value="Alibaba.com" />
+              </div>
+              <div class="field is-wide">
+                <label for="reviewSourceUrl">该条评价的可核实链接</label>
+                <input id="reviewSourceUrl" type="url" />
+              </div>
+              <div class="field is-wide">
+                <label for="reviewProductSlugs">关联产品 Slug</label>
+                <textarea id="reviewProductSlugs" placeholder="每行一个，例如 custom-challenge-coins"></textarea>
+              </div>
+              <div class="field">
+                <label>前台状态</label>
+                <span class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示该评价</span></span>
+              </div>
+              <div class="field">
+                <label>SEO 资格</label>
+                <span class="toggle"><input id="reviewSeoEligible" type="checkbox" /><span>输出 Review 结构化数据</span></span>
+              </div>
+            </form>
+            <div class="actions">
+              <button class="button" id="saveReviewDraftButton" type="button">保存评价草稿</button>
+              <button class="button secondary" id="deleteReviewDraftButton" type="button">生成删除草稿</button>
+              <span class="status" id="reviewStatus">请选择一条评价或新建草稿。</span>
+            </div>
+            <div class="drafts" id="reviewDraftList"></div>
+          </section>
+        </div>
+      </section>
+
       <section class="section" data-panel="images">
         <section class="panel">
           <div class="panel-head">
@@ -3744,6 +3836,10 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         categories: [],
         drafts: [],
         blogDrafts: [],
+        reviews: [],
+        reviewDrafts: [],
+        activeReviewId: '',
+        activeReviewDraftId: '',
         orderChanges: new Map(),
         productPage: 1,
         activeSlug: '',
@@ -4521,6 +4617,9 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         if (tab === 'blog' && !state.blogPosts.length) {
           Promise.all([loadBlogPosts(), loadBlogDrafts()]).catch(error => setStatus('blogStatus', error.message, true));
         }
+        if (tab === 'reviews' && !state.reviews.length && !state.reviewDrafts.length) {
+          loadReviews().catch(error => setStatus('reviewStatus', error.message, true));
+        }
         if (tab === 'product-drafts') loadTranslationDrafts('product').catch(error => setStatus('productDraftStatus', error.message, true));
         if (tab === 'blog-drafts') loadTranslationDrafts('blog').catch(error => setStatus('blogDraftStatus', error.message, true));
       };
@@ -5115,9 +5214,102 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         }
       };
 
+      const reviewPayloadFromForm = (operation = 'upsert') => ({
+        operation,
+        id: $('reviewId').value.trim().toLowerCase(),
+        published: $('reviewPublished').checked,
+        kind: $('reviewKind').value,
+        rating: $('reviewRating').value,
+        quote: $('reviewQuote').value.trim(),
+        buyerLabel: $('reviewBuyerLabel').value.trim(),
+        country: $('reviewCountry').value.trim(),
+        date: $('reviewDate').value,
+        projectType: $('reviewProjectType').value.trim(),
+        source: $('reviewSource').value.trim(),
+        sourceUrl: $('reviewSourceUrl').value.trim(),
+        productSlugs: $('reviewProductSlugs').value.split(/\r?\n|,/).map(value => value.trim()).filter(Boolean),
+        seoEligible: $('reviewSeoEligible').checked,
+      });
+
+      const fillReviewForm = review => {
+        const item = review || {};
+        state.activeReviewId = item.id || '';
+        state.activeReviewDraftId = item.draftId || '';
+        $('reviewId').value = item.id || '';
+        $('reviewId').readOnly = Boolean(item.id && !item.draftId);
+        $('reviewBuyerLabel').value = item.buyerLabel || '';
+        $('reviewKind').value = item.kind === 'demo' ? 'demo' : 'verified';
+        $('reviewRating').value = String(item.rating) === '4' ? '4' : '5';
+        $('reviewQuote').value = item.quote || '';
+        $('reviewDate').value = item.date || '';
+        $('reviewCountry').value = item.country || '';
+        $('reviewProjectType').value = item.projectType || '';
+        $('reviewSource').value = item.source || 'Alibaba.com';
+        $('reviewSourceUrl').value = item.sourceUrl || '';
+        $('reviewProductSlugs').value = (item.productSlugs || []).join('\n');
+        $('reviewPublished').checked = item.published !== false;
+        $('reviewSeoEligible').checked = item.seoEligible === true;
+        setStatus('reviewStatus', item.id ? `正在编辑：${item.id}` : '正在新建评价草稿。');
+      };
+
+      const renderReviews = () => {
+        $('reviewList').innerHTML = state.reviews.length
+          ? state.reviews.map(review => `
+              <button class="blog-row" data-review-id="${escapeHtml(review.id)}" type="button">
+                <span><strong>${escapeHtml(review.buyerLabel || review.id)}</strong><small>${escapeHtml(review.projectType || review.source || '')}</small></span>
+                <span class="status">${review.kind === 'demo' ? '演示' : '已核实'} · ${review.published === false ? '隐藏' : `${review.rating} 星`}</span>
+              </button>`).join('')
+          : '<div class="draft"><span><strong>暂无正式评价</strong><small>可以新建评价草稿。</small></span></div>';
+        $('reviewListStatus').textContent = `共 ${state.reviews.length} 条正式评价`;
+      };
+
+      const renderReviewDrafts = () => {
+        $('reviewDraftList').innerHTML = state.reviewDrafts.length
+          ? state.reviewDrafts.map(draft => `
+              <div class="draft">
+                <span><strong>${escapeHtml(draft.buyerLabel || draft.reviewId)}</strong><small>${escapeHtml(draft.status)} · ${formatDate(draft.updatedAt)}</small></span>
+                <button class="button secondary" data-review-draft-edit="${escapeHtml(draft.id)}" type="button">编辑</button>
+                <button class="button secondary" data-review-draft-apply="${escapeHtml(draft.id)}" type="button">应用到网站</button>
+              </div>`).join('')
+          : '<div class="draft"><span><strong>暂无评价草稿</strong><small>保存后会显示在这里。</small></span></div>';
+      };
+
+      const loadReviews = async () => {
+        const data = await requestJson('/api/manager/review-drafts');
+        state.reviews = data.reviews || [];
+        state.reviewDrafts = data.drafts || [];
+        $('reviewSystemStatus').textContent = `评价系统总开关：${data.settings?.enabled ? '已启用' : '已关闭'}（仅站长可在 Keystatic 修改）`;
+        renderReviews();
+        renderReviewDrafts();
+      };
+
+      const saveReviewDraft = async operation => {
+        const payload = reviewPayloadFromForm(operation);
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.id)) {
+          setStatus('reviewStatus', '唯一 ID 只能使用小写英文、数字和短横线。', true);
+          return;
+        }
+        setStatus('reviewStatus', operation === 'delete' ? '正在生成删除草稿...' : '正在保存评价草稿...');
+        const data = await requestJson('/api/manager/review-drafts', {
+          method: 'POST',
+          body: JSON.stringify({ id: state.activeReviewDraftId, payload }),
+        });
+        state.activeReviewDraftId = data.draft?.id || '';
+        await loadReviews();
+        setStatus('reviewStatus', operation === 'delete' ? '删除草稿已保存，尚未删除正式数据。' : '评价草稿已保存。');
+      };
+
+      const applyReviewDraft = async id => {
+        setStatus('reviewStatus', '正在提交评价内容更新...');
+        const data = await requestJson(`/api/manager/review-drafts/${encodeURIComponent(id)}/apply`, { method: 'POST' });
+        await loadReviews();
+        setStatus('reviewStatus', data.requestId ? '评价更新已提交到网站工作流。' : '评价更新已提交。');
+      };
+
       const bootstrapManager = async () => {
         await loadProducts();
         await loadDraftsSafely();
+        if (new URLSearchParams(window.location.search).get('section') === 'reviews') activateTab('reviews');
       };
 
       const productToPayload = (product, sortOrder = product.sortOrder) => ({
@@ -6367,6 +6559,25 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       $('blogDraftWorkList').addEventListener('click', event => {
         const button = event.target.closest('[data-blog-apply]');
         if (button) applyBlogDraft(button.dataset.blogApply).catch(error => setStatus('blogStatus', error.message, true));
+      });
+      $('reviewRefreshButton').addEventListener('click', () => loadReviews().catch(error => setStatus('reviewStatus', error.message, true)));
+      $('newReviewButton').addEventListener('click', () => fillReviewForm(null));
+      $('saveReviewDraftButton').addEventListener('click', () => saveReviewDraft('upsert').catch(error => setStatus('reviewStatus', error.message, true)));
+      $('deleteReviewDraftButton').addEventListener('click', () => saveReviewDraft('delete').catch(error => setStatus('reviewStatus', error.message, true)));
+      $('reviewList').addEventListener('click', event => {
+        const button = event.target.closest('[data-review-id]');
+        const review = button && state.reviews.find(item => item.id === button.dataset.reviewId);
+        if (review) fillReviewForm(review);
+      });
+      $('reviewDraftList').addEventListener('click', event => {
+        const edit = event.target.closest('[data-review-draft-edit]');
+        if (edit) {
+          const draft = state.reviewDrafts.find(item => item.id === edit.dataset.reviewDraftEdit);
+          if (draft) fillReviewForm({ ...draft.payload, draftId: draft.id });
+          return;
+        }
+        const apply = event.target.closest('[data-review-draft-apply]');
+        if (apply) applyReviewDraft(apply.dataset.reviewDraftApply).catch(error => setStatus('reviewStatus', error.message, true));
       });
       $('productForm').addEventListener('input', event => syncProductFormInput(event.target));
       $('productForm').addEventListener('click', event => {

@@ -1,253 +1,97 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArtworkBriefForm from './ArtworkBriefForm.astro';
+import BrandPartnerStrip from './BrandPartnerStrip.astro';
+import CustomerReviews from './CustomerReviews.astro';
+import MediaCarousel from './MediaCarousel.astro';
 import '../styles/home-tailwind.css';
 import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
-import { type Locale, getPageCopy, localizePath, translateTechnicalText, ui } from '../data/i18n';
+import { type Locale, getPageCopy, localizePath, translateTechnicalText } from '../data/i18n';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
-import { brandShowcase, siteInfo } from '../data/site';
+import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 
-interface Props {
-  locale?: Locale;
-}
-
+interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
 const pages = getPageCopy(locale);
-const dictionary = ui[locale];
 const productHref = localizePath('/products/', locale);
 const contactHref = localizePath('/contact/', locale);
-
-const editorial = locale === 'es'
-  ? {
-      heroLabel: 'Objetos personalizados para marcas, eventos y comunidades',
-      heroWords: [
-        'hechos para destacar.',
-        'definidos por tu diseño.',
-        'acabados para coleccionar.',
-      ],
-      imageNote: 'Imágenes de referencia temporales para sustituir por proyectos verificados de Golden One.',
-      collectionEyebrow: 'Elige el objeto',
-      collectionTitle: 'Primero debe llamar la atención. Después explicamos cómo hacerlo.',
-      collectionDescription: 'Explora por formato y empieza la conversación con el producto que mejor expresa tu diseño.',
-      collectionCta: 'Explorar la colección',
-      storyEyebrow: 'Un solo escenario. Tres decisiones.',
-      storyTitle: 'Del diseño visual a un objeto que la gente quiere conservar.',
-      storyChapters: [
-        {
-          number: '01',
-          label: 'Forma',
-          title: 'Empieza con la silueta.',
-          text: 'El contorno, el tamaño y el relieve convierten una idea plana en un objeto reconocible.',
-        },
-        {
-          number: '02',
-          label: 'Superficie',
-          title: 'Haz que el acabado exprese el carácter.',
-          text: 'Esmalte, metal pulido, efecto antiguo, color y textura cambian cómo se percibe el mismo diseño.',
-        },
-        {
-          number: '03',
-          label: 'Presentación',
-          title: 'Completa la experiencia.',
-          text: 'El reverso, el accesorio, la cinta, el llavero y el embalaje preparan el objeto para su uso final.',
-        },
-      ],
-      detailEyebrow: 'Dirección creativa',
-      detailTitle: 'Cada elección es visible en el producto final.',
-      detailDescription: 'Comparte la referencia visual y las decisiones ya tomadas. Las especificaciones que aún no conozcas pueden quedar abiertas para conversar.',
-      processEyebrow: 'Proyecto OEM',
-      processTitle: 'Una ruta breve desde la idea hasta una cotización útil.',
-      ctaEyebrow: 'Inicia tu proyecto',
-      ctaTitle: 'Trae el diseño. Construyamos el objeto.',
-      ctaDescription: 'Indica formato, cantidad, destino y fecha objetivo. Añade dimensiones, acabado, accesorio y embalaje cuando estén definidos.',
-    }
-  : {
-      heroLabel: 'Custom objects for brands, events, and communities',
-      heroWords: [
-        'made to stand out.',
-        'shaped by your artwork.',
-        'finished to be collected.',
-      ],
-      imageNote: 'Temporary reference imagery to be replaced with verified Golden One project photography.',
-      collectionEyebrow: 'Choose the object',
-      collectionTitle: 'It should catch the eye first. Then we explain how to make it.',
-      collectionDescription: 'Browse by format and start the conversation with the object that best carries your design.',
-      collectionCta: 'Explore the collection',
-      storyEyebrow: 'One scene. Three decisions.',
-      storyTitle: 'From visual idea to an object people want to keep.',
-      storyChapters: [
-        {
-          number: '01',
-          label: 'Form',
-          title: 'Start with the silhouette.',
-          text: 'Outline, scale, thickness, and relief turn a flat idea into a recognizable object.',
-        },
-        {
-          number: '02',
-          label: 'Surface',
-          title: 'Let the finish set the character.',
-          text: 'Enamel, polished metal, antique treatment, color, and texture change how the same design feels.',
-        },
-        {
-          number: '03',
-          label: 'Presentation',
-          title: 'Complete the experience.',
-          text: 'Backings, ribbons, rings, leather, and packaging prepare the object for its final use.',
-        },
-      ],
-      detailEyebrow: 'Creative direction',
-      detailTitle: 'Every choice is visible in the finished object.',
-      detailDescription: 'Share the visual reference and the decisions already made. Specifications you do not know yet can stay open for discussion.',
-      processEyebrow: 'OEM project path',
-      processTitle: 'A short route from visual idea to a useful quotation.',
-      ctaEyebrow: 'Start your custom project',
-      ctaTitle: 'Bring the artwork. Let us build the object.',
-      ctaDescription: 'Share the format, quantity, destination, and target date. Add dimensions, finish, attachment, and packaging where already defined.',
-    };
-
 const categoryImages = [
   '/images/metal-gifts/lapel-pin-collection-v2.webp',
   '/images/metal-gifts/challenge-coin-collection-v2.webp',
   '/images/metal-gifts/medal-collection-v2.webp',
   '/images/metal-gifts/keychain-collection-v2.webp',
 ];
-
 const categories = brandShowcase.map((item, index) => ({
   ...item,
   image: categoryImages[index],
-  number: String(index + 1).padStart(2, '0'),
   title: translateTechnicalText(item.title, locale),
   label: translateTechnicalText(item.label, locale),
+  number: String(index + 1).padStart(2, '0'),
 }));
-
-const attributes = industryProfile.productArchitecture.commonAttributes
-  .slice(0, 8)
-  .map(item => translateTechnicalText(item, locale));
-
-const briefingSteps = [
-  { number: '01', title: pages.home.briefStep1, description: pages.home.briefStep1Description },
-  { number: '02', title: pages.home.briefStep2, description: pages.home.briefStep2Description },
-  { number: '03', title: pages.home.briefStep3, description: pages.home.briefStep3Description },
-  { number: '04', title: pages.home.briefStep4, description: pages.home.briefStep4Description },
-];
-
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
-  collectionStructuredData(
-    {
-      name: `${siteInfo.name} | ${industryProfile.market.industry}`,
-      description: pages.home.description,
-      url: localizePath('/', locale),
-      image: brandAssets.heroRippleDesktop,
-      keywords: profileKeywords([industryProfile.market.industry]),
-      items: categories.map(category => ({
-        name: category.title,
-        url: productHref,
-        image: category.image,
-      })),
-    },
-    Astro.site
-  ),
+  collectionStructuredData({
+    name: `${siteInfo.name} | ${industryProfile.market.industry}`,
+    description: pages.home.description,
+    url: localizePath('/', locale),
+    image: brandAssets.heroRippleDesktop,
+    keywords: profileKeywords([industryProfile.market.industry]),
+    items: categories.map(category => ({ name: category.title, url: productHref, image: category.image })),
+  }, Astro.site),
 ];
 ---
 
-<BaseLayout
-  title={siteInfo.name}
-  description={pages.home.description}
-  image={brandAssets.heroRippleDesktop}
-  preloadHomeHero
-  structuredData={homeStructuredData}
-  locale={locale}
->
-  <main class="metal-home" data-editorial-home data-tailwind-homepage="tw:metal-editorial">
-    <section class="studio-hero" aria-labelledby="studio-hero-title">
-      <img
-        class="studio-hero__image"
-        src={brandAssets.heroRippleDesktop}
-        alt={pages.home.heroImageAlt}
-        width="1792"
-        height="1024"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <div class="metal-shell studio-hero__inner">
-        <div class="studio-hero__copy">
-          <p class="metal-kicker">{editorial.heroLabel}</p>
-          <h1 id="studio-hero-title">
-            <span>{locale === 'es' ? 'Regalos metálicos personalizados,' : 'Custom metal gifts,'}</span>
-            <span
-              class="studio-hero__word"
-              data-word-rotator
-              data-words={JSON.stringify(editorial.heroWords)}
-              aria-live="off"
-            >{editorial.heroWords[0]}</span>
-          </h1>
-          <p class="studio-hero__lead">{pages.home.description}</p>
-          <div class="metal-actions">
-            <a class="metal-button metal-button--ink" href={productHref}>
-              {dictionary.common.exploreProducts}
-              <span aria-hidden="true">↗</span>
-            </a>
-            <a class="metal-button metal-button--line" href={contactHref}>
-              {dictionary.common.requestQuote}
-              <span aria-hidden="true">↗</span>
-            </a>
+<BaseLayout title={siteInfo.name} description={pages.home.description} image={brandAssets.heroRippleDesktop} preloadHomeHero structuredData={homeStructuredData} locale={locale}>
+  <main class="metal-home signature-home" data-tailwind-homepage="tw:signature-product">
+    <section class="conversion-hero" aria-labelledby="conversion-hero-title">
+      <img class="conversion-hero__image" src={brandAssets.heroRippleDesktop} alt="Custom metal gift collection" width="1792" height="1024" fetchpriority="high" decoding="async" />
+      <div class="conversion-hero__shade" aria-hidden="true"></div>
+      <div class="metal-shell conversion-hero__inner">
+        <div class="conversion-hero__copy">
+          <span class="conversion-hero__pill">Free artwork support with every custom project</span>
+          <h1 id="conversion-hero-title">Premium Custom Metal Gifts That Honor Every Occasion</h1>
+          <p>Turn your logo, sketch, or idea into custom pins, challenge coins, medals, and keychains with a clear specification and presentation direction.</p>
+          <div class="conversion-hero__actions">
+            <a class="signature-button signature-button--orange" href="#free-design">Get a free design <span aria-hidden="true">&#8594;</span></a>
+            <a class="signature-button signature-button--outline" href={productHref}>Explore products</a>
           </div>
-        </div>
-        <p class="studio-hero__note">{editorial.imageNote}</p>
-      </div>
-      <div class="studio-hero__categories" aria-label={pages.home.heroIndexLabel}>
-        <div class="metal-shell">
-          {categories.map(category => (
-            <a href={productHref}>
-              <span>{category.number}</span>
-              <strong>{category.title}</strong>
-            </a>
-          ))}
+          <ul class="conversion-hero__points">
+            <li>Artwork and specification guidance</li>
+            <li>Custom shape, finish, color, and packaging</li>
+            <li>Built for brands, events, recognition, and merchandise</li>
+          </ul>
         </div>
       </div>
     </section>
 
-    <div class="product-ticker" aria-hidden="true">
-      <div class="product-ticker__track">
-        {[...categories, ...categories].map(category => (
-          <span>{category.title}<i>✦</i></span>
-        ))}
+    <section class="design-upload" id="free-design" aria-labelledby="design-upload-title">
+      <div class="metal-shell design-upload__grid">
+        <div class="design-upload__intro">
+          <span class="metal-kicker">Start with your artwork</span>
+          <h2 id="design-upload-title">Ready to create something worth keeping?</h2>
+          <p>Upload a sketch, logo, reference image, or PDF. We will use it to begin a practical design and quotation conversation.</p>
+          <figure><img src="/images/metal-gifts/challenge-coin-collection-v2.webp" alt="Custom metal gift design reference" width="1456" height="1092" loading="lazy" decoding="async" /></figure>
+        </div>
+        <ArtworkBriefForm />
       </div>
-    </div>
+    </section>
 
-    <section class="metal-section collection-section" aria-labelledby="collection-title">
+    <BrandPartnerStrip />
+
+    <section class="collection-reframe metal-section" aria-labelledby="collection-title">
       <div class="metal-shell">
-        <header class="editorial-heading" data-enter>
-          <div>
-            <p class="metal-kicker">{editorial.collectionEyebrow}</p>
-            <h2 id="collection-title">{editorial.collectionTitle}</h2>
-          </div>
-          <div>
-            <p>{editorial.collectionDescription}</p>
-            <a class="metal-text-link" href={productHref}>{editorial.collectionCta}<span aria-hidden="true">↗</span></a>
-          </div>
+        <header class="collection-reframe__header">
+          <div><span class="metal-kicker">Challenge coins for every purpose</span><h2 id="collection-title">One idea. Four ways to make it tangible.</h2></div>
+          <p>Choose the object closest to your brief, then compare shape, relief, color, hardware, and presentation options.</p>
         </header>
-
-        <div class="collection-grid">
-          {categories.map((category, index) => (
-            <article class={`collection-tile collection-tile--${index + 1}`} data-enter style={`--enter-delay:${index * 70}ms;`}>
-              <a href={productHref} aria-label={`${category.title}: ${category.label}`}>
-                <img
-                  src={category.image}
-                  alt={category.title}
-                  width="1456"
-                  height="1092"
-                  loading={index < 2 ? 'eager' : 'lazy'}
-                  decoding="async"
-                />
-                <span class="collection-tile__number">{category.number}</span>
-                <div class="collection-tile__caption">
-                  <h3>{category.title}</h3>
-                  <p>{category.label}</p>
-                  <span aria-hidden="true">↗</span>
-                </div>
+        <div class="collection-reframe__grid">
+          {categories.map(category => (
+            <article class="format-card">
+              <a href={productHref} aria-label={`Explore ${category.title}`}>
+                <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
+                <div class="format-card__copy"><span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p><i aria-hidden="true">&#8594;</i></div>
               </a>
             </article>
           ))}
@@ -255,146 +99,41 @@ const homeStructuredData = [
       </div>
     </section>
 
-    <section class="story-scene" aria-labelledby="story-title">
-      <div class="story-scene__background" aria-hidden="true"></div>
-      <header class="story-scene__heading metal-shell" data-enter>
-        <p class="metal-kicker metal-kicker--light">{editorial.storyEyebrow}</p>
-        <h2 id="story-title">{editorial.storyTitle}</h2>
-      </header>
-      <div class="story-scene__chapters metal-shell">
-        {editorial.storyChapters.map((chapter, index) => (
-          <article class={`story-chapter story-chapter--${index + 1}`} data-enter>
-            <div class="story-chapter__panel">
-              <div class="story-chapter__meta">
-                <span>{chapter.number}</span>
-                <small>{chapter.label}</small>
-              </div>
-              <h3>{chapter.title}</h3>
-              <p>{chapter.text}</p>
-              <strong aria-hidden="true">{chapter.label}</strong>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-
-    <section class="metal-section detail-studio" aria-labelledby="detail-title">
-      <div class="metal-shell detail-studio__layout">
-        <figure class="detail-studio__visual" data-enter>
-          <img
-            src="/images/metal-gifts/lapel-pin-collection-v2.webp"
-            alt={pages.home.proofImageAlt}
-            width="1456"
-            height="1092"
-            loading="lazy"
-            decoding="async"
-          />
-          <figcaption>{editorial.imageNote}</figcaption>
-        </figure>
-        <div class="detail-studio__content" data-enter>
-          <p class="metal-kicker">{editorial.detailEyebrow}</p>
-          <h2 id="detail-title">{editorial.detailTitle}</h2>
-          <p class="detail-studio__intro">{editorial.detailDescription}</p>
-          <ol class="detail-list">
-            {attributes.map((attribute, index) => (
-              <li>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <strong>{attribute}</strong>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <section class="quote-path" aria-labelledby="quote-path-title">
+    <section class="briefing-rhythm" id="how-it-starts" aria-labelledby="briefing-title">
       <div class="metal-shell">
-        <header class="editorial-heading editorial-heading--dark" data-enter>
-          <div>
-            <p class="metal-kicker metal-kicker--light">{editorial.processEyebrow}</p>
-            <h2 id="quote-path-title">{editorial.processTitle}</h2>
-          </div>
-          <a class="metal-button metal-button--light" href={contactHref}>
-            {dictionary.common.requestQuote}
-            <span aria-hidden="true">↗</span>
-          </a>
-        </header>
-        <ol class="quote-path__steps">
-          {briefingSteps.map((step, index) => (
-            <li data-enter style={`--enter-delay:${index * 70}ms;`}>
-              <span>{step.number}</span>
-              <h3>{step.title}</h3>
-              <p>{step.description}</p>
-            </li>
-          ))}
+        <header class="briefing-rhythm__header"><span class="metal-kicker">How we make it happen</span><h2 id="briefing-title">From your idea to a production-ready brief.</h2></header>
+        <ol>
+          <li><span>1</span><strong>Send your idea</strong><p>Share a sketch, logo, photo, or reference object.</p></li>
+          <li><span>2</span><strong>Shape the design</strong><p>Confirm form, relief, color, plating, hardware, and packaging.</p></li>
+          <li><span>3</span><strong>Review the brief</strong><p>Align quantity, destination, timing, and the final specification.</p></li>
+          <li><span>4</span><strong>Move to production</strong><p>Use the approved direction to begin the order workflow.</p></li>
         </ol>
       </div>
     </section>
 
-    <section class="home-cta" aria-labelledby="home-cta-title">
-      <div class="home-cta__media">
-        <img
-          src="/images/metal-gifts/medal-collection-v2.webp"
-          alt=""
-          width="1456"
-          height="1092"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-      <div class="home-cta__copy" data-enter>
-        <p class="metal-kicker metal-kicker--light">{editorial.ctaEyebrow}</p>
-        <h2 id="home-cta-title">{editorial.ctaTitle}</h2>
-        <p>{editorial.ctaDescription}</p>
-        <a class="metal-button metal-button--light" href={contactHref}>
-          {dictionary.common.requestFactoryQuote}
-          <span aria-hidden="true">↗</span>
-        </a>
+    <section class="material-edit metal-section" aria-labelledby="material-edit-title">
+      <div class="metal-shell material-edit__grid">
+        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
+        <div><span class="metal-kicker">Explore our custom formats</span><h2 id="material-edit-title">Details that make the object distinctly yours.</h2><p>Use the catalogue to compare the choices that affect appearance, hand-feel, attachment, and presentation.</p><dl><div><dt>Form</dt><dd>Shape, scale, thickness, front, reverse, and edge.</dd></div><div><dt>Surface</dt><dd>Enamel, print, relief, plating, polish, texture, and color.</dd></div><div><dt>Presentation</dt><dd>Backing, ribbon, hardware, leather, card, box, or individual packaging.</dd></div></dl><a class="material-edit__link" href={productHref}>Browse the custom gift catalogue <span aria-hidden="true">&#8594;</span></a></div>
       </div>
     </section>
+
+    <section class="closing-brief" aria-labelledby="closing-brief-title">
+      <div class="metal-shell closing-brief__inner">
+        <span class="metal-kicker">Your idea can start rough</span><h2 id="closing-brief-title">Let us turn it into a clear custom brief.</h2>
+        <a class="signature-button signature-button--orange" href="#free-design">Upload your design <span aria-hidden="true">&#8593;</span></a>
+        <small>Specifications already defined? <a href={contactHref}>Send a detailed project inquiry.</a></small>
+      </div>
+    </section>
+
+    <MediaCarousel
+      items={factoryGallery}
+      eyebrow="Inside production"
+      title="A closer look at how custom work moves."
+      description="Tooling, metalworking, finishing, inspection, packing, and storage in one consistent gallery experience."
+      id="home-factory"
+    />
+
+    <CustomerReviews />
   </main>
 </BaseLayout>
-
-<script>
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const rotator = document.querySelector<HTMLElement>('[data-word-rotator]');
-
-  if (rotator && !reducedMotion.matches) {
-    let words: string[] = [];
-    let activeWord = 0;
-
-    try {
-      words = JSON.parse(rotator.dataset.words || '[]');
-    } catch {
-      words = [];
-    }
-
-    if (words.length > 1) {
-      window.setInterval(() => {
-        rotator.classList.add('is-changing');
-        window.setTimeout(() => {
-          activeWord = (activeWord + 1) % words.length;
-          rotator.textContent = words[activeWord];
-          rotator.classList.remove('is-changing');
-        }, 260);
-      }, 3400);
-    }
-  }
-
-  const enterItems = Array.from(document.querySelectorAll<HTMLElement>('[data-enter]'));
-
-  if (!reducedMotion.matches && 'IntersectionObserver' in window) {
-    const enterObserver = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        (entry.target as HTMLElement).classList.add('is-in-view');
-        enterObserver.unobserve(entry.target);
-      });
-    }, {
-      rootMargin: '0px 0px -8% 0px',
-      threshold: 0.12,
-    });
-
-    enterItems.forEach(item => enterObserver.observe(item));
-  }
-</script>

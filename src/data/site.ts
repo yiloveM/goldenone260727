@@ -59,12 +59,12 @@ export const brandShowcase = [
 ];
 
 export const factoryGallery = [
-  { title: 'Enamel and surface detail', image: homePlaceholderImages.strategyRoom },
-  { title: 'Coin relief and edge profile', image: homePlaceholderImages.productReview },
-  { title: 'Medal, ribbon, and attachment', image: homePlaceholderImages.operationsDesk },
-  { title: 'Engraved metal detail', image: homePlaceholderImages.qualityWorkflow },
-  { title: 'Finish and format comparison', image: homePlaceholderImages.warehouse },
-  { title: 'Pins, dies, and color direction', image: homePlaceholderImages.clientWorkshop },
+  { title: 'Production workshop', image: '/images/factory/coloring.jpg' },
+  { title: 'Factory floor', image: '/images/factory/mold-adjustment.jpg' },
+  { title: 'Metalworking', image: '/images/factory/die-casting-workshop.jpg' },
+  { title: 'Warehouse operations', image: '/images/factory/laser-engraving.jpg' },
+  { title: 'Industrial equipment', image: '/images/factory/polishing-department.jpg' },
+  { title: 'Storage and fulfillment', image: '/images/factory/warehouse.jpg' },
 ];
 
 export const faqs = [

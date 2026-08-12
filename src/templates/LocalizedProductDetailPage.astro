@@ -10,6 +10,7 @@ import ProductMediaGallery from '../components/ProductMediaGallery.astro';
 import ProductImageCarousel from '../components/ProductImageCarousel.astro';
 import ProductTableScrollerScript from '../components/ProductTableScrollerScript.astro';
 import ProductInquirySelector from '../components/ProductInquirySelector.astro';
+import CustomerReviews from '../components/CustomerReviews.astro';
 import { getProductModelCodes, isModelSpecTable } from '../data/inquiryCart';
 import {
   categoryPath,
@@ -246,6 +247,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
         <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} locale={locale} />)}</div>
       </section>
     )}
+    <CustomerReviews productSlug={slug} compact />
   </main>
   <ProductTableScrollerScript hint={tableHint} />
 </BaseLayout>

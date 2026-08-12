@@ -13,6 +13,9 @@ const CAPTCHA_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const CAPTCHA_LENGTH = 4;
 const CAPTCHA_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_TO_EMAIL = siteInfo.email;
+const MAX_ARTWORK_BYTES = 5 * 1024 * 1024;
+const ARTWORK_FILE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+const ARTWORK_FILE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'pdf']);
 
 interface ValidatedInquiryItem {
   productSlug: string;
@@ -21,6 +24,12 @@ interface ValidatedInquiryItem {
   model: string;
   quantity: number;
   productUrl: string;
+}
+
+interface ArtworkAttachment {
+  filename: string;
+  content: string;
+  contentType: string;
 }
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
@@ -101,6 +110,30 @@ const field = (formData: FormData, name: string, maxLength = 500) =>
     .replace(/\0/g, '')
     .trim()
     .slice(0, maxLength);
+
+const toBase64 = (bytes: ArrayBuffer) => {
+  let binary = '';
+  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
+  return btoa(binary);
+};
+
+const readArtworkAttachment = async (formData: FormData): Promise<ArtworkAttachment | null> => {
+  const submitted = formData.get('artwork');
+  if (!submitted || typeof submitted === 'string' || !submitted.name || submitted.size === 0) return null;
+
+  const filename = submitted.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_').slice(0, 120) || 'design-reference';
+  const extension = filename.split('.').pop()?.toLowerCase() || '';
+  if (submitted.size > MAX_ARTWORK_BYTES) throw new Error('Please upload a design file smaller than 5 MB.');
+  if (!ARTWORK_FILE_EXTENSIONS.has(extension) || (submitted.type && !ARTWORK_FILE_TYPES.has(submitted.type))) {
+    throw new Error('Please upload a JPG, PNG, WEBP, or PDF design file.');
+  }
+
+  return {
+    filename,
+    content: toBase64(await submitted.arrayBuffer()),
+    contentType: submitted.type || (extension === 'pdf' ? 'application/pdf' : `image/${extension === 'jpg' ? 'jpeg' : extension}`),
+  };
+};
 
 const isEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -199,6 +232,7 @@ const sendInquiryEmail = async ({
     message: string;
     pageUrl: string;
     items: ValidatedInquiryItem[];
+    artwork: ArtworkAttachment | null;
   };
 }) => {
   const apiKey = getEnvString(env, 'RESEND_API_KEY');
@@ -218,6 +252,7 @@ const sendInquiryEmail = async ({
     inquiry.items.length ? `${inquiry.items.length} product selection${inquiry.items.length === 1 ? '' : 's'}` : '',
     inquiry.country || cfCountry,
     inquiry.company,
+    inquiry.artwork ? 'design attached' : '',
   ].filter(Boolean);
   const subject = subjectParts.join(' - ').slice(0, 180);
   const productLines = inquiry.items.flatMap((item, index) => [
@@ -237,6 +272,7 @@ const sendInquiryEmail = async ({
     line('Visitor IP', ipAddress),
     line('Cloudflare country', cfCountry),
     line('User agent', userAgent),
+    line('Design reference', inquiry.artwork ? `${inquiry.artwork.filename} (attached)` : ''),
     ...(productLines.length ? ['', 'Requested products:', ...productLines] : []),
     '',
     'Message:',
@@ -253,6 +289,7 @@ const sendInquiryEmail = async ({
     ['Visitor IP', ipAddress],
     ['Cloudflare country', cfCountry],
     ['User agent', userAgent],
+    ['Design reference', inquiry.artwork ? `${inquiry.artwork.filename} (attached)` : ''],
   ]
     .map(([labelText, value]) => `<tr><th align="left">${escapeHtml(labelText)}</th><td>${escapeHtml(value || '-')}</td></tr>`)
     .join('');
@@ -304,6 +341,7 @@ const sendInquiryEmail = async ({
       subject,
       text,
       html,
+      attachments: inquiry.artwork ? [{ filename: inquiry.artwork.filename, content: inquiry.artwork.content, content_type: inquiry.artwork.contentType }] : undefined,
       tags: [{ name: 'source', value: 'contact_form' }],
     }),
   });
@@ -339,6 +377,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const origin = new URL(request.url).origin;
   const pagePath = field(formData, 'pagePath', 250) || '/contact/';
   let inquiryItems: ValidatedInquiryItem[];
+  let artwork: ArtworkAttachment | null;
   try {
     inquiryItems = parseInquiryItems(field(formData, 'inquiryItems', 20000), await getCollection('products'), origin);
   } catch (error) {
@@ -350,14 +389,22 @@ export const POST: APIRoute = async ({ locals, request }) => {
       400
     );
   }
+  try {
+    artwork = await readArtworkAttachment(formData);
+  } catch (error) {
+    return json({ ok: false, message: error instanceof Error ? error.message : 'Please review the uploaded design file.' }, 400);
+  }
+  const artworkDescription = field(formData, 'artworkDescription', 3000);
+  const message = field(formData, 'message', 3000) || artworkDescription || (artwork ? 'A design reference was attached. Please review it and contact the buyer for project details.' : '');
   const inquiry = {
     name: field(formData, 'name', 120),
     email: field(formData, 'email', 160).toLowerCase(),
     company: field(formData, 'company', 160),
     country: field(formData, 'country', 120),
-    message: field(formData, 'message', 3000),
+    message,
     pageUrl: pagePath.startsWith('http') ? pagePath : new URL(pagePath, origin).toString(),
     items: inquiryItems,
+    artwork,
   };
 
   if (!inquiry.name || !inquiry.email || !inquiry.message) {

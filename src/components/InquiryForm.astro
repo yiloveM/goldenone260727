@@ -26,6 +26,7 @@ const pagePath = Astro.url.pathname;
   class="glass-panel contact-card contact-form-card"
   action="/api/contact"
   method="post"
+  enctype="multipart/form-data"
   data-inquiry-form
   data-storage-key={INQUIRY_CART_STORAGE_KEY}
   dir="ltr"
@@ -62,6 +63,11 @@ const pagePath = Astro.url.pathname;
     <input class="input" name="country" placeholder={labels.country} autocomplete="country-name" />
   </div>
   <textarea name="message" placeholder={labels.message} style="margin-top:14px;" required></textarea>
+  <label class="contact-artwork-upload" style="margin-top:14px;">
+    <span>Design file <em>(optional)</em></span>
+    <input name="artwork" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" />
+    <small>Attach a JPG, PNG, WEBP, or PDF up to 5 MB. It is delivered with your inquiry, not published to the website.</small>
+  </label>
   <div class="captcha-panel" style="margin-top:14px;">
     <div>
       <span class="captcha-label">Verification code</span>
