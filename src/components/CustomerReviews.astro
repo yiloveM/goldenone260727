@@ -40,7 +40,7 @@ const sectionTitle = productSlug
         <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
         <strong>{customerReviewSummary.reviewCount} reviews</strong>
       </div>
-      <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">View Alibaba profile</a>
+      {customerReviewSummary.profileUrl && <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">View Alibaba profile</a>}
     </div>
 
     {visibleReviews.length > 0 && (

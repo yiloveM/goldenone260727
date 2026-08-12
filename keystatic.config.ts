@@ -136,11 +136,13 @@ export default config({
         }),
         summary: fields.object({
           rating: fields.text({ label: '店铺聚合评分', defaultValue: '4.9', description: '只能填写已经核实的公开评分，例如 4.9。' }),
-          reviewCount: fields.integer({ label: '店铺评价数量', defaultValue: 0, description: '填写公开页面当前可核实的评价总数。' }),
           source: fields.text({ label: '评分来源名称', defaultValue: 'Alibaba.com' }),
           profileUrl: fields.text({ label: '店铺评价页链接', defaultValue: '' }),
           checkedOn: fields.text({ label: '最后核实日期（YYYY-MM-DD）', defaultValue: '' }),
-        }, { label: '店铺总评分' }),
+        }, {
+          label: '店铺总评分',
+          description: '评价数量无需填写，系统会自动统计下方评价列表中的记录总数。',
+        }),
         reviews: fields.array(
           fields.object({
             id: fields.text({ label: '唯一 ID', description: '使用英文小写、数字和短横线，例如 alibaba-order-20260813-01。' }),
@@ -175,7 +177,11 @@ export default config({
               description: '仅当数据类型为“真实且已核实”，并填写买家名称、日期、来源链接和关联产品后才能勾选。',
             }),
           }),
-          { label: '评价列表', itemLabel: props => props.fields.buyerLabel.value || props.fields.id.value || '评价' }
+          {
+            label: '评价列表（数量自动统计）',
+            description: '新增或删除评价后，前台评价数量会随列表记录总数自动变化。',
+            itemLabel: props => props.fields.buyerLabel.value || props.fields.id.value || '评价',
+          }
         ),
       },
     }),

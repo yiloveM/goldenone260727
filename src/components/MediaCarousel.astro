@@ -9,6 +9,7 @@ interface Props {
   compact?: boolean;
 }
 const { items, eyebrow, title, description = '', id, compact = false } = Astro.props;
+const loopItems = items.length > 1 ? [...items, ...items] : items;
 ---
 
 <section class:list={['media-carousel-section', compact && 'media-carousel-section--compact']} aria-labelledby={`${id}-title`}>
@@ -20,9 +21,9 @@ const { items, eyebrow, title, description = '', id, compact = false } = Astro.p
     <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label="Previous image" data-media-prev>&#8249;</button>
     <div class="media-carousel-viewport" data-media-viewport tabindex="0" aria-label={title}>
       <div class="media-carousel-track">
-        {items.map(item => (
-          <figure>
-            <div class="media-carousel-image"><img src={item.image} alt={item.title} width="1200" height="800" loading="lazy" decoding="async" /></div>
+        {loopItems.map((item, index) => (
+          <figure data-media-slide data-media-clone-start={index === items.length ? 'true' : undefined} aria-hidden={index >= items.length ? 'true' : undefined}>
+            <div class="media-carousel-image"><img src={item.image} alt={index >= items.length ? '' : item.title} width="1200" height="800" loading="lazy" decoding="async" /></div>
             <figcaption>{item.title}</figcaption>
           </figure>
         ))}
@@ -40,24 +41,65 @@ const { items, eyebrow, title, description = '', id, compact = false } = Astro.p
     const previous = carousel.querySelector('[data-media-prev]');
     const next = carousel.querySelector('[data-media-next]');
     if (!viewport || !previous || !next) return;
+    const firstSlide = carousel.querySelector('[data-media-slide]');
+    const cloneStart = carousel.querySelector('[data-media-clone-start="true"]');
     const step = () => Math.max(300, viewport.clientWidth * .68);
+    const loopDistance = () => cloneStart && firstSlide
+      ? cloneStart.offsetLeft - firstSlide.offsetLeft
+      : 0;
+    const normalizePosition = () => {
+      const distance = loopDistance();
+      if (distance <= 0) return;
+      while (viewport.scrollLeft >= distance) viewport.scrollLeft -= distance;
+      while (viewport.scrollLeft < 0) viewport.scrollLeft += distance;
+    };
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let animationFrame = 0;
+    let lastFrame = 0;
+    let resumeTimer = 0;
+    const pause = () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(resumeTimer);
+      animationFrame = 0;
+      resumeTimer = 0;
+      lastFrame = 0;
+      carousel.dataset.autoplay = 'false';
+    };
+    const tick = timestamp => {
+      if (!lastFrame) lastFrame = timestamp;
+      const elapsed = Math.min(timestamp - lastFrame, 64);
+      lastFrame = timestamp;
+      viewport.scrollLeft += elapsed * .036;
+      normalizePosition();
+      animationFrame = window.requestAnimationFrame(tick);
+    };
+    const play = () => {
+      pause();
+      if (
+        reducedMotion ||
+        loopDistance() <= 0 ||
+        carousel.matches(':hover') ||
+        carousel.contains(document.activeElement)
+      ) return;
+      carousel.dataset.autoplay = 'true';
+      animationFrame = window.requestAnimationFrame(tick);
+    };
     const move = direction => {
-      const atEnd = viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - 8;
-      const atStart = viewport.scrollLeft <= 8;
-      if (direction > 0 && atEnd) viewport.scrollTo({ left: 0, behavior: 'smooth' });
-      else if (direction < 0 && atStart) viewport.scrollTo({ left: viewport.scrollWidth, behavior: 'smooth' });
-      else viewport.scrollBy({ left: direction * step(), behavior: 'smooth' });
+      pause();
+      if (direction < 0 && viewport.scrollLeft <= 8) viewport.scrollLeft = loopDistance();
+      viewport.scrollBy({ left: direction * step(), behavior: 'smooth' });
+      resumeTimer = window.setTimeout(() => {
+        normalizePosition();
+        play();
+      }, 520);
     };
     previous.addEventListener('click', () => move(-1));
     next.addEventListener('click', () => move(1));
-    let timer = window.setInterval(() => move(1), 4600);
-    const pause = () => window.clearInterval(timer);
-    const play = () => { pause(); timer = window.setInterval(() => move(1), 4600); };
     carousel.addEventListener('mouseenter', pause);
     carousel.addEventListener('mouseleave', play);
     carousel.addEventListener('focusin', pause);
     carousel.addEventListener('focusout', play);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) pause();
+    play();
     window.addEventListener('pagehide', pause, { once: true });
   });
 </script>

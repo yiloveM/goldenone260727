@@ -1592,6 +1592,7 @@ select:focus {
 .media-carousel-heading > p { margin: 0; color: var(--go-muted); line-height: 1.7; }
 .media-carousel { position: relative; width: min(100%,1440px); margin-inline: auto; padding-inline: 56px; background: transparent; }
 .media-carousel-viewport { overflow-x: auto; background: transparent; scrollbar-width: none; scroll-snap-type: x mandatory; }
+.media-carousel[data-autoplay="true"] .media-carousel-viewport { scroll-snap-type: none; }
 .media-carousel-viewport::-webkit-scrollbar { display: none; }
 .media-carousel-track { display: grid; grid-auto-columns: minmax(390px,34%); grid-auto-flow: column; gap: 18px; }
 .media-carousel-track figure { margin: 0; min-width: 0; background: transparent; scroll-snap-align: start; }

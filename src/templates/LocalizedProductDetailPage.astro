@@ -11,6 +11,7 @@ import ProductImageCarousel from '../components/ProductImageCarousel.astro';
 import ProductTableScrollerScript from '../components/ProductTableScrollerScript.astro';
 import ProductInquirySelector from '../components/ProductInquirySelector.astro';
 import CustomerReviews from '../components/CustomerReviews.astro';
+import { reviewSystemEnabled } from '../data/customerReviews';
 import { getProductModelCodes, isModelSpecTable } from '../data/inquiryCart';
 import {
   categoryPath,
@@ -98,7 +99,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
             <span>{pages.product.metaReady}</span>
             <span>{pages.product.distributorSupport}</span>
             <span>{pages.product.internationalSupport}</span>
-            {product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
+            {reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
               <span><bdi dir="ltr">{product.data.aggregateRatingValue}/5 ({product.data.aggregateRatingCount})</bdi></span>
             )}
           </div>

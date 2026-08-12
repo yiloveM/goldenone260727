@@ -18,24 +18,64 @@ export interface CustomerReview {
 
 const toRating = (value: unknown): 4 | 5 => Number(value) === 4 ? 4 : 5;
 
-export const reviewSystemEnabled = reviewData.enabled === true;
+interface CustomerReviewData {
+  enabled?: boolean;
+  summary?: {
+    rating?: unknown;
+    source?: unknown;
+    profileUrl?: unknown;
+    checkedOn?: unknown;
+  };
+  reviews?: Array<{
+    id?: unknown;
+    published?: boolean;
+    kind?: unknown;
+    rating?: unknown;
+    quote?: unknown;
+    source?: unknown;
+    sourceUrl?: unknown;
+    buyerLabel?: unknown;
+    country?: unknown;
+    date?: unknown;
+    projectType?: unknown;
+    productSlugs?: unknown;
+    seoEligible?: boolean;
+  }>;
+}
 
-export const customerReviewSummary = {
-  rating: Number(reviewData.summary.rating || 0),
-  reviewCount: Number(reviewData.summary.reviewCount || 0),
-  source: reviewData.summary.source,
-  profileUrl: reviewData.summary.profileUrl,
-  checkedOn: reviewData.summary.checkedOn,
-};
+const customerReviewData = reviewData as CustomerReviewData;
+const rawReviews = Array.isArray(customerReviewData.reviews) ? customerReviewData.reviews : [];
+const rawSummary = customerReviewData.summary ?? {};
 
-export const customerReviews: CustomerReview[] = reviewData.reviews
+export const reviewSystemEnabled = customerReviewData.enabled === true;
+
+export const customerReviews: CustomerReview[] = rawReviews
   .map(review => ({
-    ...review,
+    id: String(review.id || ''),
+    published: review.published === true,
     kind: review.kind === 'verified' ? 'verified' as const : 'demo' as const,
     rating: toRating(review.rating),
-    productSlugs: Array.isArray(review.productSlugs) ? review.productSlugs : [],
+    quote: String(review.quote || ''),
+    source: String(review.source || ''),
+    sourceUrl: String(review.sourceUrl || ''),
+    buyerLabel: typeof review.buyerLabel === 'string' ? review.buyerLabel : undefined,
+    country: typeof review.country === 'string' ? review.country : undefined,
+    date: typeof review.date === 'string' ? review.date : undefined,
+    projectType: typeof review.projectType === 'string' ? review.projectType : undefined,
+    productSlugs: Array.isArray(review.productSlugs)
+      ? review.productSlugs.filter((slug): slug is string => typeof slug === 'string')
+      : [],
+    seoEligible: review.seoEligible === true,
   }))
   .filter(review => review.published === true && review.quote.trim());
+
+export const customerReviewSummary = {
+  rating: Number(rawSummary.rating || 0),
+  reviewCount: rawReviews.length,
+  source: String(rawSummary.source || ''),
+  profileUrl: String(rawSummary.profileUrl || ''),
+  checkedOn: String(rawSummary.checkedOn || ''),
+};
 
 export const reviewsForProduct = (slug?: string) => {
   if (!reviewSystemEnabled) return [];

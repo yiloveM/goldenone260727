@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import reviewData from '../../../data/customer-reviews.json';
+import { customerReviewSummary } from '../../../data/customerReviews';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import {
   createReviewDraftId,
@@ -30,7 +31,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
   const drafts = await db.prepare(`SELECT ${selectFields} FROM manager_review_drafts ORDER BY updated_at DESC LIMIT 100`).all<ReviewDraftRecord>();
   return Response.json({
     manager: { email: access.email },
-    settings: { enabled: reviewData.enabled, summary: reviewData.summary },
+    settings: { enabled: reviewData.enabled, summary: customerReviewSummary },
     reviews: reviewData.reviews,
     drafts: (drafts.results || []).map(reviewDraftToResponse),
   }, { headers: { 'cache-control': 'no-store' } });
