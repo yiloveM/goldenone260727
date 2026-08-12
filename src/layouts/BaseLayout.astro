@@ -232,6 +232,12 @@ const utilityLabel = pageLocale === 'es'
             <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
           </div>
           <div class="nav-actions">
+            {hasPhone && (
+              <a class="nav-contact" href={`tel:${siteInfo.phone}`} aria-label={`Call ${siteInfo.name}`}>
+                <span class="nav-contact__icon" aria-hidden="true">&#9742;</span>
+                <bdi dir="ltr">{siteInfo.phone}</bdi>
+              </a>
+            )}
             <div class="language-switcher" data-language-switcher>
               <button class="language-trigger" type="button" aria-label={dictionary.nav.language} aria-haspopup="menu" aria-expanded="false" data-language-trigger>
                 <span class="language-code">{localeInfo.label}</span>

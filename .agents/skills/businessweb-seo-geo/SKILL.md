@@ -40,10 +40,20 @@ When the owner asks for SEO/GEO optimization after real content is present:
 5. Update page metadata, internal links, image alt text, JSON-LD, `product-catalog.json`, `llms.txt`, and translations as facts permit. Keep canonical, hreflang, sitemap, and non-indexed administration paths intact.
 6. Record sources/date in the industry profile. Complete `npm run check`, `npm run check:template -- --production`, `npm run check:seo`, and `npm run build`.
 
+### Review and rating workflow
+
+1. Read `src/data/customerReviews.ts` before changing review copy or product JSON-LD. Treat its store summary and individual review records as different evidence classes.
+2. A store-level score may be displayed as supplier reputation only when its public source and last-checked date are present. Never copy that supplier score into every product's `AggregateRating`.
+3. An individual review may become Product `Review` JSON-LD only when it is verbatim, visible on the page, has a traceable source URL, includes reviewer and publication date, is explicitly assigned to that product through `productSlugs`, and has `seoEligible: true`.
+4. Product `AggregateRating` remains controlled by the product content fields. Populate it only from a real aggregate for that exact product or product group, not from the Alibaba supplier profile and not from a hand-counted subset of selected reviews.
+5. If evidence is incomplete, keep the review visible-data array empty or set `seoEligible: false`. Never synthesize buyer wording, names, dates, countries, product associations, scores, or counts.
+6. During full-site SEO/GEO work, audit visible review cards against emitted JSON-LD, test affected product URLs in Rich Results Test or Schema Markup Validator, and record the source check date.
+
 ## SEO Rules
 
 - Public pages must produce canonical URLs, locale alternates, Open Graph/Twitter metadata, and JSON-LD from centralized data helpers.
 - Product pages must support quote-based B2B catalogs, model/specification tables, Product or ProductGroup entities, FAQ data, and model-specific variant URLs where table data exists.
+- Product review markup must follow the review workflow above. Supplier reputation and product-specific review evidence must remain separate.
 - Category and article pages should stay useful when their collections are empty, because this template ships without customer content.
 - Translations must preserve model codes, SKUs, URLs, units, table shape, Markdown/Markdoc syntax, and structured frontmatter keys.
 

@@ -10,6 +10,7 @@ import ShareButtons from '../../components/ShareButtons.astro';
 import ProductMediaGallery from '../../components/ProductMediaGallery.astro';
 import ProductImageCarousel from '../../components/ProductImageCarousel.astro';
 import ProductInquirySelector from '../../components/ProductInquirySelector.astro';
+import CustomerReviews from '../../components/CustomerReviews.astro';
 import { getProductModelCodes, isModelSpecTable } from '../../data/inquiryCart';
 
 export async function getStaticPaths() {
@@ -206,6 +207,7 @@ const isRedundantSpecTableTitle = (title: string) =>
         <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} />)}</div>
       </section>
     )}
+    <CustomerReviews productSlug={slug} compact />
   </main>
   <script is:inline>
     document.querySelectorAll('[data-spec-table]').forEach((wrap) => {

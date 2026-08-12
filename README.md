@@ -631,7 +631,307 @@ npm run check:template:production
 5. 联系表单实际投递到指定收件箱。
 6. Google Search Console、站点地图和最终 canonical 域名均使用正式域名。
 
-## 十、常见问题
+## 十、评价系统 reviews：小白手把手维护教程
+
+这套评价系统只维护一份数据，文件是：
+
+```text
+src/data/customerReviews.ts
+```
+
+修改这一份文件后，会自动同步到：
+
+- 首页最下面的评价模块，位置在工厂图片轮播之后、Footer 之前；
+- 每一个英文产品详情页最下面；
+- 每一个已启用语言的产品详情页最下面；
+- 符合严格条件的产品评价可以同时生成 Schema.org `Review` JSON-LD，供后续 SEO 使用。
+
+不需要逐页复制评价。不要去改 `CustomerReviews.astro` 里的文字来添加买家评价，也不要把评价复制进每个产品正文。
+
+### 10.1 先认识两个完全不同的数据
+
+打开 `src/data/customerReviews.ts`，最上面有两块数据。
+
+第一块是店铺总评分：
+
+```ts
+export const customerReviewSummary = {
+  rating: 4.9,
+  reviewCount: 240,
+  source: 'Alibaba.com',
+  profileUrl: 'https://goldenone.en.alibaba.com/company_profile/feedback.html',
+  checkedOn: '2026-08-12',
+};
+```
+
+它只表示 Golden One 阿里巴巴店铺的公开总评分，不表示任意一个具体产品有 240 条评价。
+
+第二块是单条买家评价：
+
+```ts
+export const customerReviews: CustomerReview[] = [
+  // 一条一条真实评价放在这里
+];
+```
+
+只有这组数组里的内容才会变成评价卡片。当前数组为空时，网站会显示已核验的店铺总评分和“正在整理真实评价”的提示，不会编造买家原话。
+
+### 10.2 更新阿里巴巴店铺总评分
+
+建议每月检查一次，按下面步骤操作：
+
+1. 浏览器打开 `customerReviewSummary.profileUrl` 对应的阿里巴巴公开店铺评价页。
+2. 记下公开显示的评分，例如 `4.9`。
+3. 记下公开显示的评价总数，例如 `240`。
+4. 把 `rating` 改成评分数字，不要加引号。
+5. 把 `reviewCount` 改成评价总数，不要加引号。
+6. 把 `checkedOn` 改成当天日期，格式必须是 `YYYY-MM-DD`，例如 `2026-08-13`。
+7. 不要把 `source` 改成客户姓名，不要把 `profileUrl` 改成网站自己的产品页。
+
+正确例子：
+
+```ts
+export const customerReviewSummary = {
+  rating: 4.9,
+  reviewCount: 246,
+  source: 'Alibaba.com',
+  profileUrl: 'https://goldenone.en.alibaba.com/company_profile/feedback.html',
+  checkedOn: '2026-08-13',
+};
+```
+
+### 10.3 新增一条真实评价：最稳妥的做法
+
+先从阿里巴巴订单后台或公开评价页面确认评价原文。不要凭记忆改写，不要把相同句子复制成多个买家，不要用 AI 生成买家评价。
+
+在 `customerReviews` 的方括号中粘贴下面模板：
+
+```ts
+{
+  id: 'alibaba-2026-001',
+  rating: 5,
+  quote: '把阿里巴巴买家的真实评价原文完整粘贴到这里。',
+  source: 'Alibaba.com',
+  sourceUrl: 'https://阿里巴巴中可以核验这条评价的地址',
+  buyerLabel: '买家公开名称或匿名标识',
+  country: 'United States',
+  date: '2026-08-01',
+  projectType: 'Custom challenge coins',
+  productSlugs: [],
+  seoEligible: false,
+},
+```
+
+每一行是什么意思：
+
+| 字段 | 必填 | 怎么填 |
+| --- | --- | --- |
+| `id` | 是 | 每条评价必须不同。推荐 `alibaba-年份-三位序号`，例如 `alibaba-2026-001` |
+| `rating` | 是 | 这里只接受 `4` 或 `5`，不要写 `5.0`，不要加引号 |
+| `quote` | 是 | 买家真实原文；单引号中的英文撇号要写成 `\'` |
+| `source` | 是 | 固定写 `'Alibaba.com'` |
+| `sourceUrl` | 是 | 能核验评价的阿里巴巴页面或订单评价地址，不要写网站首页 |
+| `buyerLabel` | 推荐 | 买家公开名称；若平台只显示匿名名称，就照平台原样填写，不要猜真实姓名 |
+| `country` | 可选 | 平台公开显示才填写，例如 `'United States'`；没有就删除这一行 |
+| `date` | SEO 必填 | 评价公开日期，固定 `YYYY-MM-DD`；无法核实就不要猜 |
+| `projectType` | 推荐 | 真实订单类型，例如 `'Custom lapel pins'`，不确定就写较宽泛的 `'Custom metal gift project'` |
+| `productSlugs` | 产品绑定必填 | 明确评价了哪些本站产品；只展示店铺评价时保持 `[]` |
+| `seoEligible` | 是 | 刚录入时固定写 `false`；全部证据核验后才考虑改成 `true` |
+
+添加第二条时，必须在前一条的 `},` 后面继续添加，并更换 `id`：
+
+```ts
+export const customerReviews: CustomerReview[] = [
+  {
+    id: 'alibaba-2026-001',
+    rating: 5,
+    quote: '第一条真实评价。',
+    source: 'Alibaba.com',
+    sourceUrl: 'https://第一条评价来源',
+    buyerLabel: 'Buyer A',
+    date: '2026-08-01',
+    projectType: 'Custom challenge coins',
+    productSlugs: [],
+    seoEligible: false,
+  },
+  {
+    id: 'alibaba-2026-002',
+    rating: 5,
+    quote: '第二条真实评价。',
+    source: 'Alibaba.com',
+    sourceUrl: 'https://第二条评价来源',
+    buyerLabel: 'Buyer B',
+    date: '2026-08-03',
+    projectType: 'Custom medals',
+    productSlugs: [],
+    seoEligible: false,
+  },
+];
+```
+
+注意：上面“第一条真实评价”等文字只是格式示例，正式发布前必须换成真实原文。
+
+### 10.4 批量导入很多阿里巴巴高星评价
+
+大量导入时也不要改成 Excel、CSV 或 JSON 文件，本系统当前唯一数据源仍是 `src/data/customerReviews.ts`。
+
+1. 先在表格中整理 `id`、评分、原文、来源地址、买家公开名称、国家、日期、订单类型和对应产品。
+2. 删除重复评价。判断重复时同时比较买家、日期和原文。
+3. 只保留已确认属于 Golden One 的真实评价。
+4. 每条都转换成上一节的 `{ ... },` 对象。
+5. 全部粘贴到 `customerReviews` 的 `[` 和 `]` 中间。
+6. 新导入的每一条先用 `seoEligible: false`。
+7. 建议最新评价放最上面；页面会按数组从上到下显示。
+8. 一次导入后必须运行第 10.9 节的三条检查命令。
+
+阿里巴巴公开评价页会用 JavaScript 动态加载正文。如果直接保存网页只能看到评分、数量和 `loading...`，不要据此生成或补写评价原文。应从可见评价界面、订单后台导出或站长保存的真实评价记录录入。
+
+### 10.5 修改一条评价
+
+1. 用 `id` 找到目标，例如搜索 `alibaba-2026-002`。
+2. 只修改需要更正的字段。
+3. 若修改了 `quote`、`buyerLabel`、`date`、`sourceUrl` 或 `productSlugs`，先把 `seoEligible` 改回 `false`。
+4. 重新核对阿里巴巴来源后，再决定是否恢复 `seoEligible: true`。
+5. 不要修改其他评价的 `id`，否则后续无法稳定追踪重复数据。
+
+### 10.6 删除一条评价
+
+删除时必须从 `{` 开始一直删到这一条结尾的 `},`，不能只删除 `quote`。
+
+删除前：
+
+```ts
+  {
+    id: 'alibaba-2026-002',
+    rating: 5,
+    quote: '这条评价要删除。',
+    source: 'Alibaba.com',
+    sourceUrl: 'https://评价来源',
+    productSlugs: [],
+    seoEligible: false,
+  },
+```
+
+把上面整块删除即可。删除后检查前后两条之间仍然是 `},` 接下一条 `{`。
+
+### 10.7 让评价出现在某个产品详情页
+
+网站产品文件在：
+
+```text
+src/content/products/
+```
+
+文件名去掉 `.mdoc` 就是产品 slug。例如：
+
+```text
+src/content/products/custom-challenge-coin.mdoc
+```
+
+对应 slug 是：
+
+```text
+custom-challenge-coin
+```
+
+把它填到评价的 `productSlugs`：
+
+```ts
+productSlugs: ['custom-challenge-coin'],
+```
+
+同一条真实订单评价明确涵盖两个产品时可以写两个：
+
+```ts
+productSlugs: ['custom-challenge-coin', 'custom-lapel-pin'],
+```
+
+没有明确产品证据时保持：
+
+```ts
+productSlugs: [],
+```
+
+未绑定产品的真实评价仍可显示在首页。产品详情页在没有专属评价时会显示店铺级评价集合；这只是页面上的供应商口碑展示，不会自动生成该产品的 Review SEO 数据。
+
+### 10.8 什么时候可以打开 SEO：`seoEligible: true`
+
+只有下面 7 项全部满足，才允许改成 `true`：
+
+1. `quote` 是买家评价原文，不是翻译、概括、销售改写或 AI 生成。
+2. `sourceUrl` 可以追溯到阿里巴巴评价或订单证据。
+3. `buyerLabel` 与平台公开显示一致。
+4. `date` 已核实，格式是 `YYYY-MM-DD`。
+5. `rating` 已核实。
+6. `productSlugs` 明确对应评价中的实际产品。
+7. 这条评价在该产品公开页面中真实可见。
+
+满足后这样写：
+
+```ts
+productSlugs: ['custom-challenge-coin'],
+seoEligible: true,
+```
+
+系统会把它加入对应产品的 Schema.org `Review` JSON-LD。系统不会把店铺 `4.9/240` 自动变成所有产品的 `AggregateRating`。
+
+产品级 `AggregateRating` 仍由该产品 `.mdoc` 文件中的下面两个字段控制：
+
+```yaml
+aggregateRatingValue: ''
+aggregateRatingCount: 0
+```
+
+只有拿到“这个具体产品或产品组”的真实汇总评分时才能填写。不能把阿里巴巴店铺总评分复制进去，不能用挑选出来的几条五星评价手算一个汇总评分。
+
+### 10.9 每次修改后必须运行检查
+
+在项目根目录打开 PowerShell，依次运行：
+
+```powershell
+npm run check
+npm run check:template
+npm run build
+```
+
+三条都成功后再提交和发布。若改动涉及正式 SEO 上线，再额外运行：
+
+```powershell
+npm run check:seo
+npm run check:rich-results
+```
+
+发布后打开首页和任意产品详情页，检查：
+
+1. 总评分、评价数量和来源链接正确。
+2. 左右按钮、鼠标滚动和手机触摸横滑正常。
+3. 买家原文没有被截断成错误内容。
+4. 没有重复卡片、空白卡片或测试文字。
+5. 产品页只输出明确绑定且 `seoEligible: true` 的 Review JSON-LD。
+
+### 10.10 常见错误怎么处理
+
+| 报错或现象 | 处理方法 |
+| --- | --- |
+| `Expected ","` 或构建提示语法错误 | 检查上一条评价结尾是否有 `},`，检查字符串是否成对使用单引号 |
+| 评价原文中有 `don't` 导致报错 | 改成 `don\'t`，或者把这一段字符串改用反引号包住 |
+| 首页有评价但产品页没有 | 检查 `productSlugs` 是否与 `.mdoc` 文件名完全一致，不能包含 `.mdoc` |
+| 产品页显示了评价但 SEO 没有 Review | 检查 `seoEligible`、`buyerLabel`、`date`、`sourceUrl` 和 `productSlugs` 是否全部满足第 10.8 节 |
+| 所有产品页都显示相同评价 | 这是店铺级回退展示；给真实产品评价填写正确的 `productSlugs` 后，该产品优先显示自己的评价 |
+| 总评分数量过期 | 更新 `customerReviewSummary.reviewCount` 和 `checkedOn`，不要为了“看起来更好”固定写旧数字 |
+| 想先保存不完整评价 | 可以录入，但必须保持 `seoEligible: false`；不确定的字段直接省略，不要猜 |
+| 想改评价模块布局 | 修改 `src/components/CustomerReviews.astro` 和 `src/styles/goldenone-redesign.css`；只维护数据时不要碰这两个文件 |
+
+### 10.11 评价来源记录
+
+- 店铺评分来源：Golden One 阿里巴巴公开供应商评价页，具体地址保存在 `customerReviewSummary.profileUrl`。
+- 第三方平台评分、评价数量和评价正文会变化。每次更新都要修改 `checkedOn`，并保留核验依据。
+
+### 10.12 更换首页工厂轮播图片
+
+首页工厂轮播图片位于 `public/images/factory/`。直接用新图片覆盖目录中的 6 个同名 `.jpg` 文件即可，不需要修改代码；如果修改了文件名，则同时修改 `src/data/site.ts` 中的 `factoryGallery` 图片路径和图片标题。
+
+## 十一、常见问题
 
 | 现象 | 先检查 |
 | --- | --- |
@@ -655,7 +955,7 @@ npm run check:template:production
 
 **SESSION KV 说明：** 新站首次部署由 Astro 6 和 Wrangler 自动创建 `SESSION`，无需手工配置 ID。只有把已使用的 Pages/Worker 迁移到新 Worker 时，才应在 `wrangler.toml` 显式绑定原 KV ID，避免同名资源重复创建。
 
-## 十一、给开发人员的边界
+## 十二、给开发人员的边界
 
 不要删除或替换以下能力：自定义 Keystatic 字段、`/manager/` 的 D1 草稿和 R2 图片流、AI 翻译 API/Actions、Cloudflare Workers 适配器、R2 路由、KV 会话 binding、D1 binding、联系表单和 Publish Site 流程。公开页面必须面向国际买家，而不是面向内部操作人员。
 

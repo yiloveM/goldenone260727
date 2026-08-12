@@ -1,0 +1,96 @@
+---
+import {
+  customerReviewSummary,
+  reviewsForProduct,
+  type CustomerReview,
+} from '../data/customerReviews';
+
+interface Props {
+  productSlug?: string;
+  compact?: boolean;
+}
+
+const { productSlug, compact = false } = Astro.props;
+const reviews = reviewsForProduct(productSlug);
+const visibleReviews: CustomerReview[] = reviews.length > 0
+  ? reviews
+  : [];
+const sectionTitle = productSlug
+  ? 'What Golden One buyers are saying'
+  : 'See what our customers are saying';
+---
+
+<section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
+  <div class="metal-shell customer-ratings__inner">
+    <div class="customer-ratings__heading">
+      <p class="metal-kicker">Alibaba buyer feedback</p>
+      <h2 id={`customer-ratings-title-${productSlug || 'home'}`}>{sectionTitle}</h2>
+    </div>
+
+    <div class="customer-ratings__overview">
+      <div class="customer-ratings__brand" aria-label={`${customerReviewSummary.rating} out of 5 on ${customerReviewSummary.source}`}>
+        <strong>{customerReviewSummary.rating}</strong>
+        <div>
+          <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          <small>{customerReviewSummary.source}</small>
+        </div>
+      </div>
+      <div class="customer-ratings__count">
+        <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <strong>{customerReviewSummary.reviewCount} reviews</strong>
+      </div>
+      <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">View Alibaba profile</a>
+    </div>
+
+    {visibleReviews.length > 0 && (
+      <div class="customer-ratings__carousel" data-review-carousel>
+        <button class="customer-ratings__control customer-ratings__control--prev" type="button" aria-label="Previous reviews" data-review-prev>&#8249;</button>
+        <div class="customer-ratings__viewport" data-review-viewport tabindex="0" aria-label="Customer review carousel">
+          <div class="customer-ratings__track">
+            {visibleReviews.map(review => (
+            <article class="customer-review-card">
+              <header>
+                <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
+                <div>
+                  <strong>{review.buyerLabel || 'Verified Alibaba buyer'}</strong>
+                  <small>{review.date || 'Alibaba.com feedback'}</small>
+                </div>
+              </header>
+              <div class="customer-review-card__stars" aria-label={`${review.rating} out of 5 stars`}>
+                {Array.from({ length: review.rating }).map(() => <span aria-hidden="true">&#9733;</span>)}
+              </div>
+              <blockquote>{review.quote}</blockquote>
+              <footer>
+                <span>{review.projectType || 'Custom metal gift project'}{review.country ? ` / ${review.country}` : ''}</span>
+                <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer">View source</a>
+              </footer>
+            </article>
+            ))}
+          </div>
+        </div>
+        <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label="Next reviews" data-review-next>&#8250;</button>
+      </div>
+    )}
+    {reviews.length === 0 && (
+      <div class="customer-ratings__empty">
+        <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <strong>Verified buyer comments are being prepared.</strong>
+        <p>The public store score is shown now. Individual quotations appear here only after their exact wording and source link are checked.</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<script is:inline>
+  document.querySelectorAll('[data-review-carousel]').forEach((carousel) => {
+    if (carousel.dataset.ready === 'true') return;
+    carousel.dataset.ready = 'true';
+    const viewport = carousel.querySelector('[data-review-viewport]');
+    const previous = carousel.querySelector('[data-review-prev]');
+    const next = carousel.querySelector('[data-review-next]');
+    if (!viewport || !previous || !next) return;
+    const step = () => Math.max(280, viewport.clientWidth * 0.82);
+    previous.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next.addEventListener('click', () => viewport.scrollBy({ left: step(), behavior: 'smooth' }));
+  });
+</script>

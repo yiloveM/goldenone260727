@@ -1,5 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { brandAssets } from './assets';
+import { seoReviewsForProduct } from './customerReviews';
 import { getProductCardKeywords } from './productCardKeywords';
 import { getCategoryMeta } from './productCategories';
 import { publicProductSpecs } from './productSpecs';
@@ -447,6 +448,23 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
     keywords: productSeoKeywordVariants(product).join(', '),
     additionalProperty: propertyValues([...seriesProperties, ...(variants.length > 1 ? sharedProperties : [])]),
   };
+
+  const verifiedProductReviews = seoReviewsForProduct(slug);
+  if (verifiedProductReviews.length > 0) {
+    baseProduct.review = verifiedProductReviews.map(review => ({
+      '@type': 'Review',
+      reviewBody: cleanText(review.quote),
+      datePublished: review.date,
+      author: { '@type': 'Person', name: review.buyerLabel },
+      reviewRating: {
+        '@type': 'Rating',
+        ratingValue: review.rating,
+        bestRating: 5,
+        worstRating: 1,
+      },
+      url: review.sourceUrl,
+    }));
+  }
 
   if (product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0) {
     baseProduct.aggregateRating = {

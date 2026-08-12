@@ -2,12 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArtworkBriefForm from './ArtworkBriefForm.astro';
 import BrandPartnerStrip from './BrandPartnerStrip.astro';
+import CustomerReviews from './CustomerReviews.astro';
 import '../styles/home-tailwind.css';
 import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
 import { type Locale, getPageCopy, localizePath, translateTechnicalText } from '../data/i18n';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
-import { brandShowcase, siteInfo } from '../data/site';
+import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 
 interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
@@ -73,6 +74,8 @@ const homeStructuredData = [
       </div>
     </section>
 
+    <BrandPartnerStrip />
+
     <section class="collection-reframe metal-section" aria-labelledby="collection-title">
       <div class="metal-shell">
         <header class="collection-reframe__header">
@@ -103,8 +106,6 @@ const homeStructuredData = [
       </div>
     </section>
 
-    <BrandPartnerStrip />
-
     <section class="material-edit metal-section" aria-labelledby="material-edit-title">
       <div class="metal-shell material-edit__grid">
         <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Reference view of custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
@@ -119,5 +120,78 @@ const homeStructuredData = [
         <small>Or <a href={contactHref}>send a detailed project inquiry</a> if the specifications are already defined.</small>
       </div>
     </section>
+
+    <section class="home-factory metal-section" aria-labelledby="home-factory-title">
+      <div class="metal-shell home-factory__heading">
+        <div>
+          <p class="metal-kicker">Inside production</p>
+          <h2 id="home-factory-title">A clear view of how custom work moves.</h2>
+        </div>
+        <p>From tooling and metalworking to finishing, inspection, packing, and storage, each stage keeps the custom brief moving toward a production-ready object.</p>
+      </div>
+      <div class="home-factory__carousel" data-marquee-shell data-marquee-direction="ltr" data-marquee-duration="46">
+        <div class="home-factory__rail" data-marquee-track>
+          {[...factoryGallery, ...factoryGallery].map((item, index) => (
+            <figure aria-hidden={index >= factoryGallery.length ? 'true' : undefined}>
+              <img src={item.image} alt={index >= factoryGallery.length ? '' : item.title} width="1200" height="800" loading="lazy" decoding="async" />
+              <figcaption>{item.title}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <CustomerReviews />
   </main>
 </BaseLayout>
+
+<script is:inline>
+  document.querySelectorAll('[data-marquee-shell]').forEach((carousel) => {
+    if (carousel.dataset.ready === 'true') return;
+    carousel.dataset.ready = 'true';
+    const track = carousel.querySelector('[data-marquee-track]');
+    if (!track) return;
+    let frame = 0;
+    let offset = 0;
+    let paused = false;
+    let pointerId = null;
+    let pointerX = 0;
+    const speed = 0.45;
+    const tick = () => {
+      if (!paused) {
+        offset -= speed;
+        const midpoint = track.scrollWidth / 2;
+        if (midpoint > 0 && Math.abs(offset) >= midpoint) offset += midpoint;
+        track.style.transform = `translate3d(${offset}px, 0, 0)`;
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+    carousel.addEventListener('mouseenter', () => { paused = true; });
+    carousel.addEventListener('mouseleave', () => { if (pointerId === null) paused = false; });
+    carousel.addEventListener('pointerdown', (event) => {
+      if (!event.isPrimary) return;
+      pointerId = event.pointerId;
+      pointerX = event.clientX;
+      paused = true;
+      carousel.classList.add('is-dragging');
+      carousel.setPointerCapture?.(event.pointerId);
+    });
+    carousel.addEventListener('pointermove', (event) => {
+      if (event.pointerId !== pointerId) return;
+      offset += event.clientX - pointerX;
+      pointerX = event.clientX;
+      track.style.transform = `translate3d(${offset}px, 0, 0)`;
+    });
+    const finish = (event) => {
+      if (event.pointerId !== pointerId) return;
+      pointerId = null;
+      paused = false;
+      carousel.classList.remove('is-dragging');
+      carousel.releasePointerCapture?.(event.pointerId);
+    };
+    carousel.addEventListener('pointerup', finish);
+    carousel.addEventListener('pointercancel', finish);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) frame = window.requestAnimationFrame(tick);
+    window.addEventListener('pagehide', () => window.cancelAnimationFrame(frame), { once: true });
+  });
+</script>
