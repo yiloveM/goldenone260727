@@ -262,22 +262,27 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
     <slot />
     {!isContactPage && <InquiryCart locale={pageLocale} />}
     <BackToTop label={dictionary.common.backToTop} />
-    {!isContactPage && <aside class="contact-drawer" aria-label={dictionary.sideContact.label} data-contact-drawer>
-      <div class="contact-drawer__actions">
-        {hasWhatsApp && <a class="contact-drawer__action contact-drawer__action--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.8a8.4 8.4 0 0 1-12.4 7.4L4 20l.9-3.9a8.4 8.4 0 1 1 15.6-4.3Z"/><path d="M9.1 8.7c.3-.4.8-.4 1.1 0l.8.9c.2.2.3.6.1.9l-.3.7c.6 1.1 1.5 2 2.6 2.6l.8-.3c.3-.1.6 0 .9.2l.9.8c.3.3.3.8 0 1.1-.6.7-1.6.7-2.7.3-2.3-.8-4.3-2.8-5.1-5.1-.4-1.1-.3-2 .5-2.8Z"/></svg>
-          <span>{dictionary.sideContact.whatsapp}</span>
-        </a>}
-        <a class="contact-drawer__action" href={localizePath('/contact/', pageLocale)} aria-label="Send inquiry">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5h15v11h-15Z"/><path d="m5 7 7 6 7-6"/><path d="m8.4 11.5-3.4 3.2M15.6 11.5l3.4 3.2"/></svg>
-          <span>{dictionary.sideContact.inquiry}</span>
-        </a>
-      </div>
-      <button class="contact-drawer__trigger" type="button" aria-expanded="false" data-contact-drawer-trigger>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8 8 0 0 1-8.5 8 9 9 0 0 1-3.8-.8L3 20l1.3-4.7a8.5 8.5 0 1 1 16.7-3.8Z"/><path d="M8 10h8M8 14h5"/></svg>
-        <span>Contact us</span>
-      </button>
-    </aside>}
+    <div class:list={['side-contact', { 'side-contact--contact-page': isContactPage }]} aria-label={dictionary.sideContact.label}>
+      {hasWhatsApp && <a class="side-contact-link side-contact-link--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" title="WhatsApp" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
+        <span class="side-contact-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img">
+            <path d="M20.5 11.8a8.4 8.4 0 0 1-12.4 7.4L4 20l.9-3.9a8.4 8.4 0 1 1 15.6-4.3Z" />
+            <path d="M9.1 8.7c.3-.4.8-.4 1.1 0l.8.9c.2.2.3.6.1.9l-.3.7c.6 1.1 1.5 2 2.6 2.6l.8-.3c.3-.1.6 0 .9.2l.9.8c.3.3.3.8 0 1.1-.6.7-1.6.7-2.7.3-2.3-.8-4.3-2.8-5.1-5.1-.4-1.1-.3-2 .5-2.8Z" />
+          </svg>
+        </span>
+        <span class="side-contact-note"><strong>{dictionary.sideContact.whatsapp}</strong><small>{dictionary.sideContact.whatsappNote}</small></span>
+      </a>}
+      <a class="side-contact-link" href={localizePath('/contact/', pageLocale)} title="Contact" aria-label="Send inquiry">
+        <span class="side-contact-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img">
+            <path d="M4.5 6.5h15v11h-15Z" />
+            <path d="m5 7 7 6 7-6" />
+            <path d="m8.4 11.5-3.4 3.2M15.6 11.5l3.4 3.2" />
+          </svg>
+        </span>
+        <span class="side-contact-note"><strong>{dictionary.sideContact.inquiry}</strong><small>{dictionary.sideContact.inquiryNote}</small></span>
+      </a>
+    </div>
     <footer class="footer">
       <div class="container footer-shell">
         <div class="footer-brand-card">
@@ -341,7 +346,6 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
       const siteSearchInput = document.querySelector('[data-site-search-input]');
       const categorySearchEntries = JSON.parse(siteSearch?.getAttribute('data-category-search') || '[]');
       const siteHeader = document.querySelector('.site-header');
-      const contactDrawers = [...document.querySelectorAll('[data-contact-drawer]')];
       let wheelDirection = 0;
       let wheelCount = 0;
       let lastWheelTime = 0;
@@ -379,22 +383,6 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
       }, { passive: true });
 
       siteHeader?.addEventListener('focusin', () => setHeaderHidden(false));
-
-      contactDrawers.forEach(drawer => {
-        const trigger = drawer.querySelector('[data-contact-drawer-trigger]');
-        const setOpen = open => {
-          drawer.classList.toggle('is-open', open);
-          trigger?.setAttribute('aria-expanded', String(open));
-        };
-        trigger?.addEventListener('click', () => setOpen(!drawer.classList.contains('is-open')));
-        drawer.addEventListener('mouseleave', () => setOpen(false));
-        drawer.addEventListener('focusout', event => {
-          if (!drawer.contains(event.relatedTarget)) setOpen(false);
-        });
-        document.addEventListener('keydown', event => {
-          if (event.key === 'Escape') setOpen(false);
-        });
-      });
 
       siteSearch?.addEventListener('submit', event => {
         const query = siteSearchInput?.value?.trim().toLowerCase() || '';
