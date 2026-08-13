@@ -7,6 +7,7 @@ import { breadcrumbStructuredData, categoryKeywords, collectionStructuredData } 
 import { localizedProduct, localizedProductUrl, translateTechnicalText, ui } from '../data/i18n';
 import { type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
+import { keywordTag } from '../lib/keyword-tags';
 
 interface LocalizedCategory {
   accent: string;
@@ -66,7 +67,7 @@ const categoryStructuredData = [
           <h1>{categoryName}</h1>
           <p>{seoDescription}</p>
           <div class="category-hero-tags">
-            {category.highlights.map(highlight => <span>{highlight}</span>)}
+            {category.highlights.map(highlight => <span>{keywordTag(highlight)}</span>)}
           </div>
           <ShareButtons
             title={categoryName}

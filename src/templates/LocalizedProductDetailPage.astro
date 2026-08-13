@@ -24,6 +24,7 @@ import {
 import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 import { getLocalizedPageCopy, type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
+import { keywordTag } from '../lib/keyword-tags';
 
 interface Props {
   locale: NonEnglishLocale;
@@ -102,6 +103,11 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
             {reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
               <span><bdi dir="ltr">{product.data.aggregateRatingValue}/5 ({product.data.aggregateRatingCount})</bdi></span>
             )}
+          </div>
+          <div class="product-keyword-tags" aria-label={`${localized.title} keywords`}>
+            {[productCategoryName, localized.series, ...localized.highlights.slice(0, 2)].map(keyword => (
+              <span>{keywordTag(keyword)}</span>
+            ))}
           </div>
           <ShareButtons
             url={productUrl}

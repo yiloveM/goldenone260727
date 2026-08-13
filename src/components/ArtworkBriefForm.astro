@@ -13,6 +13,7 @@ const pagePath = Astro.url.pathname;
   <input type="hidden" name="captchaToken" data-captcha-token />
   <input type="hidden" name="pagePath" value={pagePath} />
   <input type="hidden" name="inquiryItems" value="[]" />
+  <input type="hidden" name="formType" value="artwork-brief" />
   <div class="form-trap" aria-hidden="true">
     <label>Website <input name="website" tabindex="-1" autocomplete="off" /></label>
   </div>
@@ -37,8 +38,8 @@ const pagePath = Astro.url.pathname;
     <label><span>Full name</span><input name="name" autocomplete="name" required /></label>
     <label><span>Work email</span><input name="email" type="email" autocomplete="email" required /></label>
   </div>
-  <div class="artwork-brief__contact artwork-brief__contact--optional">
-    <label><span>Company <em>(optional)</em></span><input name="company" autocomplete="organization" /></label>
+  <div class="artwork-brief__contact">
+    <label><span>Phone / WhatsApp</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" minlength="5" maxlength="80" required /></label>
     <label><span>Country / region <em>(optional)</em></span><input name="country" autocomplete="country-name" /></label>
   </div>
 

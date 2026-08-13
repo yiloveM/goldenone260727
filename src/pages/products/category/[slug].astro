@@ -8,6 +8,7 @@ import { getR2WebpDeliveryUrl } from '../../../lib/r2-image-delivery';
 import { brandAssets } from '../../../data/assets';
 import { buildProductCategories, isProductPublished } from '../../../data/productCategories';
 import { breadcrumbStructuredData, categoryKeywords, categorySeoDescription, collectionStructuredData } from '../../../data/seo';
+import { keywordTag } from '../../../lib/keyword-tags';
 
 export async function getStaticPaths() {
   const products = (await getCollection('products')).filter(isProductPublished);
@@ -57,7 +58,7 @@ const categoryStructuredData = [
           <h1>{categoryName}</h1>
           <p>{seoDescription}</p>
           <div class="category-hero-tags">
-            {category.highlights.map(highlight => <span>{highlight}</span>)}
+            {category.highlights.map(highlight => <span>{keywordTag(highlight)}</span>)}
           </div>
           <ShareButtons
             title={`${categoryName} Series`}

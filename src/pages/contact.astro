@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import InquiryForm from '../components/InquiryForm.astro';
 import PageBanner from '../components/PageBanner.astro';
-import { brandAssets } from '../data/assets';
 import { pageImages, siteInfo } from '../data/site';
 import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 import { getPageCopy } from '../data/i18n';
@@ -46,7 +45,6 @@ const contactStructuredData = [
       ctaHref="#contact-form"
       ctaLabel={pages.contact.startInquiry}
       variant="interior"
-      share
     />
     <section class="section container interior-section contact-page-section" id="contact-form">
       <div class="section-heading">
@@ -86,13 +84,8 @@ const contactStructuredData = [
       </div>
       <div class="glass-panel map-panel">
         <iframe title="Business location on Google Maps" src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
-        <div class="map-logo-pin" aria-hidden="true">
-          <img src={brandAssets.logo} alt="" loading="lazy" decoding="async" width="154" height="60" />
-        </div>
-        <div class="map-location-card">
-          <span class="eyebrow">Business office</span>
-          <strong>{mapAddress}</strong>
-          {hasDistinctFactoryAddress && <p>{siteInfo.factoryAddress}</p>}
+        <div class="contact-map-bar">
+          <div><span>Business office</span><strong>{mapAddress}</strong></div>
           <a href={mapLink} target="_blank" rel="noopener">Open interactive map</a>
         </div>
       </div>

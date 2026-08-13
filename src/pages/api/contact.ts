@@ -227,6 +227,7 @@ const sendInquiryEmail = async ({
   inquiry: {
     name: string;
     email: string;
+    phone: string;
     company: string;
     country: string;
     message: string;
@@ -266,6 +267,7 @@ const sendInquiryEmail = async ({
     line('Submitted at', submittedAt),
     line('Name', inquiry.name),
     line('Email', inquiry.email),
+    line('Phone / WhatsApp', inquiry.phone),
     line('Company / project', inquiry.company),
     line('Country / region', inquiry.country),
     line('Page', inquiry.pageUrl),
@@ -283,6 +285,7 @@ const sendInquiryEmail = async ({
     ['Submitted at', submittedAt],
     ['Name', inquiry.name],
     ['Email', inquiry.email],
+    ['Phone / WhatsApp', inquiry.phone],
     ['Company / project', inquiry.company],
     ['Country / region', inquiry.country],
     ['Page', inquiry.pageUrl],
@@ -399,6 +402,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const inquiry = {
     name: field(formData, 'name', 120),
     email: field(formData, 'email', 160).toLowerCase(),
+    phone: field(formData, 'phone', 80),
     company: field(formData, 'company', 160),
     country: field(formData, 'country', 120),
     message,
@@ -409,6 +413,10 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   if (!inquiry.name || !inquiry.email || !inquiry.message) {
     return json({ ok: false, message: 'Please provide your name, email and project requirements.' }, 400);
+  }
+
+  if (field(formData, 'formType', 40) === 'artwork-brief' && inquiry.phone.length < 5) {
+    return json({ ok: false, message: 'Please provide a phone or WhatsApp number.' }, 400);
   }
 
   if (!isEmail(inquiry.email)) {

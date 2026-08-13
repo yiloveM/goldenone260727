@@ -3,6 +3,7 @@ import type { ProductCategory } from '../data/productCategories';
 import { type Locale, localizedProduct, translateProductCategory, ui } from '../data/i18n';
 import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 import PublicImage from './public/PublicImage.astro';
+import { keywordTag } from '../lib/keyword-tags';
 
 interface Props {
   category: ProductCategory;
@@ -36,11 +37,11 @@ const highlightsLabel = `${categoryName} ${ui[locale].common.exploreRange}`;
       <h3>{categoryName}</h3>
       <p>{category.description}</p>
       <div class="category-card-tags" aria-label={highlightsLabel}>
-        {category.highlights.map(highlight => <span>{highlight}</span>)}
+        {category.highlights.map(highlight => <span>{keywordTag(highlight)}</span>)}
       </div>
       {sampleProducts.length > 0 && (
         <div class="category-card-products" aria-label={highlightsLabel}>
-          {sampleProducts.map(product => <span>{localizedProduct(product, locale).series}</span>)}
+          {sampleProducts.map(product => <span>{keywordTag(localizedProduct(product, locale).series)}</span>)}
         </div>
       )}
     </div>

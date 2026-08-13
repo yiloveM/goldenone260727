@@ -4,6 +4,7 @@ import { brandAssets } from '../data/assets';
 import { getCategoryMeta } from '../data/productCategories';
 import { type Locale, localizedProduct, productPath } from '../data/i18n';
 import PublicImage from './public/PublicImage.astro';
+import { keywordTag } from '../lib/keyword-tags';
 
 interface Props {
   product: CollectionEntry<'products'>;
@@ -26,7 +27,7 @@ const image = product.data.image || brandAssets.heroCenter;
       <span class="series-card-kicker">{categoryName}</span>
       <h3 class="text-slate-900">{localized.title}</h3>
       <div class="series-card-tags" aria-label={`${localized.title} product keywords`}>
-        {tags.map(tag => <span class="bg-cyan-50/50 text-cyan-700">{tag}</span>)}
+        {tags.map(tag => <span class="bg-cyan-50/50 text-cyan-700">{keywordTag(tag)}</span>)}
       </div>
     </div>
   </a>

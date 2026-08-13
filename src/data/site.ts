@@ -40,51 +40,61 @@ export const brandShowcase = [
     title: 'Lapel Pin & Badge',
     label: 'Enamel style, metal finish, backing, and presentation',
     image: '/images/metal-gifts/lapel-pin-collection-v2.webp',
+    keywords: ['custom lapel pins', 'enamel badges', 'metal pin manufacturer'],
   },
   {
     title: 'Medal',
     label: 'Construction, ribbon, relief, finish, and event presentation',
     image: '/images/metal-gifts/medal-collection-v2.webp',
+    keywords: ['custom medals', 'sports medals', 'award medal supplier'],
   },
   {
     title: 'Challenge Coin',
     label: 'Dimensions, relief, edge, finish, and front/reverse design',
     image: '/images/metal-gifts/challenge-coin-collection-v2.webp',
+    keywords: ['custom challenge coins', '3D challenge coins', 'military coins'],
   },
   {
     title: 'Key Chain',
     label: 'Metal, enamel, leather, PU, ring, chain, and packaging formats',
     image: '/images/metal-gifts/keychain-collection-v2.webp',
+    keywords: ['custom keychains', 'metal keychains', 'promotional keyrings'],
   },
   {
     title: 'Golf Accessories & Tools',
     label: 'Custom golf accessories for events, clubs, and promotional programs',
     image: '/images/metal-gifts/medals-keychains.webp',
+    keywords: ['custom golf accessories', 'golf tools', 'golf event gifts'],
   },
   {
     title: 'Belt Buckle',
     label: 'Shape, relief, plating, texture, color, and fastening direction',
     image: '/images/metal-gifts/challenge-coins.webp',
+    keywords: ['custom belt buckles', 'metal buckles', 'promotional buckles'],
   },
   {
     title: 'Metal & Wooden Plaque',
     label: 'Recognition, presentation, display, and commemorative formats',
     image: '/images/metal-gifts/customization-story-v2.webp',
+    keywords: ['custom plaques', 'wooden plaques', 'metal awards'],
   },
   {
     title: 'Fridge Magnets',
     label: 'Custom shapes, color, relief, and retail presentation',
     image: '/images/metal-gifts/custom-lapel-pins.webp',
+    keywords: ['custom fridge magnets', 'metal magnets', 'souvenir magnets'],
   },
   {
     title: 'More Metal Crafts',
     label: 'Flexible custom formats for distinctive project requirements',
     image: '/images/metal-gifts/hero-metal-gifts.webp',
+    keywords: ['custom metal crafts', 'metal gift supplier', 'OEM metal gifts'],
   },
   {
     title: 'Promotion Gift',
     label: 'Campaign, event, merchandise, and branded distribution programs',
     image: '/images/metal-gifts/hero-collection-v2.webp',
+    keywords: ['custom promotional gifts', 'branded merchandise', 'corporate gifts'],
   },
 ];
 

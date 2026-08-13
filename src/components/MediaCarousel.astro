@@ -57,32 +57,43 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
     let animationFrame = 0;
     let lastFrame = 0;
     let resumeTimer = 0;
+    let currentSpeed = 0;
+    let targetSpeed = 0;
+    const cruiseSpeed = .036;
     const pause = () => {
-      window.cancelAnimationFrame(animationFrame);
       window.clearTimeout(resumeTimer);
-      animationFrame = 0;
       resumeTimer = 0;
-      lastFrame = 0;
+      targetSpeed = 0;
       carousel.dataset.autoplay = 'false';
     };
     const tick = timestamp => {
       if (!lastFrame) lastFrame = timestamp;
       const elapsed = Math.min(timestamp - lastFrame, 64);
       lastFrame = timestamp;
-      viewport.scrollLeft += elapsed * .036;
-      normalizePosition();
+      const blend = 1 - Math.exp(-elapsed / 150);
+      currentSpeed += (targetSpeed - currentSpeed) * blend;
+      if (Math.abs(currentSpeed) < .0002 && targetSpeed === 0) currentSpeed = 0;
+      if (currentSpeed !== 0) {
+        viewport.scrollLeft += elapsed * currentSpeed;
+        normalizePosition();
+      }
       animationFrame = window.requestAnimationFrame(tick);
     };
     const play = () => {
-      pause();
+      window.clearTimeout(resumeTimer);
+      resumeTimer = 0;
       if (
         reducedMotion ||
         loopDistance() <= 0 ||
         carousel.matches(':hover') ||
         carousel.contains(document.activeElement)
-      ) return;
+      ) {
+        targetSpeed = 0;
+        carousel.dataset.autoplay = 'false';
+        return;
+      }
       carousel.dataset.autoplay = 'true';
-      animationFrame = window.requestAnimationFrame(tick);
+      targetSpeed = cruiseSpeed;
     };
     const move = direction => {
       pause();
@@ -100,6 +111,7 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
     carousel.addEventListener('focusin', pause);
     carousel.addEventListener('focusout', play);
     play();
-    window.addEventListener('pagehide', pause, { once: true });
+    animationFrame = window.requestAnimationFrame(tick);
+    window.addEventListener('pagehide', () => window.cancelAnimationFrame(animationFrame), { once: true });
   });
 </script>

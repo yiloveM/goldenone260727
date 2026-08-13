@@ -13,6 +13,7 @@ import ProductInquirySelector from '../../components/ProductInquirySelector.astr
 import CustomerReviews from '../../components/CustomerReviews.astro';
 import { reviewSystemEnabled } from '../../data/customerReviews';
 import { getProductModelCodes, isModelSpecTable } from '../../data/inquiryCart';
+import { keywordTag } from '../../lib/keyword-tags';
 
 export async function getStaticPaths() {
   const products = (await getCollection('products')).filter(isProductPublished);
@@ -71,6 +72,11 @@ const isRedundantSpecTableTitle = (title: string) =>
             {reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
               <span>{product.data.aggregateRatingValue}/5 from {product.data.aggregateRatingCount} customer ratings</span>
             )}
+          </div>
+          <div class="product-keyword-tags" aria-label={`${product.data.title} keywords`}>
+            {[productCategoryName, product.data.series, ...product.data.highlights.slice(0, 2)].map(keyword => (
+              <span>{keywordTag(keyword)}</span>
+            ))}
           </div>
           <ShareButtons
             url={productUrl}
