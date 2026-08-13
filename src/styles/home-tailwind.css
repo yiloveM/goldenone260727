@@ -14,7 +14,7 @@
   --home-line: #d7e0e1;
 }
 
-.metal-home { color: var(--home-ink); background: #fff; }
+.metal-home { color: var(--home-ink); background: #f7faf8; }
 .metal-shell { width: min(calc(100% - 48px), 1180px); margin-inline: auto; }
 .metal-section { padding: 88px 0; }
 .metal-kicker { display: block; margin: 0 0 12px; color: var(--home-teal-deep); font-size: .72rem; font-weight: 800; text-transform: uppercase; }
@@ -39,7 +39,7 @@
 .conversion-hero__points { display: grid; gap: 8px; margin: 25px 0 0; padding: 0; list-style: none; color: #344247; font-size: .78rem; font-weight: 700; }
 .conversion-hero__points li::before { margin-right: 9px; color: var(--home-teal-deep); content: "\2713"; }
 
-.design-upload { padding: 82px 0; background: #fde8d3; }
+.design-upload { padding: 82px 0; background: var(--go-warm-soft); }
 .design-upload__grid { display: grid; grid-template-columns: minmax(0,.9fr) minmax(520px,1.1fr); gap: 70px; align-items: center; }
 .design-upload__intro h2 { margin: 0; color: var(--home-ink); font-size: clamp(2.2rem,3.4vw,3.6rem); line-height: 1.08; }
 .design-upload__intro > p { max-width: 520px; margin: 18px 0 24px; color: #5c6060; line-height: 1.7; }
@@ -68,20 +68,20 @@
 .artwork-brief__submit:hover { background: var(--home-orange-dark); transform: translateY(-1px); }
 .artwork-brief__status { min-height: 18px; margin: 8px 0 0; font-size: .73rem; }.form-trap { position: absolute; left: -9999px; }
 
-.collection-reframe { background: #fff; }
+.collection-reframe { background: #f8faf8; }
 .collection-reframe__header { display: grid; grid-template-columns: 1.15fr .75fr; gap: 60px; align-items: end; margin-bottom: 38px; }
 .collection-reframe h2,.briefing-rhythm h2,.material-edit h2 { margin: 0; color: var(--home-ink); font-size: clamp(2.25rem,3.7vw,3.8rem); line-height: 1.08; }
 .collection-reframe__header > p { margin: 0; color: var(--home-muted); line-height: 1.7; }
-.collection-reframe__grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 17px; }
-.format-card { min-width: 0; overflow: hidden; border: 1px solid #dce2e2; border-radius: 5px; background: #fff; box-shadow: 0 5px 16px rgba(25,50,55,.06); }
+.collection-reframe__grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.format-card { min-width: 0; overflow: hidden; border: 1px solid #d8e3df; border-radius: 8px; background: #fff; box-shadow: 0 7px 20px rgba(36,72,66,.07); }
 .format-card a { display: block; color: inherit; text-decoration: none; }
-.format-card__image { overflow: hidden; background: #dff7f5; aspect-ratio: 1.2; }
+.format-card__image { overflow: hidden; background: #e4f2ee; aspect-ratio: 1.5; }
 .format-card__image img { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }.format-card:hover img { transform: scale(1.055); }
-.format-card__copy { position: relative; min-height: 204px; padding: 21px; }.format-card__copy > span { color: var(--home-teal-deep); font-size: .68rem; font-weight: 800; }
-.format-card h3 { margin: 10px 0 8px; font-size: 1.02rem; line-height: 1.22; }.format-card p { margin: 0; color: var(--home-muted); font-size: .73rem; line-height: 1.55; }
-.format-card i { position: absolute; right: 20px; bottom: 18px; color: var(--home-teal-deep); font-style: normal; }.format-card:hover { border-color: #8fcfcb; transform: translateY(-4px); box-shadow: 0 14px 27px rgba(25,50,55,.11); }
+.format-card__copy { position: relative; min-height: 178px; padding: 25px; }.format-card__copy > span { color: var(--home-teal-deep); font-size: .7rem; font-weight: 800; }
+.format-card h3 { margin: 11px 0 9px; font-size: 1.2rem; line-height: 1.2; }.format-card p { max-width: 92%; margin: 0; color: var(--home-muted); font-size: .78rem; line-height: 1.58; }
+.format-card i { position: absolute; right: 24px; bottom: 21px; color: var(--home-teal-deep); font-style: normal; }.format-card:hover { border-color: #86bdb4; transform: translateY(-4px); box-shadow: 0 16px 34px rgba(48,124,113,.18),0 0 20px rgba(77,154,143,.11); }
 
-.briefing-rhythm { padding: 92px 0; background: #f4f5f5; }
+.briefing-rhythm { padding: 92px 0; background: #edf4f1; }
 .briefing-rhythm__layout { display: grid; grid-template-columns: minmax(0,1.08fr) minmax(390px,.92fr); gap: 76px; align-items: center; }
 .briefing-rhythm__header { max-width: 760px; margin: 0 0 32px; text-align: left; }
 .briefing-rhythm__header h2 { font-size: clamp(2.45rem,3.5vw,3.75rem); }

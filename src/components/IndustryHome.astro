@@ -16,13 +16,14 @@ interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
 const pages = getPageCopy(locale);
 const productHref = localizePath('/products/', locale);
-const categories = brandShowcase.map((item, index) => ({
+const allCategories = brandShowcase.map((item, index) => ({
   ...item,
   title: translateTechnicalText(item.title, locale),
   label: translateTechnicalText(item.label, locale),
   number: String(index + 1).padStart(2, '0'),
   href: localizePath(`/products/category/${slugifyCategory(item.title)}/`, locale),
 }));
+const categories = allCategories.slice(0, 6);
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
@@ -32,7 +33,7 @@ const homeStructuredData = [
     url: localizePath('/', locale),
     image: brandAssets.heroRippleDesktop,
     keywords: profileKeywords([industryProfile.market.industry]),
-    items: categories.map(category => ({ name: category.title, url: category.href, image: category.image })),
+    items: allCategories.map(category => ({ name: category.title, url: category.href, image: category.image })),
   }, Astro.site),
 ];
 ---
