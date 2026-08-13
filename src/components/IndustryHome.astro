@@ -8,6 +8,7 @@ import '../styles/home-tailwind.css';
 import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
 import { type Locale, getPageCopy, localizePath, translateTechnicalText } from '../data/i18n';
+import { slugifyCategory } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 
@@ -15,19 +16,12 @@ interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
 const pages = getPageCopy(locale);
 const productHref = localizePath('/products/', locale);
-const contactHref = localizePath('/contact/', locale);
-const categoryImages = [
-  '/images/metal-gifts/lapel-pin-collection-v2.webp',
-  '/images/metal-gifts/challenge-coin-collection-v2.webp',
-  '/images/metal-gifts/medal-collection-v2.webp',
-  '/images/metal-gifts/keychain-collection-v2.webp',
-];
 const categories = brandShowcase.map((item, index) => ({
   ...item,
-  image: categoryImages[index],
   title: translateTechnicalText(item.title, locale),
   label: translateTechnicalText(item.label, locale),
   number: String(index + 1).padStart(2, '0'),
+  href: localizePath(`/products/category/${slugifyCategory(item.title)}/`, locale),
 }));
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
@@ -38,7 +32,7 @@ const homeStructuredData = [
     url: localizePath('/', locale),
     image: brandAssets.heroRippleDesktop,
     keywords: profileKeywords([industryProfile.market.industry]),
-    items: categories.map(category => ({ name: category.title, url: productHref, image: category.image })),
+    items: categories.map(category => ({ name: category.title, url: category.href, image: category.image })),
   }, Astro.site),
 ];
 ---
@@ -50,7 +44,10 @@ const homeStructuredData = [
       <div class="conversion-hero__shade" aria-hidden="true"></div>
       <div class="metal-shell conversion-hero__inner">
         <div class="conversion-hero__copy">
-          <span class="conversion-hero__pill">Free artwork support with every custom project</span>
+          <span class="conversion-hero__pill conversion-hero__pill--rating">
+            <strong>Alibaba 5-Star Store</strong>
+            <span aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          </span>
           <h1 id="conversion-hero-title">Premium Custom Metal Gifts That Honor Every Occasion</h1>
           <p>Turn your logo, sketch, or idea into custom pins, challenge coins, medals, and keychains with a clear specification and presentation direction.</p>
           <div class="conversion-hero__actions">
@@ -63,6 +60,47 @@ const homeStructuredData = [
             <li>Built for brands, events, recognition, and merchandise</li>
           </ul>
         </div>
+      </div>
+    </section>
+
+    <section class="collection-reframe metal-section" aria-labelledby="collection-title">
+      <div class="metal-shell">
+        <header class="collection-reframe__header">
+          <div><span class="metal-kicker">Custom gifts for every purpose</span><h2 id="collection-title">Explore all of our custom gift series.</h2></div>
+          <p>Start with the product family closest to your idea, then compare shape, material, finish, color, hardware, and presentation.</p>
+        </header>
+        <div class="collection-reframe__grid">
+          {categories.map(category => (
+            <article class="format-card">
+              <a href={category.href} aria-label={`Explore ${category.title}`}>
+                <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
+                <div class="format-card__copy"><span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p><i aria-hidden="true">&#8594;</i></div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="briefing-rhythm" id="how-it-starts" aria-labelledby="briefing-title">
+      <div class="metal-shell briefing-rhythm__layout">
+        <div class="briefing-rhythm__content">
+          <header class="briefing-rhythm__header">
+            <span class="metal-kicker">Custom design process</span>
+            <h2 id="briefing-title">How We Make It Happen</h2>
+            <p>From idea to delivery: a clear step-by-step path for your custom gift project.</p>
+          </header>
+          <ol>
+            <li><span>01</span><strong>Send Us Your Ideas</strong><p>Share a sketch, logo, photo, or reference object.</p></li>
+            <li><span>02</span><strong>Receive Your Custom Proof</strong><p>We shape the direction around form, finish, color, and hardware.</p></li>
+            <li><span>03</span><strong>Approve and Production Begins</strong><p>Confirm the artwork and project specification before production.</p></li>
+            <li><span>04</span><strong>Your Order Gets Shipped</strong><p>Complete delivery details and move the finished order forward.</p></li>
+          </ol>
+          <a class="briefing-rhythm__cta" href="#free-design">Start Your Free Design <span aria-hidden="true">&#8594;</span></a>
+        </div>
+        <figure class="briefing-rhythm__visual">
+          <img src="/images/metal-gifts/custom-design-process-placeholder.webp" alt="Custom metal gift sketch compared with the finished product" width="1440" height="1080" loading="lazy" decoding="async" />
+        </figure>
       </div>
     </section>
 
@@ -80,49 +118,10 @@ const homeStructuredData = [
 
     <BrandPartnerStrip />
 
-    <section class="collection-reframe metal-section" aria-labelledby="collection-title">
-      <div class="metal-shell">
-        <header class="collection-reframe__header">
-          <div><span class="metal-kicker">Challenge coins for every purpose</span><h2 id="collection-title">One idea. Four ways to make it tangible.</h2></div>
-          <p>Choose the object closest to your brief, then compare shape, relief, color, hardware, and presentation options.</p>
-        </header>
-        <div class="collection-reframe__grid">
-          {categories.map(category => (
-            <article class="format-card">
-              <a href={productHref} aria-label={`Explore ${category.title}`}>
-                <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
-                <div class="format-card__copy"><span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p><i aria-hidden="true">&#8594;</i></div>
-              </a>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="briefing-rhythm" id="how-it-starts" aria-labelledby="briefing-title">
-      <div class="metal-shell">
-        <header class="briefing-rhythm__header"><span class="metal-kicker">How we make it happen</span><h2 id="briefing-title">From your idea to a production-ready brief.</h2></header>
-        <ol>
-          <li><span>1</span><strong>Send your idea</strong><p>Share a sketch, logo, photo, or reference object.</p></li>
-          <li><span>2</span><strong>Shape the design</strong><p>Confirm form, relief, color, plating, hardware, and packaging.</p></li>
-          <li><span>3</span><strong>Review the brief</strong><p>Align quantity, destination, timing, and the final specification.</p></li>
-          <li><span>4</span><strong>Move to production</strong><p>Use the approved direction to begin the order workflow.</p></li>
-        </ol>
-      </div>
-    </section>
-
     <section class="material-edit metal-section" aria-labelledby="material-edit-title">
       <div class="metal-shell material-edit__grid">
         <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
         <div><span class="metal-kicker">Explore our custom formats</span><h2 id="material-edit-title">Details that make the object distinctly yours.</h2><p>Use the catalogue to compare the choices that affect appearance, hand-feel, attachment, and presentation.</p><dl><div><dt>Form</dt><dd>Shape, scale, thickness, front, reverse, and edge.</dd></div><div><dt>Surface</dt><dd>Enamel, print, relief, plating, polish, texture, and color.</dd></div><div><dt>Presentation</dt><dd>Backing, ribbon, hardware, leather, card, box, or individual packaging.</dd></div></dl><a class="material-edit__link" href={productHref}>Browse the custom gift catalogue <span aria-hidden="true">&#8594;</span></a></div>
-      </div>
-    </section>
-
-    <section class="closing-brief" aria-labelledby="closing-brief-title">
-      <div class="metal-shell closing-brief__inner">
-        <span class="metal-kicker">Your idea can start rough</span><h2 id="closing-brief-title">Let us turn it into a clear custom brief.</h2>
-        <a class="signature-button signature-button--orange" href="#free-design">Upload your design <span aria-hidden="true">&#8593;</span></a>
-        <small>Specifications already defined? <a href={contactHref}>Send a detailed project inquiry.</a></small>
       </div>
     </section>
 

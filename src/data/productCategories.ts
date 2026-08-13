@@ -29,10 +29,16 @@ export const slugifyCategory = (name: string) =>
     .replace(/^-+|-+$/g, '');
 
 const categoryImages = [
-  siteImages.productCategories.industrialProducts,
-  siteImages.productCategories.customSolutions,
-  siteImages.productCategories.spareParts,
-  siteImages.productCategories.servicePrograms,
+  '/images/metal-gifts/lapel-pin-collection-v2.webp',
+  '/images/metal-gifts/medal-collection-v2.webp',
+  '/images/metal-gifts/challenge-coin-collection-v2.webp',
+  '/images/metal-gifts/keychain-collection-v2.webp',
+  '/images/metal-gifts/medals-keychains.webp',
+  '/images/metal-gifts/challenge-coins.webp',
+  '/images/metal-gifts/customization-story-v2.webp',
+  '/images/metal-gifts/custom-lapel-pins.webp',
+  '/images/metal-gifts/hero-metal-gifts.webp',
+  '/images/metal-gifts/hero-collection-v2.webp',
 ];
 
 export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfile.productArchitecture.categoryPlans.map((category, index) => ({
@@ -89,8 +95,7 @@ export const buildProductCategories = (products: ProductEntry[]): ProductCategor
       href: categoryHref(meta.name),
       products: sortProductsByPriority(grouped[meta.name] || []),
       count: grouped[meta.name]?.length || 0,
-    }))
-    .filter(category => category.count > 0);
+    }));
 
   const unknownCategories = Object.keys(grouped)
     .filter(name => !productCategoryMeta.some(meta => meta.name === name))

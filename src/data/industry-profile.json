@@ -66,8 +66,8 @@
     "offeringType": "discrete-products",
     "categoryPlans": [
       {
-        "name": "Custom Lapel Pins",
-        "description": "Enamel, die-struck, printed, and sculpted pin formats organized by finish, attachment, and intended use.",
+        "name": "Lapel Pin & Badge",
+        "description": "Custom lapel pins and badges organized by artwork style, finish, backing, and presentation.",
         "highlights": [
           "Enamel and metal styles",
           "Plating and finish choices",
@@ -75,17 +75,8 @@
         ]
       },
       {
-        "name": "Challenge Coins",
-        "description": "Custom coin programs compared by dimensions, relief, edge, finish, color, and presentation.",
-        "highlights": [
-          "2D and 3D relief",
-          "Edge and finish options",
-          "Front and reverse design"
-        ]
-      },
-      {
-        "name": "Sports Medals",
-        "description": "Custom sports and running medals organized around medal construction, ribbon, finish, and event presentation.",
+        "name": "Medal",
+        "description": "Custom medal programs organized around construction, relief, ribbon, finish, and presentation.",
         "highlights": [
           "Custom shapes and relief",
           "Ribbon specifications",
@@ -93,12 +84,75 @@
         ]
       },
       {
-        "name": "Custom Keychains",
-        "description": "Metal, enamel, promotional, anime-style, leather, and PU keychain formats for branded merchandise programs.",
+        "name": "Challenge Coin",
+        "description": "Custom challenge coins compared by dimensions, relief, edge, finish, color, and presentation.",
+        "highlights": [
+          "2D and 3D relief",
+          "Edge and finish options",
+          "Front and reverse design"
+        ]
+      },
+      {
+        "name": "Key Chain",
+        "description": "Metal, enamel, leather, PU, and promotional key chain formats for branded merchandise programs.",
         "highlights": [
           "Metal and enamel formats",
           "Leather and PU options",
           "Rings, chains, and packaging"
+        ]
+      },
+      {
+        "name": "Golf Accessories & Tools",
+        "description": "Custom golf accessories and practical tools organized for events, clubs, brands, and promotional programs.",
+        "highlights": [
+          "Event and club formats",
+          "Custom metal details",
+          "Presentation options"
+        ]
+      },
+      {
+        "name": "Belt Buckle",
+        "description": "Custom belt buckle directions compared by shape, relief, plating, color, and fastening format.",
+        "highlights": [
+          "2D and 3D artwork",
+          "Plating and texture",
+          "Custom fastening formats"
+        ]
+      },
+      {
+        "name": "Metal & Wooden Plaque",
+        "description": "Metal and wooden plaque formats for recognition, presentation, display, and commemorative programs.",
+        "highlights": [
+          "Metal and wood combinations",
+          "Display-ready formats",
+          "Presentation details"
+        ]
+      },
+      {
+        "name": "Fridge Magnets",
+        "description": "Custom fridge magnet formats for destinations, brands, events, collections, and promotional gifts.",
+        "highlights": [
+          "Custom shapes",
+          "Color and relief options",
+          "Retail presentation"
+        ]
+      },
+      {
+        "name": "More Metal Crafts",
+        "description": "Additional custom metal craft formats for projects that do not fit a standard gift series.",
+        "highlights": [
+          "Flexible custom formats",
+          "Material and finish choices",
+          "Project-led development"
+        ]
+      },
+      {
+        "name": "Promotion Gift",
+        "description": "Promotional gift directions for campaigns, events, merchandise programs, and branded distribution.",
+        "highlights": [
+          "Campaign-ready formats",
+          "Brand customization",
+          "Packaging and distribution"
         ]
       }
     ],

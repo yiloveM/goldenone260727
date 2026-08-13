@@ -37,24 +37,54 @@ export const pageImages = siteImages.pageBanners;
 
 export const brandShowcase = [
   {
-    title: 'Custom Lapel Pins',
+    title: 'Lapel Pin & Badge',
     label: 'Enamel style, metal finish, backing, and presentation',
-    image: homePlaceholderImages.primaryOffer,
+    image: '/images/metal-gifts/lapel-pin-collection-v2.webp',
   },
   {
-    title: 'Challenge Coins',
+    title: 'Medal',
+    label: 'Construction, ribbon, relief, finish, and event presentation',
+    image: '/images/metal-gifts/medal-collection-v2.webp',
+  },
+  {
+    title: 'Challenge Coin',
     label: 'Dimensions, relief, edge, finish, and front/reverse design',
-    image: homePlaceholderImages.operations,
+    image: '/images/metal-gifts/challenge-coin-collection-v2.webp',
   },
   {
-    title: 'Sports Medals',
-    label: 'Medal construction, ribbon specification, finish, and packaging',
-    image: homePlaceholderImages.quality,
-  },
-  {
-    title: 'Custom Keychains',
+    title: 'Key Chain',
     label: 'Metal, enamel, leather, PU, ring, chain, and packaging formats',
-    image: homePlaceholderImages.delivery,
+    image: '/images/metal-gifts/keychain-collection-v2.webp',
+  },
+  {
+    title: 'Golf Accessories & Tools',
+    label: 'Custom golf accessories for events, clubs, and promotional programs',
+    image: '/images/metal-gifts/medals-keychains.webp',
+  },
+  {
+    title: 'Belt Buckle',
+    label: 'Shape, relief, plating, texture, color, and fastening direction',
+    image: '/images/metal-gifts/challenge-coins.webp',
+  },
+  {
+    title: 'Metal & Wooden Plaque',
+    label: 'Recognition, presentation, display, and commemorative formats',
+    image: '/images/metal-gifts/customization-story-v2.webp',
+  },
+  {
+    title: 'Fridge Magnets',
+    label: 'Custom shapes, color, relief, and retail presentation',
+    image: '/images/metal-gifts/custom-lapel-pins.webp',
+  },
+  {
+    title: 'More Metal Crafts',
+    label: 'Flexible custom formats for distinctive project requirements',
+    image: '/images/metal-gifts/hero-metal-gifts.webp',
+  },
+  {
+    title: 'Promotion Gift',
+    label: 'Campaign, event, merchandise, and branded distribution programs',
+    image: '/images/metal-gifts/hero-collection-v2.webp',
   },
 ];
 

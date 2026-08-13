@@ -128,9 +128,8 @@ const footerCategoryLinks = navCategories.slice(0, 6);
 const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
 const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
-const utilityLabel = pageLocale === 'es'
-  ? 'Regalos metálicos personalizados para programas OEM'
-  : 'Custom metal gifts for OEM programs';
+const productSearchLabel = pageLocale === 'es' ? 'Buscar series de regalos' : 'Search gift series';
+const categorySearchEntries = navCategories.map(category => ({ name: category.displayName || category.name, href: category.href }));
 ---
 <!doctype html>
 <html lang={localeInfo.htmlLang} dir={localeInfo.dir}>
@@ -180,91 +179,81 @@ const utilityLabel = pageLocale === 'es'
   </head>
   <body>
     <header class="site-header signature-site-header" data-visual-foundation="signature-product">
-      <div class="nav-utility">
-        <div class="container nav-utility__inner">
-          <span>{utilityLabel}</span>
-          <div>
-            {hasEmail && <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a>}
-            {hasPhone && <a href={`tel:${siteInfo.phone}`}><bdi dir="ltr">{siteInfo.phone}</bdi></a>}
-          </div>
-        </div>
-      </div>
-      <nav class="container nav" aria-label="Main navigation">
-        <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
-          <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="154" height="60" decoding="async" />
-        </a>
-        <button class="mobile-toggle" aria-label={dictionary.nav.toggleMenu} aria-expanded="false" data-menu-toggle>
-          <span></span><span></span><span></span>
-        </button>
-        <div class="nav-links" data-nav-links>
-          <div class="nav-primary">
-            <div class="nav-item nav-products" data-products-nav>
-              <a class="nav-trigger" href={localizePath('/products/', pageLocale)} aria-haspopup={navCategories.length ? 'true' : undefined} aria-expanded="false" data-products-trigger>
-                {dictionary.nav.products}
-                <span class="nav-chevron" aria-hidden="true"></span>
-              </a>
-              {navCategories.length > 0 && (
-                <div class="mega-menu" aria-label="Product category navigation">
-                  <div class="mega-menu-shell">
-                    <div class="mega-category-list">
-                      {navCategories.map(category => (
-                        <div class="mega-category-item">
-                          <a class="mega-category-link" href={category.href}>
-                            <span>{category.displayName || category.name}</span>
-                          </a>
-                          <div class="mega-product-flyout" aria-label={`${category.name} products`}>
-                            {category.products.map(product => {
-                              const item = localizedProduct(product, pageLocale);
-                              return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
-                            })}
-                            <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {category.displayName || category.name}</a>
+      <div class="site-header-main">
+        <nav class="container nav" aria-label="Main navigation">
+          <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
+            <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="154" height="60" decoding="async" />
+          </a>
+          <form class="site-search" action={localizePath('/products/', pageLocale)} method="get" role="search" data-site-search data-category-search={JSON.stringify(categorySearchEntries)}>
+            <label class="sr-only" for="site-product-search">{productSearchLabel}</label>
+            <input id="site-product-search" type="search" name="q" placeholder={`${productSearchLabel}...`} autocomplete="off" list="site-product-categories" data-site-search-input />
+            <datalist id="site-product-categories">
+              {navCategories.map(category => <option value={category.displayName || category.name}></option>)}
+            </datalist>
+            <button type="submit" aria-label={productSearchLabel}><span aria-hidden="true"></span></button>
+          </form>
+          <button class="mobile-toggle" aria-label={dictionary.nav.toggleMenu} aria-expanded="false" data-menu-toggle>
+            <span></span><span></span><span></span>
+          </button>
+          <div class="nav-links" data-nav-links>
+            <div class="nav-primary">
+              <div class="nav-item nav-products" data-products-nav>
+                <a class="nav-trigger" href={localizePath('/products/', pageLocale)} aria-haspopup={navCategories.length ? 'true' : undefined} aria-expanded="false" data-products-trigger>
+                  {dictionary.nav.products}
+                  <span class="nav-chevron" aria-hidden="true"></span>
+                </a>
+                {navCategories.length > 0 && (
+                  <div class="mega-menu" aria-label="Product category navigation">
+                    <div class="mega-menu-shell">
+                      <div class="mega-category-list">
+                        {navCategories.map(category => (
+                          <div class="mega-category-item">
+                            <a class="mega-category-link" href={category.href}><span>{category.displayName || category.name}</span></a>
+                            <div class="mega-product-flyout" aria-label={`${category.name} products`}>
+                              {category.products.map(product => {
+                                const item = localizedProduct(product, pageLocale);
+                                return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
+                              })}
+                              <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {category.displayName || category.name}</a>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-            <a href={localizePath('/blog/', pageLocale)}>{dictionary.nav.engineeringNotes}</a>
-            <a href={localizePath('/about/', pageLocale)}>{dictionary.nav.about}</a>
-            <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
-          </div>
-          <div class="nav-actions">
-            {hasPhone && (
-              <a class="nav-contact" href={`tel:${siteInfo.phone}`} aria-label={`Call ${siteInfo.name}`}>
-                <span class="nav-contact__icon" aria-hidden="true">&#9742;</span>
-                <bdi dir="ltr">{siteInfo.phone}</bdi>
-              </a>
-            )}
-            <div class="language-switcher" data-language-switcher>
-              <button class="language-trigger" type="button" aria-label={dictionary.nav.language} aria-haspopup="menu" aria-expanded="false" data-language-trigger>
-                <span class="language-code">{localeInfo.label}</span>
-                <span class="nav-chevron" aria-hidden="true"></span>
-              </button>
-              <div class="language-menu" role="menu" aria-label={dictionary.nav.language}>
-                {languageOptions.map(option => (
-                  <a
-                    class={option.active ? 'language-option is-active' : 'language-option'}
-                    href={option.href}
-                    hreflang={option.htmlLang}
-                    lang={option.htmlLang}
-                    dir="ltr"
-                    role="menuitem"
-                    aria-current={option.active ? 'page' : undefined}
-                  >
-                    <strong>{option.label}</strong>
-                  </a>
-                ))}
+                )}
               </div>
+              <a href={localizePath('/blog/', pageLocale)}>{dictionary.nav.engineeringNotes}</a>
+              <a href={localizePath('/about/', pageLocale)}>About Us</a>
+              <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
+              <a href={localizePath('/contact/', pageLocale)}>{dictionary.nav.contact}</a>
             </div>
-            <a class="nav-quote" href={localizePath('/contact/', pageLocale)}>
-              {dictionary.common.requestQuote}
-              <span aria-hidden="true">↗</span>
-            </a>
+            <div class="nav-actions">
+              <div class="language-switcher" data-language-switcher>
+                <button class="language-trigger" type="button" aria-label={dictionary.nav.language} aria-haspopup="menu" aria-expanded="false" data-language-trigger>
+                  <span class="language-code">{localeInfo.label}</span>
+                  <span class="nav-chevron" aria-hidden="true"></span>
+                </button>
+                <div class="language-menu" role="menu" aria-label={dictionary.nav.language}>
+                  {languageOptions.map(option => (
+                    <a class={option.active ? 'language-option is-active' : 'language-option'} href={option.href} hreflang={option.htmlLang} lang={option.htmlLang} dir="ltr" role="menuitem" aria-current={option.active ? 'page' : undefined}>
+                      <strong>{option.label}</strong>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <a class="nav-quote" href={localizePath('/contact/', pageLocale)}>{dictionary.common.requestQuote}<span aria-hidden="true">↗</span></a>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
+      {navCategories.length > 0 && (
+        <nav class="product-series-bar" aria-label="Product series navigation">
+          <div class="product-series-nav">
+            {navCategories.map(category => <a href={category.href}>{category.displayName || category.name}</a>)}
+          </div>
+        </nav>
+      )}
     </header>
     <slot />
     {!isContactPage && <InquiryCart locale={pageLocale} />}
@@ -349,6 +338,58 @@ const utilityLabel = pageLocale === 'es'
       const productsNav = document.querySelector('[data-products-nav]');
       const productsTrigger = document.querySelector('[data-products-trigger]');
       const languageSwitchers = [...document.querySelectorAll('[data-language-switcher]')];
+      const siteSearch = document.querySelector('[data-site-search]');
+      const siteSearchInput = document.querySelector('[data-site-search-input]');
+      const categorySearchEntries = JSON.parse(siteSearch?.getAttribute('data-category-search') || '[]');
+      const siteHeader = document.querySelector('.site-header');
+      let wheelDirection = 0;
+      let wheelCount = 0;
+      let lastWheelTime = 0;
+
+      const setHeaderHidden = hidden => {
+        if (!siteHeader) return;
+        const navigationIsOpen = document.body.classList.contains('mobile-nav-open')
+          || Boolean(siteHeader.querySelector('.is-open'));
+        siteHeader.classList.toggle('is-wheel-hidden', hidden && !navigationIsOpen && window.scrollY > 8);
+      };
+
+      window.addEventListener('wheel', event => {
+        if (event.ctrlKey || Math.abs(event.deltaY) < 8) return;
+        const direction = Math.sign(event.deltaY);
+        if (!direction) return;
+        const now = performance.now();
+        if (direction === wheelDirection && now - lastWheelTime <= 800) {
+          wheelCount += 1;
+        } else {
+          wheelDirection = direction;
+          wheelCount = 1;
+        }
+        lastWheelTime = now;
+        if (window.scrollY <= 8) {
+          setHeaderHidden(false);
+          return;
+        }
+        if (wheelCount < 2) return;
+        setHeaderHidden(direction > 0);
+        wheelCount = 0;
+      }, { passive: true });
+
+      window.addEventListener('scroll', () => {
+        if (window.scrollY <= 8) setHeaderHidden(false);
+      }, { passive: true });
+
+      siteHeader?.addEventListener('focusin', () => setHeaderHidden(false));
+
+      siteSearch?.addEventListener('submit', event => {
+        const query = siteSearchInput?.value?.trim().toLowerCase() || '';
+        if (!query) return;
+        const exact = categorySearchEntries.find(entry => entry.name.toLowerCase() === query);
+        const partial = categorySearchEntries.find(entry => entry.name.toLowerCase().includes(query) || query.includes(entry.name.toLowerCase()));
+        const match = exact || partial;
+        if (!match) return;
+        event.preventDefault();
+        window.location.assign(match.href);
+      });
 
       const setMobileScrollLock = locked => {
         if (!mobileMenuQuery.matches) locked = false;
@@ -396,6 +437,7 @@ const utilityLabel = pageLocale === 'es'
       });
 
       menuToggle?.addEventListener('click', () => {
+        setHeaderHidden(false);
         const willOpen = !navLinks?.classList.contains('open');
         navLinks?.classList.toggle('open', willOpen);
         menuToggle.setAttribute('aria-expanded', String(willOpen));
