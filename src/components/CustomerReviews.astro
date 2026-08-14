@@ -16,6 +16,7 @@ const reviews = reviewsForProduct(productSlug);
 const visibleReviews: CustomerReview[] = reviews.length > 0
   ? reviews
   : [];
+const loopReviews = visibleReviews.length > 1 ? [...visibleReviews, ...visibleReviews] : visibleReviews;
 const sectionTitle = productSlug
   ? 'What Golden One buyers are saying'
   : 'See what our customers are saying';
@@ -44,12 +45,12 @@ const sectionTitle = productSlug
     </div>
 
     {visibleReviews.length > 0 && (
-      <div class="customer-ratings__carousel" data-review-carousel>
-        <button class="customer-ratings__control customer-ratings__control--prev" type="button" aria-label="Previous reviews" data-review-prev>&#8249;</button>
+      <div class="customer-ratings__carousel" data-marquee-shell data-marquee-duration="56" data-marquee-direction="rtl">
+        <button class="customer-ratings__control customer-ratings__control--prev" type="button" aria-label="Previous reviews" data-marquee-prev>&#8249;</button>
         <div class="customer-ratings__viewport" data-review-viewport tabindex="0" aria-label="Customer review carousel">
-          <div class="customer-ratings__track">
-            {visibleReviews.map(review => (
-            <article class="customer-review-card">
+          <div class="customer-ratings__track" data-marquee-track>
+            {loopReviews.map((review, index) => (
+            <article class="customer-review-card" aria-hidden={index >= visibleReviews.length ? 'true' : undefined}>
               {review.kind === 'demo' && <span class="customer-review-card__demo">Sample review layout</span>}
               <header>
                 <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
@@ -64,14 +65,14 @@ const sectionTitle = productSlug
               <blockquote>{review.quote}</blockquote>
               <footer>
                 <span>{review.projectType || 'Custom metal gift project'}{review.country ? ` / ${review.country}` : ''}</span>
-                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer">View source</a>}
+                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer" tabindex={index >= visibleReviews.length ? -1 : undefined}>View source</a>}
                 {!review.sourceUrl && <small>Demonstration content</small>}
               </footer>
             </article>
             ))}
           </div>
         </div>
-        <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label="Next reviews" data-review-next>&#8250;</button>
+        <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label="Next reviews" data-marquee-next>&#8250;</button>
       </div>
     )}
     {reviews.length === 0 && (
@@ -83,17 +84,3 @@ const sectionTitle = productSlug
     )}
   </div>
 </section>}
-
-<script is:inline>
-  document.querySelectorAll('[data-review-carousel]').forEach((carousel) => {
-    if (carousel.dataset.ready === 'true') return;
-    carousel.dataset.ready = 'true';
-    const viewport = carousel.querySelector('[data-review-viewport]');
-    const previous = carousel.querySelector('[data-review-prev]');
-    const next = carousel.querySelector('[data-review-next]');
-    if (!viewport || !previous || !next) return;
-    const step = () => Math.max(280, viewport.clientWidth * 0.82);
-    previous.addEventListener('click', () => viewport.scrollBy({ left: -step(), behavior: 'smooth' }));
-    next.addEventListener('click', () => viewport.scrollBy({ left: step(), behavior: 'smooth' }));
-  });
-</script>

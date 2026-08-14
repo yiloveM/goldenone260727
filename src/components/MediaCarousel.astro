@@ -17,10 +17,10 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
     <div><span class="eyebrow">{eyebrow}</span><h2 id={`${id}-title`}>{title}</h2></div>
     {description && <p>{description}</p>}
   </div>
-  <div class="media-carousel" data-media-carousel>
-    <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label="Previous image" data-media-prev>&#8249;</button>
+  <div class="media-carousel" data-marquee-shell data-marquee-duration="44" data-marquee-direction="rtl">
+    <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label="Previous image" data-marquee-prev>&#8249;</button>
     <div class="media-carousel-viewport" data-media-viewport tabindex="0" aria-label={title}>
-      <div class="media-carousel-track">
+      <div class="media-carousel-track" data-marquee-track>
         {loopItems.map((item, index) => (
           <figure data-media-slide data-media-clone-start={index === items.length ? 'true' : undefined} aria-hidden={index >= items.length ? 'true' : undefined}>
             <div class="media-carousel-image"><img src={item.image} alt={index >= items.length ? '' : item.title} width="1200" height="800" loading="lazy" decoding="async" /></div>
@@ -29,89 +29,6 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
         ))}
       </div>
     </div>
-    <button type="button" class="media-carousel-control media-carousel-control--next" aria-label="Next image" data-media-next>&#8250;</button>
+    <button type="button" class="media-carousel-control media-carousel-control--next" aria-label="Next image" data-marquee-next>&#8250;</button>
   </div>
 </section>
-
-<script is:inline>
-  document.querySelectorAll('[data-media-carousel]').forEach(carousel => {
-    if (carousel.dataset.ready === 'true') return;
-    carousel.dataset.ready = 'true';
-    const viewport = carousel.querySelector('[data-media-viewport]');
-    const previous = carousel.querySelector('[data-media-prev]');
-    const next = carousel.querySelector('[data-media-next]');
-    if (!viewport || !previous || !next) return;
-    const firstSlide = carousel.querySelector('[data-media-slide]');
-    const cloneStart = carousel.querySelector('[data-media-clone-start="true"]');
-    const step = () => Math.max(300, viewport.clientWidth * .68);
-    const loopDistance = () => cloneStart && firstSlide
-      ? cloneStart.offsetLeft - firstSlide.offsetLeft
-      : 0;
-    const normalizePosition = () => {
-      const distance = loopDistance();
-      if (distance <= 0) return;
-      while (viewport.scrollLeft >= distance) viewport.scrollLeft -= distance;
-      while (viewport.scrollLeft < 0) viewport.scrollLeft += distance;
-    };
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let animationFrame = 0;
-    let lastFrame = 0;
-    let resumeTimer = 0;
-    let currentSpeed = 0;
-    let targetSpeed = 0;
-    const cruiseSpeed = .036;
-    const pause = () => {
-      window.clearTimeout(resumeTimer);
-      resumeTimer = 0;
-      targetSpeed = 0;
-      carousel.dataset.autoplay = 'false';
-    };
-    const tick = timestamp => {
-      if (!lastFrame) lastFrame = timestamp;
-      const elapsed = Math.min(timestamp - lastFrame, 64);
-      lastFrame = timestamp;
-      const blend = 1 - Math.exp(-elapsed / 150);
-      currentSpeed += (targetSpeed - currentSpeed) * blend;
-      if (Math.abs(currentSpeed) < .0002 && targetSpeed === 0) currentSpeed = 0;
-      if (currentSpeed !== 0) {
-        viewport.scrollLeft += elapsed * currentSpeed;
-        normalizePosition();
-      }
-      animationFrame = window.requestAnimationFrame(tick);
-    };
-    const play = () => {
-      window.clearTimeout(resumeTimer);
-      resumeTimer = 0;
-      if (
-        reducedMotion ||
-        loopDistance() <= 0 ||
-        carousel.matches(':hover') ||
-        carousel.contains(document.activeElement)
-      ) {
-        targetSpeed = 0;
-        carousel.dataset.autoplay = 'false';
-        return;
-      }
-      carousel.dataset.autoplay = 'true';
-      targetSpeed = cruiseSpeed;
-    };
-    const move = direction => {
-      pause();
-      if (direction < 0 && viewport.scrollLeft <= 8) viewport.scrollLeft = loopDistance();
-      viewport.scrollBy({ left: direction * step(), behavior: 'smooth' });
-      resumeTimer = window.setTimeout(() => {
-        normalizePosition();
-        play();
-      }, 520);
-    };
-    previous.addEventListener('click', () => move(-1));
-    next.addEventListener('click', () => move(1));
-    carousel.addEventListener('mouseenter', pause);
-    carousel.addEventListener('mouseleave', play);
-    carousel.addEventListener('focusin', pause);
-    carousel.addEventListener('focusout', play);
-    play();
-    animationFrame = window.requestAnimationFrame(tick);
-    window.addEventListener('pagehide', () => window.cancelAnimationFrame(animationFrame), { once: true });
-  });
-</script>

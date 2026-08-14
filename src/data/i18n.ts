@@ -28,7 +28,7 @@ export const localeMeta: Record<
   zh: { label: 'Simplified Chinese', shortLabel: 'ZH', htmlLang: 'zh-CN', dir: 'ltr', ogLocale: 'zh_CN', flag: 'CN', countryCode: 'CN', regionName: 'China' },
   ar: { label: 'Arabic', shortLabel: 'AR', htmlLang: 'ar', dir: 'rtl', ogLocale: 'ar_AR', flag: 'SA', countryCode: 'SA', regionName: 'Arabic' },
   hi: { label: 'Hindi', shortLabel: 'HI', htmlLang: 'hi', dir: 'ltr', ogLocale: 'hi_IN', flag: 'IN', countryCode: 'IN', regionName: 'India' },
-  es: { label: 'Spanish', shortLabel: 'ES', htmlLang: 'es', dir: 'ltr', ogLocale: 'es_ES', flag: 'ES', countryCode: 'ES', regionName: 'Spain' },
+  es: { label: 'Español', shortLabel: 'ES', htmlLang: 'es', dir: 'ltr', ogLocale: 'es_ES', flag: 'ES', countryCode: 'ES', regionName: 'Spain' },
   fr: { label: 'French', shortLabel: 'FR', htmlLang: 'fr', dir: 'ltr', ogLocale: 'fr_FR', flag: 'FR', countryCode: 'FR', regionName: 'France' },
   bn: { label: 'Bengali', shortLabel: 'BN', htmlLang: 'bn', dir: 'ltr', ogLocale: 'bn_BD', flag: 'BD', countryCode: 'BD', regionName: 'Bangladesh' },
   pt: { label: 'Portuguese', shortLabel: 'PT', htmlLang: 'pt-BR', dir: 'ltr', ogLocale: 'pt_BR', flag: 'BR', countryCode: 'BR', regionName: 'Brazil' },

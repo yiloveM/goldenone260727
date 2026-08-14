@@ -132,14 +132,6 @@ body {
     radial-gradient(ellipse at 92% 34%, rgba(119, 240, 207, .16), transparent 38rem),
     linear-gradient(180deg, #ffffff 0%, var(--page-bg) 18%, var(--page-bg-soft) 48%, var(--page-bg) 76%, #ffffff 100%);
 }
-body.mobile-nav-open {
-  position: fixed;
-  top: var(--mobile-nav-scroll-y, 0);
-  left: 0;
-  right: 0;
-  width: 100%;
-  overflow: hidden;
-}
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 p { margin: 0; }

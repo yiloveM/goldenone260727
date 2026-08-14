@@ -278,7 +278,6 @@ const categorySearchEntries = navCategories.flatMap(category => {
                   <span class="product-series-chevron" aria-hidden="true"></span>
                 </summary>
                 <div class="product-series-submenu">
-                  <a href={category.href}>{navigationCategoryLabel(category)}</a>
                   <a href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
                 </div>
               </details>
@@ -426,20 +425,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
 
       const setMobileScrollLock = locked => {
         if (!mobileMenuQuery.matches) locked = false;
-        if (locked && !document.body.classList.contains('mobile-nav-open')) {
-          const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-          document.body.dataset.mobileNavScrollY = String(scrollY);
-          document.body.style.setProperty('--mobile-nav-scroll-y', `-${scrollY}px`);
-          document.body.classList.add('mobile-nav-open');
-          return;
-        }
-        if (!locked && document.body.classList.contains('mobile-nav-open')) {
-          const scrollY = Number(document.body.dataset.mobileNavScrollY || 0);
-          document.body.classList.remove('mobile-nav-open');
-          document.body.style.removeProperty('--mobile-nav-scroll-y');
-          delete document.body.dataset.mobileNavScrollY;
-          window.scrollTo(0, scrollY);
-        }
+        document.body.classList.toggle('mobile-nav-open', locked);
       };
 
       const closeProductsMenu = () => {
@@ -453,6 +439,14 @@ const categorySearchEntries = navCategories.flatMap(category => {
           switcher.classList.remove('is-open');
           switcher.querySelector('[data-language-trigger]')?.setAttribute('aria-expanded', 'false');
         });
+      };
+
+      const closeMobileMenu = () => {
+        navLinks?.classList.remove('open');
+        menuToggle?.setAttribute('aria-expanded', 'false');
+        setMobileScrollLock(false);
+        closeProductsMenu();
+        closeLanguageMenus();
       };
 
       languageSwitchers.forEach(switcher => {
@@ -475,10 +469,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
         navLinks?.classList.toggle('open', willOpen);
         menuToggle.setAttribute('aria-expanded', String(willOpen));
         setMobileScrollLock(willOpen);
-        if (!willOpen) {
-          closeProductsMenu();
-          closeLanguageMenus();
-        }
+        if (!willOpen) closeMobileMenu();
       });
 
       productsTrigger?.addEventListener('click', event => {
@@ -494,30 +485,31 @@ const categorySearchEntries = navCategories.flatMap(category => {
         if (!(target instanceof Node)) return;
         if (!productsNav?.contains(target)) closeProductsMenu();
         if (!languageSwitchers.some(switcher => switcher.contains(target))) closeLanguageMenus();
+        if (
+          mobileMenuQuery.matches
+          && navLinks?.classList.contains('open')
+          && !navLinks.contains(target)
+          && !menuToggle?.contains(target)
+        ) closeMobileMenu();
       });
 
       document.addEventListener('keydown', event => {
         if (event.key !== 'Escape') return;
         closeProductsMenu();
         closeLanguageMenus();
-        if (mobileMenuQuery.matches) {
-          navLinks?.classList.remove('open');
-          menuToggle?.setAttribute('aria-expanded', 'false');
-          setMobileScrollLock(false);
-        }
+        if (mobileMenuQuery.matches) closeMobileMenu();
       });
 
       mobileMenuQuery.addEventListener('change', event => {
         if (event.matches) return;
-        navLinks?.classList.remove('open');
-        menuToggle?.setAttribute('aria-expanded', 'false');
-        setMobileScrollLock(false);
-        closeProductsMenu();
-        closeLanguageMenus();
+        closeMobileMenu();
       });
     </script>
     <script is:inline>
       const initMarqueeDrag = ({ shell, track, duration = 42, direction = 'rtl' }) => {
+        if (track.children.length < 2) return;
+        if (shell.dataset.marqueeReady === 'true') return;
+        shell.dataset.marqueeReady = 'true';
         const directionSign = direction === 'ltr' ? 1 : -1;
         let visualX = 0;
         let startX = 0;
@@ -531,11 +523,23 @@ const categorySearchEntries = navCategories.flatMap(category => {
         let lastPointerTime = 0;
         let velocity = 0;
         let rafId = 0;
+        let hoverPaused = false;
+        let focusPaused = false;
         const dragThreshold = 8;
         const friction = 0.94;
         const mobileCarouselQuery = window.matchMedia('(max-width: 780px)');
 
-        const getLoopDistance = () => Math.max(1, track.scrollWidth / 2);
+        const getGap = () => {
+          const styles = window.getComputedStyle(track);
+          return Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+        };
+        const getLoopDistance = () => Math.max(1, track.scrollWidth / 2 + getGap() / 2);
+        const getStep = () => {
+          const firstItem = track.firstElementChild;
+          return firstItem instanceof HTMLElement
+            ? firstItem.getBoundingClientRect().width + getGap()
+            : Math.max(280, shell.clientWidth * .72);
+        };
         const wrapVisualX = value => {
           const loopDistance = getLoopDistance();
           let wrapped = value % loopDistance;
@@ -551,7 +555,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
           if (!lastFrameTime) lastFrameTime = timestamp;
           const elapsed = Math.min(64, timestamp - lastFrameTime);
           lastFrameTime = timestamp;
-          if (!pointerActive && !document.hidden) {
+          if (!pointerActive && !hoverPaused && !focusPaused && !document.hidden) {
             const speedMultiplier = mobileCarouselQuery.matches ? 2 : 1;
             const speed = getLoopDistance() * speedMultiplier / (duration * 1000);
             if (Math.abs(velocity) > 0.02) {
@@ -568,6 +572,32 @@ const categorySearchEntries = navCategories.flatMap(category => {
         track.style.animation = 'none';
         setVisualX(0);
         rafId = window.requestAnimationFrame(tick);
+
+        shell.querySelector('[data-marquee-prev]')?.addEventListener('click', event => {
+          velocity = 0;
+          setVisualX(visualX + getStep());
+          if (event.detail > 0 && event.currentTarget instanceof HTMLElement) event.currentTarget.blur();
+        });
+        shell.querySelector('[data-marquee-next]')?.addEventListener('click', event => {
+          velocity = 0;
+          setVisualX(visualX - getStep());
+          if (event.detail > 0 && event.currentTarget instanceof HTMLElement) event.currentTarget.blur();
+        });
+
+        shell.addEventListener('mouseenter', () => { hoverPaused = true; });
+        shell.addEventListener('mouseleave', () => { hoverPaused = false; });
+        shell.addEventListener('focusin', event => {
+          focusPaused = event.target instanceof Element && event.target.matches(':focus-visible');
+        });
+        shell.addEventListener('focusout', event => {
+          if (!(event.relatedTarget instanceof Node) || !shell.contains(event.relatedTarget)) {
+            focusPaused = false;
+            return;
+          }
+          window.requestAnimationFrame(() => {
+            focusPaused = Boolean(shell.querySelector(':focus-visible'));
+          });
+        });
 
         shell.addEventListener('pointerdown', event => {
           if (!event.isPrimary) return;
