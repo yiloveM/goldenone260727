@@ -129,7 +129,18 @@ const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
 const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
 const productSearchLabel = pageLocale === 'es' ? 'Buscar series de regalos' : 'Search gift series';
-const categorySearchEntries = navCategories.map(category => ({ name: category.displayName || category.name, href: category.href }));
+const navigationCategoryLabel = (category: { slug: string; displayName?: string; name: string }) =>
+  category.slug === 'metal-and-wooden-plaque' ? 'Shield Plaque' : category.displayName || category.name;
+const fridgeMagnetsCategory = navCategories.find(category => category.slug === 'fridge-magnets');
+const primaryNavCategories = navCategories.filter(category => category.slug !== 'fridge-magnets');
+const categorySearchEntries = navCategories.flatMap(category => {
+  const label = navigationCategoryLabel(category);
+  const originalLabel = category.displayName || category.name;
+  return [
+    { name: label, href: category.href },
+    ...(label !== originalLabel ? [{ name: originalLabel, href: category.href }] : []),
+  ];
+});
 ---
 <!doctype html>
 <html lang={localeInfo.htmlLang} dir={localeInfo.dir}>
@@ -188,7 +199,7 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
             <label class="sr-only" for="site-product-search">{productSearchLabel}</label>
             <input id="site-product-search" type="search" name="q" placeholder={`${productSearchLabel}...`} autocomplete="off" list="site-product-categories" data-site-search-input />
             <datalist id="site-product-categories">
-              {navCategories.map(category => <option value={category.displayName || category.name}></option>)}
+              {navCategories.map(category => <option value={navigationCategoryLabel(category)}></option>)}
             </datalist>
             <button type="submit" aria-label={productSearchLabel}><span aria-hidden="true"></span></button>
           </form>
@@ -206,16 +217,22 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
                   <div class="mega-menu" aria-label="Product category navigation">
                     <div class="mega-menu-shell">
                       <div class="mega-category-list">
-                        {navCategories.map(category => (
+                        {primaryNavCategories.map(category => (
                           <div class="mega-category-item">
-                            <a class="mega-category-link" href={category.href}><span>{category.displayName || category.name}</span></a>
+                            <a class="mega-category-link" href={category.href}><span>{navigationCategoryLabel(category)}</span></a>
                             <div class="mega-product-flyout" aria-label={`${category.name} products`}>
+                              {category.slug === 'more-metal-crafts' && fridgeMagnetsCategory && (
+                                <a class="mega-subcategory-link" href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
+                              )}
                               {category.products.map(product => {
                                 const item = localizedProduct(product, pageLocale);
                                 return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
                               })}
-                              <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {category.displayName || category.name}</a>
+                              <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {navigationCategoryLabel(category)}</a>
                             </div>
+                            {category.slug === 'more-metal-crafts' && fridgeMagnetsCategory && (
+                              <a class="mega-mobile-subcategory" href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -254,7 +271,18 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
       {navCategories.length > 0 && (
         <nav class="product-series-bar" aria-label="Product series navigation">
           <div class="product-series-nav">
-            {navCategories.map(category => <a href={category.href}>{category.displayName || category.name}</a>)}
+            {primaryNavCategories.map(category => category.slug === 'more-metal-crafts' && fridgeMagnetsCategory ? (
+              <details class="product-series-group">
+                <summary>
+                  <span>{navigationCategoryLabel(category)}</span>
+                  <span class="product-series-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="product-series-submenu">
+                  <a href={category.href}>{navigationCategoryLabel(category)}</a>
+                  <a href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
+                </div>
+              </details>
+            ) : <a href={category.href}>{navigationCategoryLabel(category)}</a>)}
           </div>
         </nav>
       )}
@@ -262,7 +290,8 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
     <slot />
     {!isContactPage && <InquiryCart locale={pageLocale} />}
     <BackToTop label={dictionary.common.backToTop} />
-    <div class:list={['side-contact', { 'side-contact--contact-page': isContactPage }]} aria-label={dictionary.sideContact.label}>
+    <aside class:list={['side-contact', { 'side-contact--contact-page': isContactPage }]} aria-label={dictionary.sideContact.label}>
+      <span class="side-contact-label" aria-hidden="true">{dictionary.nav.contact}</span>
       {hasWhatsApp && <a class="side-contact-link side-contact-link--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" title="WhatsApp" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
         <span class="side-contact-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" role="img">
@@ -282,7 +311,7 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
         </span>
         <span class="side-contact-note"><strong>{dictionary.sideContact.inquiry}</strong><small>{dictionary.sideContact.inquiryNote}</small></span>
       </a>
-    </div>
+    </aside>
     <footer class="footer">
       <div class="container footer-shell">
         <div class="footer-brand-card">
@@ -353,7 +382,7 @@ const categorySearchEntries = navCategories.map(category => ({ name: category.di
       const setHeaderHidden = hidden => {
         if (!siteHeader) return;
         const navigationIsOpen = document.body.classList.contains('mobile-nav-open')
-          || Boolean(siteHeader.querySelector('.is-open'));
+          || Boolean(siteHeader.querySelector('.is-open, details[open]'));
         siteHeader.classList.toggle('is-wheel-hidden', hidden && !navigationIsOpen && window.scrollY > 8);
       };
 

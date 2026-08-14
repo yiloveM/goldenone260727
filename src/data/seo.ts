@@ -108,7 +108,7 @@ export const organizationStructuredData = (site?: URL | string | null): JsonLd =
   ...(siteInfo.phone ? { telephone: siteInfo.phone } : {}),
   ...(siteInfo.address ? { address: siteInfo.address } : {}),
   logo: absoluteUrl(brandAssets.logo, site),
-  sameAs: uniqueList([siteInfo.x, siteInfo.pinterest]),
+  sameAs: uniqueList(siteInfo.socialProfiles),
 });
 
 export const websiteStructuredData = (site?: URL | string | null): JsonLd => ({

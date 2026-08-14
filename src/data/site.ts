@@ -11,6 +11,7 @@ export const siteInfo = {
   whatsapp: industryProfile.brand.whatsapp,
   address: industryProfile.brand.address,
   factoryAddress: industryProfile.brand.factoryAddress,
+  socialProfiles: industryProfile.brand.socialProfiles.filter(url => /^https:\/\//i.test(url)),
   x: industryProfile.brand.socialProfiles.find(url => /x\.com|twitter\.com/i.test(url)) || '',
   pinterest: industryProfile.brand.socialProfiles.find(url => /pinterest\.com/i.test(url)) || '',
 };
@@ -21,6 +22,7 @@ const socialIcon = (url: string) => {
   if (/youtube\.com|youtu\.be/i.test(url)) return { name: 'YouTube', icon: '/icons/youtube.svg' };
   if (/x\.com|twitter\.com/i.test(url)) return { name: 'X', icon: '/icons/x.svg' };
   if (/pinterest\.com/i.test(url)) return { name: 'Pinterest', icon: '/icons/pinterest.svg' };
+  if (/alibaba\.com/i.test(url)) return { name: 'Alibaba.com', icon: '/icons/alibaba.svg' };
   return { name: 'Social profile', icon: '/icons/x.svg' };
 };
 
