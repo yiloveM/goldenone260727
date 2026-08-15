@@ -4,7 +4,7 @@ import { getLocaleFromPathname, ui } from '../data/i18n';
 
 const visiblePartners = partnerLogos.filter(partner => partner.name.trim());
 const copy = ui[getLocaleFromPathname(Astro.url.pathname)].partners;
-const localizedPartners = visiblePartners.map((partner, index) => copy.items[index] || partner);
+const localizedPartners = visiblePartners.map((partner, index) => ({ ...partner, ...(copy.items[index] || {}) }));
 ---
 
 {localizedPartners.length > 0 && (
@@ -19,7 +19,7 @@ const localizedPartners = visiblePartners.map((partner, index) => copy.items[ind
           const duplicate = index >= localizedPartners.length;
           return (
             <div class="partner-band__mark" role={duplicate ? undefined : 'listitem'} aria-hidden={duplicate ? 'true' : undefined}>
-              <span aria-hidden="true">{String((index % localizedPartners.length) + 1).padStart(2, '0')}</span>
+              <img src={partner.icon} width="48" height="48" alt="" loading="lazy" decoding="async" />
               <strong>{partner.name}</strong>
               <small>{partner.descriptor}</small>
             </div>
@@ -61,8 +61,10 @@ const localizedPartners = visiblePartners.map((partner, index) => copy.items[ind
   .partner-band__viewport {
     width: 100%;
     overflow: hidden;
+    padding: 10px 0;
     border-top: 1px solid #d6e1e3;
     border-bottom: 1px solid #d6e1e3;
+    background: #f8faf8;
   }
 
   .partner-band__rail {
@@ -82,21 +84,28 @@ const localizedPartners = visiblePartners.map((partner, index) => copy.items[ind
     align-items: flex-start;
     justify-content: center;
     min-height: 132px;
-    padding: 24px 32px;
+    padding: 22px 30px;
     border-right: 1px solid #d6e1e3;
     background: #f8faf8;
-    transition: background-color .25s ease;
+    transform: scale(1);
+    transition: background-color .25s ease, box-shadow .25s ease, transform .25s ease;
   }
 
   .partner-band__mark:hover {
+    z-index: 1;
     background: #edf5f1;
+    box-shadow: 0 12px 28px rgba(28, 73, 66, .14);
+    transform: scale(1.045);
   }
 
-  .partner-band__mark span {
-    margin-bottom: 12px;
-    color: #0d8984;
-    font-size: .68rem;
-    font-weight: 800;
+  .partner-band__mark img {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 14px;
+    padding: 9px;
+    border-radius: 50%;
+    background: #dff1ec;
+    object-fit: contain;
   }
 
   .partner-band__mark strong {
@@ -123,7 +132,8 @@ const localizedPartners = visiblePartners.map((partner, index) => copy.items[ind
     .partner-band { padding: 64px 0 70px; }
     .partner-band__header { display: block; margin-bottom: 28px; }
     .partner-band__header h2 { font-size: 2.55rem; }
-    .partner-band__mark { flex-basis: 170px; min-height: 104px; padding: 20px 24px; }
+    .partner-band__mark { flex-basis: 180px; min-height: 122px; padding: 20px 24px; }
+    .partner-band__mark img { width: 42px; height: 42px; margin-bottom: 11px; padding: 8px; }
     .partner-band__mark strong { font-size: .9rem; }
   }
 
