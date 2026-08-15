@@ -112,6 +112,7 @@ const contactPath = `${localizePath('/contact/', locale)}#contact-form`;
         if (!panel || !trigger) return;
         panel.hidden = !open;
         trigger.setAttribute('aria-expanded', String(open));
+        if (open) window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-open'));
       };
 
       const render = ({ open = false } = {}) => {
@@ -196,6 +197,7 @@ const contactPath = `${localizePath('/contact/', locale)}#contact-form`;
       window.addEventListener('businessweb:inquiry-cart-change', event => {
         render({ open: Boolean(event.detail?.open) });
       });
+      window.addEventListener('businessweb:contact-action-open', () => setOpen(false));
 
       render();
     });

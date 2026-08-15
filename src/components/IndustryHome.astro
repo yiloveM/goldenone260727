@@ -17,12 +17,11 @@ interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
 const pages = getPageCopy(locale);
 const productHref = localizePath('/products/', locale);
-const allCategories = brandShowcase.map((item, index) => ({
+const allCategories = brandShowcase.map(item => ({
   ...item,
   title: translateTechnicalText(item.title, locale),
   label: translateTechnicalText(item.label, locale),
   keywords: item.keywords.map(keyword => translateTechnicalText(keyword, locale)),
-  number: String(index + 1).padStart(2, '0'),
   href: localizePath(`/products/category/${slugifyCategory(item.title)}/`, locale),
 }));
 const categories = allCategories.slice(0, 6);
@@ -78,7 +77,7 @@ const homeStructuredData = [
               <a href={category.href} aria-label={`Explore ${category.title}`}>
                 <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
                 <div class="format-card__copy">
-                  <span>{category.number}</span><h3>{category.title}</h3><p>{category.label}</p>
+                  <h3>{category.title}</h3><p>{category.label}</p>
                   <div class="format-card__tags" aria-label={`${category.title} keywords`}>
                     {category.keywords.map(keyword => <span>{keywordTag(keyword)}</span>)}
                   </div>
