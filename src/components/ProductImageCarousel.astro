@@ -1,5 +1,6 @@
 ---
 import PublicImage from './public/PublicImage.astro';
+import { getLocaleFromPathname, ui } from '../data/i18n';
 interface Props {
   images?: string[];
   title: string;
@@ -10,6 +11,7 @@ interface Props {
 const { images = [], title, variant = 'stage', priority = false } = Astro.props;
 const carouselImages = images.filter(Boolean).slice(0, 8);
 const hasControls = carouselImages.length > 1;
+const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 ---
 <div
   class={`product-image-carousel product-image-carousel--${variant}${hasControls ? ' has-multiple-images' : ''}`}
@@ -34,10 +36,10 @@ const hasControls = carouselImages.length > 1;
   </div>
   {hasControls && (
     <>
-      <button class="product-image-carousel__nav product-image-carousel__nav--prev" type="button" aria-label="Previous product image" data-carousel-prev>
+      <button class="product-image-carousel__nav product-image-carousel__nav--prev" type="button" aria-label={common.previousProductImage} data-carousel-prev>
         <span aria-hidden="true">&lsaquo;</span>
       </button>
-      <button class="product-image-carousel__nav product-image-carousel__nav--next" type="button" aria-label="Next product image" data-carousel-next>
+      <button class="product-image-carousel__nav product-image-carousel__nav--next" type="button" aria-label={common.nextProductImage} data-carousel-next>
         <span aria-hidden="true">&rsaquo;</span>
       </button>
       <div class="product-image-carousel__dots" aria-hidden="true">

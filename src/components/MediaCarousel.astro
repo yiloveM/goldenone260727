@@ -1,4 +1,6 @@
 ---
+import { getLocaleFromPathname, ui } from '../data/i18n';
+
 interface MediaItem { title: string; image: string }
 interface Props {
   items: MediaItem[];
@@ -10,6 +12,7 @@ interface Props {
 }
 const { items, eyebrow, title, description = '', id, compact = false } = Astro.props;
 const loopItems = items.length > 1 ? [...items, ...items] : items;
+const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 ---
 
 <section class:list={['media-carousel-section', compact && 'media-carousel-section--compact']} aria-labelledby={`${id}-title`}>
@@ -18,7 +21,7 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
     {description && <p>{description}</p>}
   </div>
   <div class="media-carousel" data-marquee-shell data-marquee-duration="44" data-marquee-direction="rtl">
-    <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label="Previous image" data-marquee-prev>&#8249;</button>
+    <button type="button" class="media-carousel-control media-carousel-control--prev" aria-label={common.previousImage} data-marquee-prev>&#8249;</button>
     <div class="media-carousel-viewport" data-media-viewport tabindex="0" aria-label={title}>
       <div class="media-carousel-track" data-marquee-track>
         {loopItems.map((item, index) => (
@@ -29,6 +32,6 @@ const loopItems = items.length > 1 ? [...items, ...items] : items;
         ))}
       </div>
     </div>
-    <button type="button" class="media-carousel-control media-carousel-control--next" aria-label="Next image" data-marquee-next>&#8250;</button>
+    <button type="button" class="media-carousel-control media-carousel-control--next" aria-label={common.nextImage} data-marquee-next>&#8250;</button>
   </div>
 </section>

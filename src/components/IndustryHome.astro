@@ -7,8 +7,8 @@ import MediaCarousel from './MediaCarousel.astro';
 import '../styles/home-tailwind.css';
 import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
-import { type Locale, getPageCopy, localizePath, translateTechnicalText } from '../data/i18n';
-import { slugifyCategory } from '../data/productCategories';
+import { type Locale, getPageCopy, localizePath, translateCategoryMeta, translateTechnicalText, ui } from '../data/i18n';
+import { getCategoryMeta, slugifyCategory } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
@@ -16,15 +16,20 @@ import { keywordTag } from '../lib/keyword-tags';
 interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
 const pages = getPageCopy(locale);
+const dictionary = ui[locale];
 const productHref = localizePath('/products/', locale);
-const allCategories = brandShowcase.map(item => ({
-  ...item,
-  title: translateTechnicalText(item.title, locale),
-  label: translateTechnicalText(item.label, locale),
-  keywords: item.keywords.map(keyword => translateTechnicalText(keyword, locale)),
-  href: localizePath(`/products/category/${slugifyCategory(item.title)}/`, locale),
-}));
+const allCategories = brandShowcase.map(item => {
+  const category = translateCategoryMeta(getCategoryMeta(item.title), locale);
+  return {
+    ...item,
+    title: category.displayName || category.name,
+    label: category.description,
+    keywords: category.highlights,
+    href: localizePath(`/products/category/${slugifyCategory(item.title)}/`, locale),
+  };
+});
 const categories = allCategories.slice(0, 6);
+const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: translateTechnicalText(item.title, locale) }));
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
@@ -33,7 +38,9 @@ const homeStructuredData = [
     description: pages.home.description,
     url: localizePath('/', locale),
     image: brandAssets.heroRippleDesktop,
-    keywords: profileKeywords([industryProfile.market.industry]),
+    keywords: locale === 'en'
+      ? profileKeywords([industryProfile.market.industry])
+      : [pages.home.collectionEyebrow, ...allCategories.flatMap(category => [category.title, ...category.keywords])],
     items: allCategories.map(category => ({ name: category.title, url: category.href, image: category.image })),
   }, Astro.site),
 ];
@@ -42,24 +49,24 @@ const homeStructuredData = [
 <BaseLayout title={siteInfo.name} description={pages.home.description} image={brandAssets.heroRippleDesktop} preloadHomeHero structuredData={homeStructuredData} locale={locale}>
   <main class="metal-home signature-home" data-tailwind-homepage="tw:signature-product">
     <section class="conversion-hero" aria-labelledby="conversion-hero-title">
-      <img class="conversion-hero__image" src={brandAssets.heroRippleDesktop} alt="Custom metal gift collection" width="1792" height="1024" fetchpriority="high" decoding="async" />
+      <img class="conversion-hero__image" src={brandAssets.heroRippleDesktop} alt={pages.home.conversionHeroAlt} width="1792" height="1024" fetchpriority="high" decoding="async" />
       <div class="conversion-hero__shade" aria-hidden="true"></div>
       <div class="metal-shell conversion-hero__inner">
         <div class="conversion-hero__copy">
           <span class="conversion-hero__pill conversion-hero__pill--rating">
-            <strong>Alibaba 5-Star Store</strong>
-            <span aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+            <strong>{pages.home.storeRating}</strong>
+            <span aria-label={pages.home.fiveStarLabel}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
           </span>
-          <h1 id="conversion-hero-title">Premium Custom Metal Gifts That Honor Every Occasion</h1>
-          <p>Turn your logo, sketch, or idea into custom pins, challenge coins, medals, and keychains with a clear specification and presentation direction.</p>
+          <h1 id="conversion-hero-title">{pages.home.conversionTitle}</h1>
+          <p>{pages.home.conversionDescription}</p>
           <div class="conversion-hero__actions">
-            <a class="signature-button signature-button--orange" href="#free-design">Get a free design <span aria-hidden="true">&#8594;</span></a>
-            <a class="signature-button signature-button--outline" href={productHref}>Explore products</a>
+            <a class="signature-button signature-button--orange" href="#free-design">{pages.home.freeDesign} <span aria-hidden="true">&#8594;</span></a>
+            <a class="signature-button signature-button--outline" href={productHref}>{pages.home.exploreProducts}</a>
           </div>
           <ul class="conversion-hero__points">
-            <li>Artwork and specification guidance</li>
-            <li>Custom shape, finish, color, and packaging</li>
-            <li>Built for brands, events, recognition, and merchandise</li>
+            <li>{pages.home.heroPoint1}</li>
+            <li>{pages.home.heroPoint2}</li>
+            <li>{pages.home.heroPoint3}</li>
           </ul>
         </div>
       </div>
@@ -68,17 +75,17 @@ const homeStructuredData = [
     <section class="collection-reframe metal-section" aria-labelledby="collection-title">
       <div class="metal-shell">
         <header class="collection-reframe__header">
-          <div><span class="metal-kicker">Custom gifts for every purpose</span><h2 id="collection-title">Explore all of our custom gift series.</h2></div>
-          <p>Start with the product family closest to your idea, then compare shape, material, finish, color, hardware, and presentation.</p>
+          <div><span class="metal-kicker">{pages.home.collectionEyebrow}</span><h2 id="collection-title">{pages.home.collectionTitle}</h2></div>
+          <p>{pages.home.collectionDescription}</p>
         </header>
         <div class="collection-reframe__grid">
           {categories.map(category => (
             <article class="format-card">
-              <a href={category.href} aria-label={`Explore ${category.title}`}>
+              <a href={category.href} aria-label={`${pages.home.exploreCategory}: ${category.title}`}>
                 <div class="format-card__image"><img src={category.image} alt={category.title} width="1456" height="1092" loading="lazy" decoding="async" /></div>
                 <div class="format-card__copy">
                   <h3>{category.title}</h3><p>{category.label}</p>
-                  <div class="format-card__tags" aria-label={`${category.title} keywords`}>
+                  <div class="format-card__tags" aria-label={`${category.title}: ${dictionary.common.keywords}`}>
                     {category.keywords.map(keyword => <span>{keywordTag(keyword)}</span>)}
                   </div>
                   <i aria-hidden="true">&#8594;</i>
@@ -94,20 +101,20 @@ const homeStructuredData = [
       <div class="metal-shell briefing-rhythm__layout">
         <div class="briefing-rhythm__content">
           <header class="briefing-rhythm__header">
-            <span class="metal-kicker">Custom design process</span>
-            <h2 id="briefing-title">How We Make It Happen</h2>
-            <p>From idea to delivery: a clear step-by-step path for your custom gift project.</p>
+            <span class="metal-kicker">{pages.home.processEyebrow}</span>
+            <h2 id="briefing-title">{pages.home.processTitle}</h2>
+            <p>{pages.home.processDescription}</p>
           </header>
           <ol>
-            <li><span class="briefing-rhythm__step"><b>Step 1</b><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"/></svg></span><strong>Send Us Your Ideas</strong><p>Share a sketch, logo, photo, or reference object.</p></li>
-            <li><span class="briefing-rhythm__step"><b>Step 2</b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span><strong>Receive Your Custom Proof</strong><p>We shape the direction around form, finish, color, and hardware.</p></li>
-            <li><span class="briefing-rhythm__step"><b>Step 3</b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 9"/></svg></span><strong>Approve and Production Begins</strong><p>Confirm the artwork and project specification before production.</p></li>
-            <li><span class="briefing-rhythm__step"><b>Step 4</b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v11H3Z"/><path d="M14 10h4l3 3v4h-7Z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg></span><strong>Your Order Gets Shipped</strong><p>Complete delivery details and move the finished order forward.</p></li>
+            <li><span class="briefing-rhythm__step"><b>{pages.home.step1Label}</b><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"/></svg></span><strong>{pages.home.step1Title}</strong><p>{pages.home.step1Description}</p></li>
+            <li><span class="briefing-rhythm__step"><b>{pages.home.step2Label}</b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span><strong>{pages.home.step2Title}</strong><p>{pages.home.step2Description}</p></li>
+            <li><span class="briefing-rhythm__step"><b>{pages.home.step3Label}</b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16.5 9"/></svg></span><strong>{pages.home.step3Title}</strong><p>{pages.home.step3Description}</p></li>
+            <li><span class="briefing-rhythm__step"><b>{pages.home.step4Label}</b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v11H3Z"/><path d="M14 10h4l3 3v4h-7Z"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/></svg></span><strong>{pages.home.step4Title}</strong><p>{pages.home.step4Description}</p></li>
           </ol>
-          <a class="briefing-rhythm__cta" href="#free-design">Start Your Free Design <span aria-hidden="true">&#8594;</span></a>
+          <a class="briefing-rhythm__cta" href="#free-design">{pages.home.startFreeDesign} <span aria-hidden="true">&#8594;</span></a>
         </div>
         <figure class="briefing-rhythm__visual">
-          <img src="/images/metal-gifts/custom-design-process-placeholder.webp" alt="Custom metal gift sketch compared with the finished product" width="1440" height="1080" loading="lazy" decoding="async" />
+          <img src="/images/metal-gifts/custom-design-process-placeholder.webp" alt={pages.home.processImageAlt} width="1440" height="1080" loading="lazy" decoding="async" />
         </figure>
       </div>
     </section>
@@ -115,10 +122,10 @@ const homeStructuredData = [
     <section class="design-upload" id="free-design" aria-labelledby="design-upload-title">
       <div class="metal-shell design-upload__grid">
         <div class="design-upload__intro">
-          <span class="metal-kicker">Start with your artwork</span>
-          <h2 id="design-upload-title">Ready to create something worth keeping?</h2>
-          <p>Upload a sketch, logo, reference image, or PDF. We will use it to begin a practical design and quotation conversation.</p>
-          <figure><img src="/images/metal-gifts/challenge-coin-collection-v2.webp" alt="Custom metal gift design reference" width="1456" height="1092" loading="lazy" decoding="async" /></figure>
+          <span class="metal-kicker">{pages.home.artworkEyebrow}</span>
+          <h2 id="design-upload-title">{pages.home.artworkTitle}</h2>
+          <p>{pages.home.artworkDescription}</p>
+          <figure><img src="/images/metal-gifts/challenge-coin-collection-v2.webp" alt={pages.home.artworkImageAlt} width="1456" height="1092" loading="lazy" decoding="async" /></figure>
         </div>
         <ArtworkBriefForm />
       </div>
@@ -128,16 +135,16 @@ const homeStructuredData = [
 
     <section class="material-edit metal-section" aria-labelledby="material-edit-title">
       <div class="metal-shell material-edit__grid">
-        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt="Custom metal gift details" width="1600" height="900" loading="lazy" decoding="async" /></figure>
-        <div><span class="metal-kicker">Explore our custom formats</span><h2 id="material-edit-title">Details that make the object distinctly yours.</h2><p>Use the catalogue to compare the choices that affect appearance, hand-feel, attachment, and presentation.</p><dl><div><dt>Form</dt><dd>Shape, scale, thickness, front, reverse, and edge.</dd></div><div><dt>Surface</dt><dd>Enamel, print, relief, plating, polish, texture, and color.</dd></div><div><dt>Presentation</dt><dd>Backing, ribbon, hardware, leather, card, box, or individual packaging.</dd></div></dl><a class="material-edit__link" href={productHref}>Browse the custom gift catalogue <span aria-hidden="true">&#8594;</span></a></div>
+        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt={pages.home.formatsImageAlt} width="1600" height="900" loading="lazy" decoding="async" /></figure>
+        <div><span class="metal-kicker">{pages.home.formatsEyebrow}</span><h2 id="material-edit-title">{pages.home.formatsTitle}</h2><p>{pages.home.formatsDescription}</p><dl><div><dt>{pages.home.formTerm}</dt><dd>{pages.home.formDescription}</dd></div><div><dt>{pages.home.surfaceTerm}</dt><dd>{pages.home.surfaceDescription}</dd></div><div><dt>{pages.home.presentationTerm}</dt><dd>{pages.home.presentationDescription}</dd></div></dl><a class="material-edit__link" href={productHref}>{pages.home.browseCatalog} <span aria-hidden="true">&#8594;</span></a></div>
       </div>
     </section>
 
     <MediaCarousel
-      items={factoryGallery}
-      eyebrow="Inside production"
-      title="A closer look at how custom work moves."
-      description="Tooling, metalworking, finishing, inspection, packing, and storage in one consistent gallery experience."
+      items={localizedFactoryGallery}
+      eyebrow={pages.home.productionEyebrow}
+      title={pages.home.productionTitle}
+      description={pages.home.productionDescription}
       id="home-factory"
     />
 

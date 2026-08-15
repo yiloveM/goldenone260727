@@ -4,7 +4,7 @@ import PageBanner from '../components/PageBanner.astro';
 import MediaCarousel from '../components/MediaCarousel.astro';
 import { factoryGallery, pageImages } from '../data/site';
 import { breadcrumbStructuredData } from '../data/seo';
-import { ui } from '../data/i18n';
+import { translateTechnicalText, ui } from '../data/i18n';
 import { getLocalizedFaqs, getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
 
@@ -16,6 +16,7 @@ const { locale } = Astro.props;
 const pages = getLocalizedPageCopy(locale);
 const faqs = getLocalizedFaqs(locale);
 const faqDescription = pages.faq.description;
+const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: translateTechnicalText(item.title, locale) }));
 const faqStructuredData = [
   {
     '@context': 'https://schema.org',
@@ -52,10 +53,10 @@ const faqStructuredData = [
       dir="ltr"
     />
     <MediaCarousel
-      items={factoryGallery}
-      eyebrow="Inside production"
-      title="A closer look before you order."
-      description="Production gallery"
+      items={localizedFactoryGallery}
+      eyebrow={pages.faq.productionEyebrow}
+      title={pages.faq.productionTitle}
+      description={pages.faq.productionDescription}
       id={`faq-production-${locale}`}
       compact
     />

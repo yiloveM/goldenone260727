@@ -1,22 +1,25 @@
 ---
 import { partnerLogos } from '../data/partnerLogos';
+import { getLocaleFromPathname, ui } from '../data/i18n';
 
 const visiblePartners = partnerLogos.filter(partner => partner.name.trim());
+const copy = ui[getLocaleFromPathname(Astro.url.pathname)].partners;
+const localizedPartners = visiblePartners.map((partner, index) => copy.items[index] || partner);
 ---
 
-{visiblePartners.length > 0 && (
+{localizedPartners.length > 0 && (
   <section class="partner-band" aria-labelledby="partner-band-title">
     <div class="metal-shell partner-band__header">
-      <p class="metal-kicker">Customer trust</p>
-      <h2 id="partner-band-title">Trusted by Customers Worldwide</h2>
+      <p class="metal-kicker">{copy.eyebrow}</p>
+      <h2 id="partner-band-title">{copy.title}</h2>
     </div>
-    <div class="partner-band__viewport" role="region" aria-label="Customer program groups">
+    <div class="partner-band__viewport" role="region" aria-label={copy.regionLabel}>
       <div class="partner-band__rail" role="list">
-        {[...visiblePartners, ...visiblePartners].map((partner, index) => {
-          const duplicate = index >= visiblePartners.length;
+        {[...localizedPartners, ...localizedPartners].map((partner, index) => {
+          const duplicate = index >= localizedPartners.length;
           return (
             <div class="partner-band__mark" role={duplicate ? undefined : 'listitem'} aria-hidden={duplicate ? 'true' : undefined}>
-              <span aria-hidden="true">{String((index % visiblePartners.length) + 1).padStart(2, '0')}</span>
+              <span aria-hidden="true">{String((index % localizedPartners.length) + 1).padStart(2, '0')}</span>
               <strong>{partner.name}</strong>
               <small>{partner.descriptor}</small>
             </div>

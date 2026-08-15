@@ -1,5 +1,8 @@
 ---
+import { getLocaleFromPathname, ui } from '../data/i18n';
+
 const pagePath = Astro.url.pathname;
+const copy = ui[getLocaleFromPathname(pagePath)].forms;
 ---
 
 <form
@@ -8,6 +11,11 @@ const pagePath = Astro.url.pathname;
   method="post"
   enctype="multipart/form-data"
   data-artwork-brief
+  data-upload-label={copy.uploadDesign}
+  data-captcha-error={copy.captchaError}
+  data-sending-label={copy.sendingBrief}
+  data-success-label={copy.briefSuccess}
+  data-error-label={copy.briefError}
   novalidate
 >
   <input type="hidden" name="captchaToken" data-captcha-token />
@@ -15,40 +23,40 @@ const pagePath = Astro.url.pathname;
   <input type="hidden" name="inquiryItems" value="[]" />
   <input type="hidden" name="formType" value="artwork-brief" />
   <div class="form-trap" aria-hidden="true">
-    <label>Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+    <label>{copy.website} <input name="website" tabindex="-1" autocomplete="off" /></label>
   </div>
 
   <div class="artwork-brief__heading">
-    <span>01 / Your starting point</span>
-    <h2>Show us the idea.</h2>
-    <p>A sketch, logo, reference image, or PDF is enough to start a conversation.</p>
+    <span>{copy.artworkStart}</span>
+    <h2>{copy.artworkTitle}</h2>
+    <p>{copy.artworkIntroduction}</p>
   </div>
 
   <label class="artwork-dropzone" data-artwork-dropzone>
     <input name="artwork" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" data-artwork-input required />
     <span class="artwork-dropzone__icon" aria-hidden="true">+</span>
-    <strong data-artwork-file-label>Upload your design sketch</strong>
-    <small>JPG, PNG, WEBP, or PDF · up to 5 MB</small>
+    <strong data-artwork-file-label>{copy.uploadDesign}</strong>
+    <small>{copy.uploadFormats}</small>
   </label>
 
-  <label class="artwork-brief__label" for="artwork-description">Describe your idea <em>(optional)</em></label>
-  <textarea id="artwork-description" name="artworkDescription" rows="3" placeholder="Product type, occasion, shape, finish, quantity, or anything you already know."></textarea>
+  <label class="artwork-brief__label" for="artwork-description">{copy.describeIdea} <em>({copy.optional})</em></label>
+  <textarea id="artwork-description" name="artworkDescription" rows="3" placeholder={copy.ideaPlaceholder}></textarea>
 
   <div class="artwork-brief__contact">
-    <label><span>Full name</span><input name="name" autocomplete="name" required /></label>
-    <label><span>Work email</span><input name="email" type="email" autocomplete="email" required /></label>
+    <label><span>{copy.fullName}</span><input name="name" autocomplete="name" required /></label>
+    <label><span>{copy.workEmail}</span><input name="email" type="email" autocomplete="email" required /></label>
   </div>
   <div class="artwork-brief__contact">
-    <label><span>Phone / WhatsApp</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" minlength="5" maxlength="80" required /></label>
-    <label><span>Country / region <em>(optional)</em></span><input name="country" autocomplete="country-name" /></label>
+    <label><span>{copy.phoneWhatsapp}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" minlength="5" maxlength="80" required /></label>
+    <label><span>{copy.countryRegion} <em>({copy.optional})</em></span><input name="country" autocomplete="country-name" /></label>
   </div>
 
   <div class="artwork-brief__captcha">
-    <div><span>Verification code</span><strong data-captcha-code>----</strong></div>
-    <input name="captcha" placeholder="Enter code" inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
-    <button type="button" data-captcha-refresh aria-label="Refresh verification code">↻</button>
+    <div><span>{copy.verificationCode}</span><strong data-captcha-code>----</strong></div>
+    <input name="captcha" placeholder={copy.enterCode} inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
+    <button type="button" data-captcha-refresh aria-label={copy.refreshCode}>↻</button>
   </div>
-  <button class="artwork-brief__submit" type="submit" data-submit>Get my free design <span aria-hidden="true">→</span></button>
+  <button class="artwork-brief__submit" type="submit" data-submit>{copy.freeDesign} <span aria-hidden="true">→</span></button>
   <p class="artwork-brief__status" data-form-status aria-live="polite"></p>
 </form>
 
@@ -67,7 +75,7 @@ const pagePath = Astro.url.pathname;
 
       const updateFileName = () => {
         const file = fileInput?.files?.[0];
-        fileLabel.textContent = file ? file.name : 'Upload your design sketch';
+        fileLabel.textContent = file ? file.name : form.dataset.uploadLabel;
         dropzone.classList.toggle('has-file', Boolean(file));
       };
       const loadCaptcha = async () => {
@@ -95,26 +103,26 @@ const pagePath = Astro.url.pathname;
         updateFileName();
       });
       refresh?.addEventListener('click', () => loadCaptcha().catch(() => {
-        status.textContent = 'Verification code could not load. Please refresh the page.';
+        status.textContent = form.dataset.captchaError;
       }));
-      loadCaptcha().catch(() => { status.textContent = 'Verification code could not load. Please refresh the page.'; });
+      loadCaptcha().catch(() => { status.textContent = form.dataset.captchaError; });
       form.addEventListener('submit', async event => {
         event.preventDefault();
         if (!form.reportValidity()) return;
         submit.disabled = true;
-        status.textContent = 'Sending your design brief…';
+        status.textContent = form.dataset.sendingLabel;
         status.dataset.state = 'pending';
         try {
           const response = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { accept: 'application/json' }, credentials: 'same-origin' });
           const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.ok) throw new Error(data.message || 'Send failed.');
+          if (!response.ok || !data.ok) throw new Error(form.dataset.errorLabel);
           form.reset();
           updateFileName();
-          status.textContent = data.message || 'Thank you. Your design brief has been sent.';
+          status.textContent = form.dataset.successLabel;
           status.dataset.state = 'success';
           await loadCaptcha();
         } catch (error) {
-          status.textContent = error instanceof Error ? error.message : 'The design brief could not be sent right now.';
+          status.textContent = error instanceof Error ? error.message : form.dataset.errorLabel;
           status.dataset.state = 'error';
         } finally {
           submit.disabled = false;

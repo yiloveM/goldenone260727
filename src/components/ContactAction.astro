@@ -1,4 +1,6 @@
 ---
+import { getLocaleFromPathname, ui } from '../data/i18n';
+
 interface Props {
   whatsapp?: string;
   email?: string;
@@ -6,59 +8,69 @@ interface Props {
 
 const { whatsapp = '', email = '' } = Astro.props;
 const pagePath = Astro.url.pathname;
+const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
 ---
 
 {(whatsapp || email) && (
-  <div class="contact-action" data-contact-action>
-    <button class="contact-action-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Contact us" data-contact-action-trigger>
-      <span class="contact-action-trigger__label">Contact us</span>
+  <div
+    class="contact-action"
+    data-contact-action
+    data-open-label={copy.contactUs}
+    data-close-label={copy.close}
+    data-captcha-error={copy.captchaError}
+    data-sending-label={copy.sending}
+    data-success-label={copy.success}
+    data-error-label={copy.sendError}
+  >
+    <button class="contact-action-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label={copy.contactUs} data-contact-action-trigger>
+      <span class="contact-action-trigger__label">{copy.contactUs}</span>
       <svg class="contact-action-trigger__close" viewBox="0 0 24 24" aria-hidden="true">
         <path d="m6 6 12 12M18 6 6 18" />
       </svg>
     </button>
-    <div class="contact-action-menu" role="dialog" aria-label="Contact options" aria-hidden="true" inert>
+    <div class="contact-action-menu" role="dialog" aria-label={copy.options} aria-hidden="true" inert>
       <header class="contact-action-menu__header">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M5 5.5h14v10H9l-4 3v-13Z" />
           <path d="M8.5 9h7M8.5 12h5" />
         </svg>
-        <strong>Let's discuss your custom project.</strong>
+        <strong>{copy.title}</strong>
       </header>
       <div class="contact-action-menu__body">
-        <p>Share your idea, artwork, or requirements with our custom gift team.</p>
+        <p>{copy.introduction}</p>
         <form class="contact-action-email-form" action="/api/contact" method="post" data-contact-action-form>
           <input type="hidden" name="captchaToken" data-contact-action-captcha-token />
           <input type="hidden" name="pagePath" value={pagePath} />
           <input type="hidden" name="inquiryItems" value="[]" />
           <input type="hidden" name="formType" value="quick-contact" />
           <div class="form-trap" aria-hidden="true">
-            <label>Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+            <label>{copy.website} <input name="website" tabindex="-1" autocomplete="off" /></label>
           </div>
           <label class="contact-action-field">
-            <span>Name</span>
+            <span>{copy.name}</span>
             <input name="name" autocomplete="name" required />
           </label>
           <label class="contact-action-field">
-            <span>Email</span>
+            <span>{copy.email}</span>
             <input name="email" type="email" autocomplete="email" required />
           </label>
           <label class="contact-action-field">
-            <span>Message</span>
+            <span>{copy.message}</span>
             <textarea name="message" rows="3" required></textarea>
           </label>
           <div class="contact-action-captcha">
             <strong data-contact-action-captcha-code>----</strong>
-            <input name="captcha" aria-label="Verification code" placeholder="Enter code" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required data-contact-action-captcha-input />
-            <button type="button" aria-label="Refresh verification code" title="Refresh verification code" data-contact-action-captcha-refresh>&#8635;</button>
+            <input name="captcha" aria-label={copy.verificationCode} placeholder={copy.enterCode} autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required data-contact-action-captcha-input />
+            <button type="button" aria-label={copy.refreshCode} title={copy.refreshCode} data-contact-action-captcha-refresh>&#8635;</button>
           </div>
-          <button class="contact-action-send" type="submit" data-contact-action-submit>Send email</button>
+          <button class="contact-action-send" type="submit" data-contact-action-submit>{copy.sendEmail}</button>
           <p class="contact-action-status" aria-live="polite" data-contact-action-status></p>
         </form>
         <div class="contact-action-menu__shortcuts">
-          <span>Or contact us directly</span>
+          <span>{copy.direct}</span>
           <div class="contact-action-menu__options">
           {whatsapp && (
-            <a class="contact-action-option contact-action-option--whatsapp" href={whatsapp} target="_blank" rel="noopener" aria-label="Contact us on WhatsApp">
+            <a class="contact-action-option contact-action-option--whatsapp" href={whatsapp} target="_blank" rel="noopener" aria-label={copy.whatsappLabel}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20.5 11.8a8.4 8.4 0 0 1-12.4 7.4L4 20l.9-3.9a8.4 8.4 0 1 1 15.6-4.3Z" />
                 <path d="M9.1 8.7c.3-.4.8-.4 1.1 0l.8.9c.2.2.3.6.1.9l-.3.7c.6 1.1 1.5 2 2.6 2.6l.8-.3c.3-.1.6 0 .9.2l.9.8c.3.3.3.8 0 1.1-.6.7-1.6.7-2.7.3-2.3-.8-4.3-2.8-5.1-5.1-.4-1.1-.3-2 .5-2.8Z" />
@@ -67,7 +79,7 @@ const pagePath = Astro.url.pathname;
             </a>
           )}
           {email && (
-            <a class="contact-action-option" href={`mailto:${email}`} aria-label="Contact us by email">
+            <a class="contact-action-option" href={`mailto:${email}`} aria-label={copy.emailLabel}>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4.5 6.5h15v11h-15Z" />
                 <path d="m5 7 7 6 7-6" />
@@ -102,7 +114,7 @@ const pagePath = Astro.url.pathname;
         if (captchaCode) captchaCode.textContent = '....';
         captchaLoading = fetch('/api/contact', { headers: { accept: 'application/json' }, credentials: 'same-origin' })
           .then(response => {
-            if (!response.ok) throw new Error('Verification code could not load.');
+            if (!response.ok) throw new Error(root.dataset.captchaError);
             return response.json();
           })
           .then(data => {
@@ -115,7 +127,7 @@ const pagePath = Astro.url.pathname;
             captchaLoaded = false;
             if (captchaCode) captchaCode.textContent = '----';
             if (status) {
-              status.textContent = error instanceof Error ? error.message : 'Verification code could not load.';
+              status.textContent = error instanceof Error ? error.message : root.dataset.captchaError;
               status.dataset.state = 'error';
             }
             throw error;
@@ -127,7 +139,7 @@ const pagePath = Astro.url.pathname;
       const setOpen = open => {
         root.classList.toggle('is-open', open);
         trigger?.setAttribute('aria-expanded', String(open));
-        trigger?.setAttribute('aria-label', open ? 'Close contact options' : 'Contact us');
+        trigger?.setAttribute('aria-label', open ? root.dataset.closeLabel : root.dataset.openLabel);
         menu?.setAttribute('aria-hidden', String(!open));
         if (menu instanceof HTMLElement) menu.inert = !open;
         if (open) {
@@ -167,7 +179,7 @@ const pagePath = Astro.url.pathname;
         }
         if (submit instanceof HTMLButtonElement) submit.disabled = true;
         if (status) {
-          status.textContent = 'Sending your message...';
+          status.textContent = root.dataset.sendingLabel;
           status.dataset.state = 'pending';
         }
         try {
@@ -178,18 +190,18 @@ const pagePath = Astro.url.pathname;
             credentials: 'same-origin',
           });
           const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.ok) throw new Error(data.message || 'The message could not be sent.');
+          if (!response.ok || !data.ok) throw new Error(root.dataset.errorLabel);
           form.reset();
           captchaLoaded = false;
           if (status) {
-            status.textContent = data.message || 'Thank you. Your message has been sent.';
+            status.textContent = root.dataset.successLabel;
             status.dataset.state = 'success';
           }
           await loadCaptcha();
         } catch (error) {
           captchaLoaded = false;
           if (status) {
-            status.textContent = error instanceof Error ? error.message : 'The message could not be sent.';
+            status.textContent = error instanceof Error ? error.message : root.dataset.errorLabel;
             status.dataset.state = 'error';
           }
           loadCaptcha().catch(() => {});

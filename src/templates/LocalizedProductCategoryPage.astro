@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import SeriesCard from '../components/SeriesCard.astro';
 import ShareButtons from '../components/ShareButtons.astro';
 import { brandAssets } from '../data/assets';
-import { breadcrumbStructuredData, categoryKeywords, collectionStructuredData } from '../data/seo';
+import { breadcrumbStructuredData, collectionStructuredData } from '../data/seo';
 import { localizedProduct, localizedProductUrl, translateTechnicalText, ui } from '../data/i18n';
 import { type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
@@ -37,7 +37,7 @@ const categoryStructuredData = [
       description: seoDescription,
       url: category.href,
       image: category.image,
-      keywords: categoryKeywords(category.name),
+      keywords: [categoryName, ...category.highlights],
       items: category.products.map(product => ({
         name: localizedProduct(product, locale).title,
         url: localizedProductUrl(product, locale),

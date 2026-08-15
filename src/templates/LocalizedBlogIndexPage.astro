@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
 import { pageImages } from '../data/site';
-import { industryProfile, primaryKeyword, profileKeywords } from '../data/industry-profile';
+import { industryProfile } from '../data/industry-profile';
 import { collectionStructuredData } from '../data/seo';
 import { isPublicBlogPost } from '../data/publicContent';
 import { blogPath, localeMeta, localizedBlog, translateTechnicalText } from '../data/i18n';
@@ -23,7 +23,7 @@ const blogStructuredData = collectionStructuredData(
     description: blogDescription,
     url: `/${locale}/blog/`,
     image: pageImages.engineeringNotes,
-    keywords: profileKeywords([primaryKeyword, 'buyer guide', 'technical notes']),
+    keywords: [pages.blog.title, pages.blog.bannerTitle, pages.blog.bannerDescription],
     items: posts.map(post => {
       const item = localizedBlog(post, locale);
       return {

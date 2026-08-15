@@ -5,7 +5,6 @@ import CategoryCard from '../components/CategoryCard.astro';
 import PageBanner from '../components/PageBanner.astro';
 import SeriesCard from '../components/SeriesCard.astro';
 import { pageImages } from '../data/site';
-import { primaryKeyword, profileKeywords } from '../data/industry-profile';
 import { buildProductCategories, isProductPublished, sortProductsByPriority } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { localizedProduct, localizedProductUrl, translateProductCategories, translateTechnicalText, ui } from '../data/i18n';
@@ -43,7 +42,7 @@ const catalogStructuredData = [
       description: catalogDescription,
       url: `/${locale}/products/`,
       image: pageImages.productsCatalog,
-      keywords: profileKeywords(['product catalog', primaryKeyword]),
+      keywords: [pages.products.title, pages.products.categoryTitle, ...productCategories.flatMap(category => [category.displayName || category.name, ...category.highlights])],
       items: sortedProducts.map(product => ({
         name: localizedProduct(product, locale).title,
         url: localizedProductUrl(product, locale),
@@ -71,7 +70,7 @@ const catalogStructuredData = [
     />
     <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
       <div class="glass-panel catalog-custom-panel">
-        <div class="catalog-banner-strip" aria-label="Catalog summary">
+        <div class="catalog-banner-strip" aria-label={ui[locale].common.catalogSummary}>
           <span tabindex="0"><strong>{sortedProducts.length}</strong> {pages.products.summaryProducts}</span>
           <span tabindex="0"><strong>{productCategories.length}</strong> {pages.products.summaryCategories}</span>
           <span tabindex="0"><strong>{translateTechnicalText('Ready', locale)}</strong> {pages.products.summaryFactory}</span>

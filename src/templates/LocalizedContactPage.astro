@@ -93,7 +93,7 @@ const contactStructuredData = [
         <p class="prose"><bdi dir="ltr">{mapAddress}</bdi></p>
       </div>
       <div class="glass-panel map-panel">
-        <iframe title="Business location on Google Maps" src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        <iframe title={ui[locale].common.businessLocationMap} src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         <div class="contact-map-bar" dir="ltr">
           <div><span>{translateTechnicalText('Business office', locale)}</span><strong>{mapAddress}</strong></div>
           <a href={mapLink} target="_blank" rel="noopener">{pages.contact.mapOpen}</a>

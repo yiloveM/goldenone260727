@@ -19,6 +19,7 @@ interface Props {
 
 const { labels, locale } = Astro.props;
 const cartCopy = ui[locale].inquiryCart;
+const formCopy = ui[locale].forms;
 const pagePath = Astro.url.pathname;
 ---
 
@@ -29,6 +30,10 @@ const pagePath = Astro.url.pathname;
   enctype="multipart/form-data"
   data-inquiry-form
   data-storage-key={INQUIRY_CART_STORAGE_KEY}
+  data-captcha-error={formCopy.captchaError}
+  data-sending-label={formCopy.sendingInquiry}
+  data-success-label={formCopy.inquirySuccess}
+  data-error-label={formCopy.inquiryError}
   dir="ltr"
 >
   <input type="hidden" name="captchaToken" data-captcha-token />
@@ -36,7 +41,7 @@ const pagePath = Astro.url.pathname;
   <input type="hidden" name="inquiryItems" value="[]" data-inquiry-items-input />
   <div class="form-trap" aria-hidden="true">
     <label>
-      Website
+      {formCopy.website}
       <input name="website" tabindex="-1" autocomplete="off" />
     </label>
   </div>
@@ -64,17 +69,17 @@ const pagePath = Astro.url.pathname;
   </div>
   <textarea name="message" placeholder={labels.message} style="margin-top:14px;" required></textarea>
   <label class="contact-artwork-upload" style="margin-top:14px;">
-    <span>Design file <em>(optional)</em></span>
+    <span>{formCopy.designFile} <em>({formCopy.optional})</em></span>
     <input name="artwork" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" />
-    <small>Attach a JPG, PNG, WEBP, or PDF up to 5 MB. It is delivered with your inquiry, not published to the website.</small>
+    <small>{formCopy.attachmentHelp}</small>
   </label>
   <div class="captcha-panel" style="margin-top:14px;">
     <div>
-      <span class="captcha-label">Verification code</span>
+      <span class="captcha-label">{formCopy.verificationCode}</span>
       <strong class="captcha-code" data-captcha-code>----</strong>
     </div>
-    <button class="captcha-refresh" type="button" data-captcha-refresh aria-label="Refresh verification code">Refresh</button>
-    <input class="input captcha-input" name="captcha" placeholder="Enter code" inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
+    <button class="captcha-refresh" type="button" data-captcha-refresh aria-label={formCopy.refreshCode}>{formCopy.refresh}</button>
+    <input class="input captcha-input" name="captcha" placeholder={formCopy.enterCode} inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
   </div>
   <button class="btn primary contact-submit-button" type="submit" style="margin-top:14px;">{labels.sendInquiry}</button>
   <p class="contact-form-status" data-form-status aria-live="polite"></p>
@@ -240,14 +245,14 @@ const pagePath = Astro.url.pathname;
       renderInquiryItems();
 
       loadCaptcha(form).catch(() => {
-        status.textContent = 'Verification code could not load. Please refresh this page.';
+        status.textContent = form.dataset.captchaError;
         status.dataset.state = 'error';
       });
 
       refreshButton?.addEventListener('click', () => {
         status.textContent = '';
         loadCaptcha(form).catch(() => {
-          status.textContent = 'Verification code could not load. Please refresh this page.';
+          status.textContent = form.dataset.captchaError;
           status.dataset.state = 'error';
         });
       });
@@ -258,7 +263,7 @@ const pagePath = Astro.url.pathname;
         if (!form.reportValidity()) return;
 
         submitButton.disabled = true;
-        status.textContent = 'Sending inquiry...';
+        status.textContent = form.dataset.sendingLabel;
         status.dataset.state = 'pending';
         const submittedItems = renderInquiryItems();
 
@@ -270,18 +275,18 @@ const pagePath = Astro.url.pathname;
             credentials: 'same-origin',
           });
           const data = await response.json().catch(() => ({}));
-          if (!response.ok || !data.ok) throw new Error(data.message || 'Send failed.');
+          if (!response.ok || !data.ok) throw new Error(form.dataset.errorLabel);
 
           form.reset();
           if (submittedItems.length > 0) {
             window.localStorage.removeItem(storageKey);
             window.dispatchEvent(new CustomEvent('businessweb:inquiry-cart-change'));
           }
-          status.textContent = data.message || 'Thank you. Your inquiry has been sent.';
+          status.textContent = form.dataset.successLabel;
           status.dataset.state = 'success';
           await loadCaptcha(form);
         } catch (error) {
-          status.textContent = error instanceof Error ? error.message : 'The inquiry could not be sent right now.';
+          status.textContent = error instanceof Error ? error.message : form.dataset.errorLabel;
           status.dataset.state = 'error';
           loadCaptcha(form).catch(() => {});
         } finally {

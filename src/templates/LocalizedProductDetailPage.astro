@@ -104,7 +104,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
               <span><bdi dir="ltr">{product.data.aggregateRatingValue}/5 ({product.data.aggregateRatingCount})</bdi></span>
             )}
           </div>
-          <div class="product-keyword-tags" aria-label={`${localized.title} keywords`}>
+          <div class="product-keyword-tags" aria-label={`${localized.title}: ${common.keywords}`}>
             {[productCategoryName, localized.series, ...localized.highlights.slice(0, 2)].map(keyword => (
               <span>{keywordTag(keyword)}</span>
             ))}
@@ -140,7 +140,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
           <section class="detail-panel">
             <span class="eyebrow">{pages.product.highlightsEyebrow}</span>
             <h2>{pages.product.highlightsTitle}</h2>
-            <ul class="product-highlights" aria-label={`${localized.title} highlights`} dir="ltr">
+            <ul class="product-highlights" aria-label={`${localized.title}: ${common.highlights}`} dir="ltr">
               {localized.highlights.map(item => (
                 <li class="highlight-card p-4 bg-slate-50 border border-slate-100 rounded-xl">
                   <span class="highlight-check text-cyan-500" aria-hidden="true">&#10003;</span>

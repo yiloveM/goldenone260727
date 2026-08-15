@@ -21,6 +21,7 @@ import {
   localizePath,
   localizedProduct,
   stripLocaleFromPath,
+  translateTechnicalText,
   translateProductCategories,
   ui,
 } from '../data/i18n';
@@ -129,9 +130,9 @@ const footerCategoryLinks = navCategories.slice(0, 6);
 const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
 const hasWhatsApp = /^https:\/\//i.test(siteInfo.whatsapp);
-const productSearchLabel = pageLocale === 'es' ? 'Buscar series de regalos' : 'Search gift series';
+const productSearchLabel = dictionary.nav.searchSeries;
 const navigationCategoryLabel = (category: { slug: string; displayName?: string; name: string }) =>
-  category.slug === 'metal-and-wooden-plaque' ? 'Shield Plaque' : category.displayName || category.name;
+  category.slug === 'metal-and-wooden-plaque' && pageLocale === 'en' ? 'Shield Plaque' : category.displayName || category.name;
 const fridgeMagnetsCategory = navCategories.find(category => category.slug === 'fridge-magnets');
 const primaryNavCategories = navCategories.filter(category => category.slug !== 'fridge-magnets');
 const categorySearchEntries = navCategories.flatMap(category => {
@@ -142,6 +143,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
     ...(label !== originalLabel ? [{ name: originalLabel, href: category.href }] : []),
   ];
 });
+const localizedIndustry = translateTechnicalText(industryProfile.market.industry, pageLocale);
 ---
 <!doctype html>
 <html lang={localeInfo.htmlLang} dir={localeInfo.dir}>
@@ -192,8 +194,8 @@ const categorySearchEntries = navCategories.flatMap(category => {
   <body>
     <header class="site-header signature-site-header" data-visual-foundation="signature-product">
       <div class="site-header-main">
-        <nav class="container nav" aria-label="Main navigation">
-          <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
+        <nav class="container nav" aria-label={dictionary.nav.mainNavigation}>
+          <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name}: ${dictionary.nav.home}`}>
             <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="154" height="60" decoding="async" />
           </a>
           <form class="site-search" action={localizePath('/products/', pageLocale)} method="get" role="search" data-site-search data-category-search={JSON.stringify(categorySearchEntries)}>
@@ -215,13 +217,13 @@ const categorySearchEntries = navCategories.flatMap(category => {
                   <span class="nav-chevron" aria-hidden="true"></span>
                 </a>
                 {navCategories.length > 0 && (
-                  <div class="mega-menu" aria-label="Product category navigation">
+                  <div class="mega-menu" aria-label={dictionary.nav.productCategoryNavigation}>
                     <div class="mega-menu-shell">
                       <div class="mega-category-list">
                         {primaryNavCategories.map(category => (
                           <div class="mega-category-item">
                             <a class="mega-category-link" href={category.href}><span>{navigationCategoryLabel(category)}</span></a>
-                            <div class="mega-product-flyout" aria-label={`${category.name} products`}>
+                            <div class="mega-product-flyout" aria-label={`${navigationCategoryLabel(category)}: ${dictionary.nav.categoryProducts}`}>
                               {category.slug === 'more-metal-crafts' && fridgeMagnetsCategory && (
                                 <a class="mega-subcategory-link" href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
                               )}
@@ -242,7 +244,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
                 )}
               </div>
               <a href={localizePath('/blog/', pageLocale)}>{dictionary.nav.engineeringNotes}</a>
-              <a href={localizePath('/about/', pageLocale)}>About Us</a>
+              <a href={localizePath('/about/', pageLocale)}>{dictionary.nav.about}</a>
               <a href={localizePath('/faq/', pageLocale)}>{dictionary.nav.faq}</a>
               <a href={localizePath('/contact/', pageLocale)}>{dictionary.nav.contact}</a>
             </div>
@@ -270,7 +272,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
         </nav>
       </div>
       {navCategories.length > 0 && (
-        <nav class="product-series-bar" aria-label="Product series navigation">
+        <nav class="product-series-bar" aria-label={dictionary.nav.productSeriesNavigation}>
           <div class="product-series-nav">
             {primaryNavCategories.map(category => category.slug === 'more-metal-crafts' && fridgeMagnetsCategory ? (
               <div class="product-series-group">
@@ -294,17 +296,17 @@ const categorySearchEntries = navCategories.flatMap(category => {
     <footer class="footer">
       <div class="container footer-shell">
         <div class="footer-brand-card">
-          <a class="footer-brand-lockup" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name} home`}>
+          <a class="footer-brand-lockup" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name}: ${dictionary.nav.home}`}>
             <img src={brandAssets.icon} alt="" loading="lazy" decoding="async" width="46" height="46" />
             <span>
               <strong>{siteInfo.name}</strong>
-              <small>{industryProfile.market.industry}</small>
+              <small>{localizedIndustry}</small>
             </span>
           </a>
           <p dir={localeInfo.dir}>{pageDescription}</p>
           <div class="footer-socials" aria-label={`${siteInfo.name} social media`}>
             {socialLinks.map(link => (
-              <a class="social-button" href={link.href} target="_blank" rel="noopener" aria-label={`Visit ${siteInfo.name} on ${link.name}`}>
+              <a class="social-button" href={link.href} target="_blank" rel="noopener" aria-label={`${dictionary.common.visitOn} ${link.name}: ${siteInfo.name}`}>
                 <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="18" height="18" /></span>
                 <small>{link.name}</small>
               </a>

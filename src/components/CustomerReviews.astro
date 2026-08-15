@@ -5,6 +5,7 @@ import {
   reviewsForProduct,
   type CustomerReview,
 } from '../data/customerReviews';
+import { getLocaleFromPathname, ui } from '../data/i18n';
 
 interface Props {
   productSlug?: string;
@@ -12,74 +13,90 @@ interface Props {
 }
 
 const { productSlug, compact = false } = Astro.props;
+const locale = getLocaleFromPathname(Astro.url.pathname);
+const copy = ui[locale].reviews;
 const reviews = reviewsForProduct(productSlug);
 const visibleReviews: CustomerReview[] = reviews.length > 0
   ? reviews
   : [];
-const loopReviews = visibleReviews.length > 1 ? [...visibleReviews, ...visibleReviews] : visibleReviews;
+const localizedReviews = visibleReviews.map((review, index) => review.kind === 'demo' && locale !== 'en'
+  ? {
+      ...review,
+      quote: copy.demoQuotes[index] || review.quote,
+      buyerLabel: copy.sampleBuyer,
+      source: copy.layoutPreview,
+      projectType: copy.demoProjects[index] || review.projectType,
+    }
+  : review
+);
+const loopReviews = localizedReviews.length > 1 ? [...localizedReviews, ...localizedReviews] : localizedReviews;
 const sectionTitle = productSlug
-  ? 'What Golden One buyers are saying'
-  : 'See what our customers are saying';
+  ? copy.productTitle
+  : copy.homeTitle;
+const summarySource = customerReviewSummary.source === 'Sample summary' && locale !== 'en'
+  ? copy.sampleSummary
+  : customerReviewSummary.source;
+const reviewCountLabel = customerReviewSummary.reviewCount === 1 ? copy.review : copy.reviews;
 ---
 
 {reviewSystemEnabled && <section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
   <div class="metal-shell customer-ratings__inner">
     <div class="customer-ratings__heading">
-      <p class="metal-kicker">Customer ratings</p>
+      <p class="metal-kicker">{copy.customerRatings}</p>
       <h2 id={`customer-ratings-title-${productSlug || 'home'}`}>{sectionTitle}</h2>
     </div>
 
     <div class="customer-ratings__overview">
-      <div class="customer-ratings__brand" aria-label={`${customerReviewSummary.rating} out of 5 on ${customerReviewSummary.source}`}>
+      <div class="customer-ratings__brand" aria-label={`${customerReviewSummary.rating} ${copy.outOfFiveOn} ${summarySource}`}>
         <strong>{customerReviewSummary.rating}</strong>
         <div>
           <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <small>{customerReviewSummary.source}</small>
+          <small>{summarySource}</small>
         </div>
       </div>
       <div class="customer-ratings__count">
         <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <strong>{customerReviewSummary.reviewCount} reviews</strong>
+        <strong>{customerReviewSummary.reviewCount} {reviewCountLabel}</strong>
       </div>
-      {customerReviewSummary.profileUrl && <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">View Alibaba profile</a>}
+      {customerReviewSummary.profileUrl && <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">{copy.viewProfile}</a>}
     </div>
 
     {visibleReviews.length > 0 && (
       <div class="customer-ratings__carousel" data-marquee-shell data-marquee-duration="56" data-marquee-direction="rtl">
-        <button class="customer-ratings__control customer-ratings__control--prev" type="button" aria-label="Previous reviews" data-marquee-prev>&#8249;</button>
-        <div class="customer-ratings__viewport" data-review-viewport tabindex="0" aria-label="Customer review carousel">
+        <button class="customer-ratings__control customer-ratings__control--prev" type="button" aria-label={copy.previous} data-marquee-prev>&#8249;</button>
+        <div class="customer-ratings__viewport" data-review-viewport tabindex="0" aria-label={copy.carousel}>
           <div class="customer-ratings__track" data-marquee-track>
             {loopReviews.map((review, index) => (
             <article class="customer-review-card" aria-hidden={index >= visibleReviews.length ? 'true' : undefined}>
-              {review.kind === 'demo' && <span class="customer-review-card__demo">Sample review layout</span>}
+              {review.kind === 'demo' && <span class="customer-review-card__demo">{copy.sampleLayout}</span>}
               <header>
                 <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
                 <div>
-                  <strong>{review.buyerLabel || 'Verified Alibaba buyer'}</strong>
+                  <strong>{review.buyerLabel || copy.verifiedBuyer}</strong>
                   <small>{review.date || review.source}</small>
                 </div>
               </header>
-              <div class="customer-review-card__stars" aria-label={`${review.rating} out of 5 stars`}>
+              <div class="customer-review-card__stars" aria-label={`${review.rating} ${copy.outOfFiveStars}`}>
                 {Array.from({ length: review.rating }).map(() => <span aria-hidden="true">&#9733;</span>)}
               </div>
               <blockquote>{review.quote}</blockquote>
               <footer>
-                <span>{review.projectType || 'Custom metal gift project'}{review.country ? ` / ${review.country}` : ''}</span>
-                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer" tabindex={index >= visibleReviews.length ? -1 : undefined}>View source</a>}
-                {!review.sourceUrl && <small>Demonstration content</small>}
+                <span>{review.projectType || copy.defaultProject}{review.country ? ` / ${review.country}` : ''}</span>
+                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer" tabindex={index >= localizedReviews.length ? -1 : undefined}>{copy.viewSource}</a>}
+                {!review.sourceUrl && <small>{copy.demonstration}</small>}
               </footer>
             </article>
             ))}
           </div>
         </div>
-        <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label="Next reviews" data-marquee-next>&#8250;</button>
+        <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label={copy.next} data-marquee-next>&#8250;</button>
       </div>
     )}
     {reviews.length === 0 && (
       <div class="customer-ratings__empty">
         <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <strong>Verified buyer comments are being prepared.</strong>
-        <p>The public store score is shown now. Individual quotations appear here only after their exact wording and source link are checked.</p>
+        <strong>{copy.emptyTitle}</strong>
+        <p>{copy.emptyDescription}</p>
       </div>
     )}
   </div>

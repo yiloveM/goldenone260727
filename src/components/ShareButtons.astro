@@ -1,5 +1,6 @@
 ---
 import { brandAssets } from '../data/assets';
+import { getLocaleFromPathname, ui } from '../data/i18n';
 import { siteUrl } from '../data/seo';
 
 interface Props {
@@ -21,6 +22,7 @@ const {
 } = Astro.props;
 
 const baseUrl = siteUrl(Astro.site);
+const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 const shareUrl = new URL(url || Astro.url.pathname, baseUrl).toString();
 const shareImage = new URL(image, baseUrl).toString();
 const shareText = [title, description].filter(Boolean).join(' - ');
@@ -67,7 +69,7 @@ const shareLinks = [
   },
 ];
 ---
-<div class:list={['product-share', 'share-buttons', className]} aria-label={`Share ${title}`}>
+<div class:list={['product-share', 'share-buttons', className]} aria-label={`${common.share}: ${title}`}>
   <span>{label}</span>
   <div class="social-button-row">
     {shareLinks.map(link => (
@@ -76,8 +78,8 @@ const shareLinks = [
         href={link.href}
         target={link.href.startsWith('http') ? '_blank' : undefined}
         rel={link.href.startsWith('http') ? 'noopener' : undefined}
-        title={`Share on ${link.name}`}
-        aria-label={`Share ${title} on ${link.name}`}
+        title={`${common.shareOn} ${link.name}`}
+        aria-label={`${common.share}: ${title} / ${link.name}`}
       >
         <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="18" height="18" /></span>
       </a>

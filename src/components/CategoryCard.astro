@@ -17,7 +17,8 @@ const sampleProducts = category.products.slice(0, 3);
 const categoryName = category.displayName || category.name;
 const categoryAccentImage = getR2WebpDeliveryUrl(category.image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || category.image;
 const viewLabel = `${ui[locale].nav.viewAll} ${categoryName}`;
-const highlightsLabel = `${categoryName} ${ui[locale].common.exploreRange}`;
+const highlightsLabel = `${categoryName}: ${ui[locale].common.highlights}`;
+const productsLabel = `${categoryName}: ${ui[locale].nav.categoryProducts}`;
 ---
 <article class="category-card" style={`--category-accent-image: url('${categoryAccentImage}');`}>
   <a class="category-card-link" href={category.href} aria-label={viewLabel}>
@@ -40,7 +41,7 @@ const highlightsLabel = `${categoryName} ${ui[locale].common.exploreRange}`;
         {category.highlights.map(highlight => <span>{keywordTag(highlight)}</span>)}
       </div>
       {sampleProducts.length > 0 && (
-        <div class="category-card-products" aria-label={highlightsLabel}>
+        <div class="category-card-products" aria-label={productsLabel}>
           {sampleProducts.map(product => <span>{keywordTag(localizedProduct(product, locale).series)}</span>)}
         </div>
       )}

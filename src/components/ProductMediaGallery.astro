@@ -1,5 +1,6 @@
 ---
 import PublicImage from './public/PublicImage.astro';
+import { getLocaleFromPathname, ui } from '../data/i18n';
 interface DetailImage {
   image: string;
   title?: string;
@@ -13,9 +14,10 @@ interface Props {
 
 const { detailImages = [], title } = Astro.props;
 const featureImages = detailImages.filter(item => item.image).slice(0, 6);
+const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 ---
 {featureImages.length > 0 && (
-  <section class="detail-panel product-feature-images" aria-label={`${title} application and feature images`}>
+  <section class="detail-panel product-feature-images" aria-label={`${title}: ${common.featureImages}`}>
     <div class="product-feature-image-grid">
       {featureImages.map(item => (
         <figure class="product-feature-image">
