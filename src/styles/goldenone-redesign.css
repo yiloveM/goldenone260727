@@ -2400,7 +2400,7 @@ html { scroll-padding-top: 162px; }
   }
 }
 
-/* Contact chooser beside the persistent bottom actions. */
+/* Contact chooser stacked below the persistent bottom actions. */
 .language-menu .language-option {
   justify-content: center;
   text-align: center;
@@ -2416,16 +2416,17 @@ html { scroll-padding-top: 162px; }
   right: 22px;
   bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   z-index: 69;
-  transition: right .22s ease;
 }
 
-html.has-back-to-top .contact-action,
-html.has-inquiry-cart .contact-action {
-  right: 84px;
+.inquiry-cart,
+.back-to-top {
+  right: 22px;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
-html.has-back-to-top.has-inquiry-cart .contact-action {
-  right: 146px;
+html.has-inquiry-cart .back-to-top {
+  right: 22px;
+  bottom: calc(146px + env(safe-area-inset-bottom, 0px));
 }
 
 .contact-action-trigger {
@@ -2475,11 +2476,6 @@ html.has-back-to-top.has-inquiry-cart .contact-action {
   transform: translateY(-2px);
 }
 
-.contact-action:not(.is-open) .contact-action-trigger:hover svg,
-.contact-action:not(.is-open) .contact-action-trigger:focus-visible svg {
-  transform: translateY(-1px) scale(1.04);
-}
-
 .contact-action.is-open .contact-action-trigger {
   width: 52px;
   min-height: 52px;
@@ -2489,7 +2485,6 @@ html.has-back-to-top.has-inquiry-cart .contact-action {
   box-shadow: 0 9px 24px rgba(45, 45, 45, .3);
 }
 
-.contact-action.is-open .contact-action-trigger__chat,
 .contact-action.is-open .contact-action-trigger__label {
   display: none;
 }
@@ -2521,6 +2516,17 @@ html.has-back-to-top.has-inquiry-cart .contact-action {
   transform-origin: right bottom;
   transition: opacity .2s ease, transform .26s cubic-bezier(.2,.8,.2,1), visibility .2s ease;
   visibility: hidden;
+}
+
+html.has-back-to-top .contact-action-menu,
+html.has-inquiry-cart .contact-action-menu {
+  bottom: calc(100% + 76px);
+  max-height: min(720px, calc(100vh - 160px));
+}
+
+html.has-back-to-top.has-inquiry-cart .contact-action-menu {
+  bottom: calc(100% + 138px);
+  max-height: min(720px, calc(100vh - 222px));
 }
 
 .contact-action-menu__header {
@@ -2775,13 +2781,15 @@ html.has-back-to-top.has-inquiry-cart .contact-action {
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
   }
 
-  html.has-back-to-top .contact-action,
-  html.has-inquiry-cart .contact-action {
-    right: 76px;
+  .inquiry-cart,
+  .back-to-top {
+    right: 14px;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
-  html.has-back-to-top.has-inquiry-cart .contact-action {
-    right: 138px;
+  html.has-inquiry-cart .back-to-top {
+    right: 14px;
+    bottom: calc(138px + env(safe-area-inset-bottom, 0px));
   }
 
   .contact-action-trigger {
@@ -2807,6 +2815,17 @@ html.has-back-to-top.has-inquiry-cart .contact-action {
     overflow-y: auto;
     overscroll-behavior: contain;
     transform-origin: right bottom;
+  }
+
+  html.has-back-to-top .contact-action-menu,
+  html.has-inquiry-cart .contact-action-menu {
+    bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100svh - 162px);
+  }
+
+  html.has-back-to-top.has-inquiry-cart .contact-action-menu {
+    bottom: calc(202px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(100svh - 224px);
   }
 
   .contact-action-menu__header {
