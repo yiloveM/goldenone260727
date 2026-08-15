@@ -160,9 +160,9 @@ const baseUi = {
     allProducts: 'All products',
     sitemap: 'Sitemap',
     whatsappInquiry: 'WhatsApp inquiry',
-    contactStrip: publicSiteCopy.positioning,
+    contactStrip: 'Have a project in mind? Tell us what you would like to create.',
     copyright: 'All rights reserved.',
-    clearPools: `International ${industryProfile.market.industry} information for B2B buyers.`,
+    clearPools: 'Custom metal gifts for brands, events, awards, clubs, and promotional programs worldwide.',
   },
   sideContact: {
     label: 'Quick contact sidebar',
