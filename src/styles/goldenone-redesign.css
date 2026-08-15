@@ -2022,6 +2022,12 @@ html { scroll-padding-top: 162px; }
   margin-left: 4px;
 }
 
+@media (min-width: 1441px) {
+  .site-header .nav {
+    grid-template-columns: 190px minmax(268px, 368px) minmax(0, 1fr);
+  }
+}
+
 .site-header .language-trigger,
 .site-header .nav-quote {
   font-size: .77rem;
@@ -2961,25 +2967,24 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
     top: calc(4px + env(safe-area-inset-top, 0px));
     left: 6px;
     right: 6px;
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    bottom: auto;
+    display: block;
     width: auto;
-    max-height: none;
-    overflow: hidden;
+    max-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
     overscroll-behavior: contain;
     transform-origin: right bottom;
   }
 
   html.has-back-to-top .contact-action-menu,
   html.has-inquiry-cart .contact-action-menu {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    max-height: none;
+    bottom: auto;
+    max-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 
   html.has-back-to-top.has-inquiry-cart .contact-action-menu {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    max-height: none;
+    bottom: auto;
+    max-height: calc(100dvh - 76px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   }
 
   .contact-action-menu__header {
@@ -2999,11 +3004,10 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
   }
 
   .contact-action-menu__body {
-    display: grid;
+    display: block;
     min-height: 0;
-    align-content: start;
     padding: 10px 12px 12px;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .contact-action-menu__body > p {

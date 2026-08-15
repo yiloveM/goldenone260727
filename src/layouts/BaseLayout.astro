@@ -182,12 +182,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={fontHref} />
     {preloadPageImage && <link rel="preload" as="image" href={image} fetchpriority="high" />}
-    {preloadHomeHero && (
-      <>
-        <link rel="preload" as="image" href={brandAssets.heroRippleDesktop} media="(min-width: 769px)" fetchpriority="high" />
-        <link rel="preload" as="image" href={brandAssets.heroRippleMobile} media="(max-width: 768px)" fetchpriority="high" />
-      </>
-    )}
+    {preloadHomeHero && <link rel="preload" as="image" href={webpPreloadImage || image} fetchpriority="high" />}
     {structuredDataItems.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
     <style is:inline set:html={visualTokenStyle}></style>
   </head>

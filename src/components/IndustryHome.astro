@@ -5,7 +5,6 @@ import BrandPartnerStrip from './BrandPartnerStrip.astro';
 import CustomerReviews from './CustomerReviews.astro';
 import MediaCarousel from './MediaCarousel.astro';
 import '../styles/home-tailwind.css';
-import { brandAssets } from '../data/assets';
 import { industryProfile, profileKeywords } from '../data/industry-profile';
 import { type Locale, getPageCopy, localizePath, translateCategoryMeta, translateTechnicalText, ui } from '../data/i18n';
 import { getCategoryMeta, slugifyCategory } from '../data/productCategories';
@@ -30,6 +29,29 @@ const allCategories = brandShowcase.map(item => {
 });
 const categories = allCategories.slice(0, 6);
 const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: translateTechnicalText(item.title, locale) }));
+const conversionHeroSlides = [
+  {
+    image: '/images/metal-gifts/banner-custom-craft.jpg',
+    alt: pages.home.conversionSlide1Alt,
+    title: pages.home.conversionSlide1Title,
+    description: pages.home.conversionSlide1Description,
+    points: [pages.home.conversionSlide1Point1, pages.home.conversionSlide1Point2, pages.home.conversionSlide1Point3],
+  },
+  {
+    image: '/images/metal-gifts/banner-quality-control.jpg',
+    alt: pages.home.conversionSlide2Alt,
+    title: pages.home.conversionSlide2Title,
+    description: pages.home.conversionSlide2Description,
+    points: [pages.home.conversionSlide2Point1, pages.home.conversionSlide2Point2, pages.home.conversionSlide2Point3],
+  },
+  {
+    image: '/images/metal-gifts/banner-global-buyers.jpg',
+    alt: pages.home.conversionSlide3Alt,
+    title: pages.home.conversionSlide3Title,
+    description: pages.home.conversionSlide3Description,
+    points: [pages.home.conversionSlide3Point1, pages.home.conversionSlide3Point2, pages.home.conversionSlide3Point3],
+  },
+] as const;
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
@@ -37,7 +59,7 @@ const homeStructuredData = [
     name: `${siteInfo.name} | ${industryProfile.market.industry}`,
     description: pages.home.description,
     url: localizePath('/', locale),
-    image: brandAssets.heroRippleDesktop,
+    image: conversionHeroSlides[0].image,
     keywords: locale === 'en'
       ? profileKeywords([industryProfile.market.industry])
       : [pages.home.collectionEyebrow, ...allCategories.flatMap(category => [category.title, ...category.keywords])],
@@ -46,29 +68,49 @@ const homeStructuredData = [
 ];
 ---
 
-<BaseLayout title={siteInfo.name} description={pages.home.description} image={brandAssets.heroRippleDesktop} preloadHomeHero structuredData={homeStructuredData} locale={locale}>
+<BaseLayout title={siteInfo.name} description={pages.home.description} image={conversionHeroSlides[0].image} preloadHomeHero structuredData={homeStructuredData} locale={locale}>
   <main class="metal-home signature-home" data-tailwind-homepage="tw:signature-product">
-    <section class="conversion-hero" aria-labelledby="conversion-hero-title">
-      <img class="conversion-hero__image" src={brandAssets.heroRippleDesktop} alt={pages.home.conversionHeroAlt} width="1792" height="1024" fetchpriority="high" decoding="async" />
+    <section class="conversion-hero" aria-labelledby="conversion-hero-title" data-hero-carousel data-hero-slides={JSON.stringify(conversionHeroSlides)}>
+      <div class="conversion-hero__media" aria-hidden="true">
+        {conversionHeroSlides.map((slide, index) => (
+          <img
+            class:list={['conversion-hero__image', { 'is-active': index === 0 }]}
+            src={slide.image}
+            alt=""
+            width="1920"
+            height="1280"
+            loading={index === 0 ? 'eager' : 'lazy'}
+            fetchpriority={index === 0 ? 'high' : undefined}
+            decoding="async"
+            data-hero-image
+          />
+        ))}
+      </div>
       <div class="conversion-hero__shade" aria-hidden="true"></div>
       <div class="metal-shell conversion-hero__inner">
-        <div class="conversion-hero__copy">
+        <div class="conversion-hero__copy" data-hero-copy>
           <span class="conversion-hero__pill conversion-hero__pill--rating">
             <strong>{pages.home.storeRating}</strong>
             <span aria-label={pages.home.fiveStarLabel}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
           </span>
-          <h1 id="conversion-hero-title">{pages.home.conversionTitle}</h1>
-          <p>{pages.home.conversionDescription}</p>
+          <h1 id="conversion-hero-title" data-hero-title>{conversionHeroSlides[0].title}</h1>
+          <p data-hero-description>{conversionHeroSlides[0].description}</p>
           <div class="conversion-hero__actions">
             <a class="signature-button signature-button--orange" href="#free-design">{pages.home.freeDesign} <span aria-hidden="true">&#8594;</span></a>
             <a class="signature-button signature-button--outline" href={productHref}>{pages.home.exploreProducts}</a>
           </div>
           <ul class="conversion-hero__points">
-            <li>{pages.home.heroPoint1}</li>
-            <li>{pages.home.heroPoint2}</li>
-            <li>{pages.home.heroPoint3}</li>
+            {conversionHeroSlides[0].points.map(point => <li data-hero-point>{point}</li>)}
           </ul>
         </div>
+      </div>
+      <div class="conversion-hero__controls" aria-label={pages.home.conversionTitle}>
+        <button class="conversion-hero__control" type="button" aria-label={pages.home.previousHeroSlide} data-hero-previous>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 4-8 8 8 8" /></svg>
+        </button>
+        <button class="conversion-hero__control" type="button" aria-label={pages.home.nextHeroSlide} data-hero-next>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 4 8 8-8 8" /></svg>
+        </button>
       </div>
     </section>
 
@@ -150,3 +192,61 @@ const homeStructuredData = [
     <CustomerReviews />
   </main>
 </BaseLayout>
+
+<script is:inline>
+  (() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    document.querySelectorAll('[data-hero-carousel]').forEach(root => {
+      const rawSlides = root.getAttribute('data-hero-slides');
+      if (!rawSlides) return;
+
+      let slides;
+      try {
+        slides = JSON.parse(rawSlides);
+      } catch {
+        return;
+      }
+
+      const images = [...root.querySelectorAll('[data-hero-image]')];
+      const title = root.querySelector('[data-hero-title]');
+      const description = root.querySelector('[data-hero-description]');
+      const points = [...root.querySelectorAll('[data-hero-point]')];
+      const copy = root.querySelector('[data-hero-copy]');
+      const previous = root.querySelector('[data-hero-previous]');
+      const next = root.querySelector('[data-hero-next]');
+      if (!slides.length || !images.length || !title || !description) return;
+
+      let currentIndex = 0;
+      let timer = 0;
+
+      const render = nextIndex => {
+        currentIndex = (nextIndex + slides.length) % slides.length;
+        const slide = slides[currentIndex];
+
+        images.forEach((image, imageIndex) => image.classList.toggle('is-active', imageIndex === currentIndex));
+        title.textContent = slide.title;
+        description.textContent = slide.description;
+        points.forEach((point, pointIndex) => { point.textContent = slide.points[pointIndex] || ''; });
+        copy?.classList.remove('is-updating');
+        window.requestAnimationFrame(() => copy?.classList.add('is-updating'));
+      };
+
+      const start = () => {
+        window.clearInterval(timer);
+        if (!reducedMotion && !document.hidden) timer = window.setInterval(() => render(currentIndex + 1), 6500);
+      };
+
+      previous?.addEventListener('click', () => {
+        render(currentIndex - 1);
+        start();
+      });
+      next?.addEventListener('click', () => {
+        render(currentIndex + 1);
+        start();
+      });
+      document.addEventListener('visibilitychange', () => document.hidden ? window.clearInterval(timer) : start());
+      start();
+    });
+  })();
+</script>
