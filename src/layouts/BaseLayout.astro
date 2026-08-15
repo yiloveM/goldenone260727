@@ -10,6 +10,7 @@ import { absoluteUrl, organizationStructuredData, siteUrl, webPageStructuredData
 import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 import InquiryCart from '../components/InquiryCart.astro';
 import BackToTop from '../components/BackToTop.astro';
+import ContactAction from '../components/ContactAction.astro';
 import {
   type Locale,
   alternateUrls,
@@ -289,28 +290,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
     <slot />
     {!isContactPage && <InquiryCart locale={pageLocale} />}
     <BackToTop label={dictionary.common.backToTop} />
-    <aside class:list={['side-contact', { 'side-contact--contact-page': isContactPage }]} aria-label={dictionary.sideContact.label}>
-      <span class="side-contact-label" aria-hidden="true">{dictionary.nav.contact}</span>
-      {hasWhatsApp && <a class="side-contact-link side-contact-link--whatsapp" href={siteInfo.whatsapp} target="_blank" rel="noopener" title="WhatsApp" aria-label={`Contact ${siteInfo.name} on WhatsApp`}>
-        <span class="side-contact-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="img">
-            <path d="M20.5 11.8a8.4 8.4 0 0 1-12.4 7.4L4 20l.9-3.9a8.4 8.4 0 1 1 15.6-4.3Z" />
-            <path d="M9.1 8.7c.3-.4.8-.4 1.1 0l.8.9c.2.2.3.6.1.9l-.3.7c.6 1.1 1.5 2 2.6 2.6l.8-.3c.3-.1.6 0 .9.2l.9.8c.3.3.3.8 0 1.1-.6.7-1.6.7-2.7.3-2.3-.8-4.3-2.8-5.1-5.1-.4-1.1-.3-2 .5-2.8Z" />
-          </svg>
-        </span>
-        <span class="side-contact-note"><strong>{dictionary.sideContact.whatsapp}</strong><small>{dictionary.sideContact.whatsappNote}</small></span>
-      </a>}
-      <a class="side-contact-link" href={localizePath('/contact/', pageLocale)} title="Contact" aria-label="Send inquiry">
-        <span class="side-contact-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" role="img">
-            <path d="M4.5 6.5h15v11h-15Z" />
-            <path d="m5 7 7 6 7-6" />
-            <path d="m8.4 11.5-3.4 3.2M15.6 11.5l3.4 3.2" />
-          </svg>
-        </span>
-        <span class="side-contact-note"><strong>{dictionary.sideContact.inquiry}</strong><small>{dictionary.sideContact.inquiryNote}</small></span>
-      </a>
-    </aside>
+    <ContactAction whatsapp={hasWhatsApp ? siteInfo.whatsapp : ''} email={hasEmail ? siteInfo.email : ''} />
     <footer class="footer">
       <div class="container footer-shell">
         <div class="footer-brand-card">
@@ -369,6 +349,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
       const menuToggle = document.querySelector('[data-menu-toggle]');
       const productsNav = document.querySelector('[data-products-nav]');
       const productsTrigger = document.querySelector('[data-products-trigger]');
+      const productSeriesGroups = [...document.querySelectorAll('.product-series-group')];
       const languageSwitchers = [...document.querySelectorAll('[data-language-switcher]')];
       const siteSearch = document.querySelector('[data-site-search]');
       const siteSearchInput = document.querySelector('[data-site-search-input]');
@@ -480,6 +461,16 @@ const categorySearchEntries = navCategories.flatMap(category => {
         productsTrigger.setAttribute('aria-expanded', String(willOpen));
       });
 
+      productsNav?.addEventListener('pointerleave', event => {
+        if (event.pointerType === 'mouse' && !mobileMenuQuery.matches) closeProductsMenu();
+      });
+
+      productSeriesGroups.forEach(group => {
+        group.addEventListener('pointerleave', event => {
+          if (event.pointerType === 'mouse') group.removeAttribute('open');
+        });
+      });
+
       document.addEventListener('click', event => {
         const target = event.target;
         if (!(target instanceof Node)) return;
@@ -572,6 +563,7 @@ const categorySearchEntries = navCategories.flatMap(category => {
         track.style.animation = 'none';
         setVisualX(0);
         rafId = window.requestAnimationFrame(tick);
+        track.addEventListener('dragstart', event => event.preventDefault());
 
         shell.querySelector('[data-marquee-prev]')?.addEventListener('click', event => {
           velocity = 0;
@@ -621,7 +613,11 @@ const categorySearchEntries = navCategories.flatMap(category => {
             hasDragged = true;
             suppressClick = true;
             shell.classList.add('is-dragging');
-            shell.setPointerCapture?.(event.pointerId);
+            try {
+              shell.setPointerCapture?.(event.pointerId);
+            } catch {
+              // Pointer capture can be unavailable in synthetic or embedded browser contexts.
+            }
           }
           const now = event.timeStamp || performance.now();
           const elapsed = Math.max(16, now - lastPointerTime);
@@ -638,7 +634,11 @@ const categorySearchEntries = navCategories.flatMap(category => {
           activePointerId = null;
           if (!hasDragged) velocity = 0;
           shell.classList.remove('is-dragging');
-          if (shell.hasPointerCapture?.(event.pointerId)) shell.releasePointerCapture?.(event.pointerId);
+          try {
+            if (shell.hasPointerCapture?.(event.pointerId)) shell.releasePointerCapture?.(event.pointerId);
+          } catch {
+            // The pointer may already have been released by the browser.
+          }
           if (hasDragged) window.setTimeout(() => { suppressClick = false; }, 220);
         };
 

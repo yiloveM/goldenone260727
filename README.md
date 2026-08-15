@@ -291,6 +291,17 @@ Callback URL 只使用站长后台专用域名，路径必须逐字是 `/api/key
 
 不需要创建 `CONTACT_FORM_SECRET`、`R2_IMAGE_POOL_WRITE_TOKEN`、`MANAGER_ACCESS_BYPASS_TOKEN`、`MANAGER_ALLOWED_EMAILS` 或多个发布 token。生产 Manager 由专用 Host、UUID 和签名会话控制，不从浏览器读取 Token，也不依赖 Cloudflare Access 邮箱头。模板用一个 `BUSINESSWEB_GITHUB_TOKEN` 处理 Manager 写回、AI 任务、草稿读取和手动发布调度。
 
+#### 首页上传图纸附件的去向
+
+首页 **Start with your artwork** 区域允许访客上传 JPG、PNG、WEBP 或 PDF，单个文件最大 5 MB。提交后，Cloudflare Worker 的 `/api/contact` 会在本次请求中读取并校验附件，再通过 Resend 把附件随询盘邮件一起发送；收件人会在邮件客户端中收到原文件附件。
+
+- 收件邮箱优先使用 Worker 变量 `CONTACT_TO_EMAIL`；没有设置时，使用网站公开企业邮箱。
+- 上传文件**不会**写入 R2、D1、GitHub 仓库或 Worker 本地磁盘，网站也没有附件下载列表。
+- R2 图片池只用于网站公开图片和 PDF 素材，与访客提交的设计附件完全分开。
+- 如果 Resend 或发件邮箱没有配置成功，表单会返回发送失败，附件不会在网站端保留。
+
+因此，后续查找访客上传的图纸，应直接到 `CONTACT_TO_EMAIL` 对应的收件箱查看询盘邮件附件。
+
 #### 7.1 生成 `KEYSTATIC_SECRET`
 
 不要手写短密码。请在 Windows PowerShell 中复制执行下面**整段**命令；它会输出一条可直接粘贴的随机值：

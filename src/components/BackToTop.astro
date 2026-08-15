@@ -21,6 +21,7 @@ const { label } = Astro.props;
     document.querySelectorAll('[data-back-to-top]').forEach(button => {
       const updateVisibility = () => {
         button.hidden = (window.scrollY || document.documentElement.scrollTop || 0) < 480;
+        document.documentElement.classList.toggle('has-back-to-top', !button.hidden);
       };
 
       button.addEventListener('click', () => {
