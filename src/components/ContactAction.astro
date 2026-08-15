@@ -138,6 +138,7 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
 
       const setOpen = open => {
         root.classList.toggle('is-open', open);
+        document.documentElement.classList.toggle('has-contact-action-open', open);
         trigger?.setAttribute('aria-expanded', String(open));
         trigger?.setAttribute('aria-label', open ? root.dataset.closeLabel : root.dataset.openLabel);
         menu?.setAttribute('aria-hidden', String(!open));
