@@ -113,7 +113,7 @@ KEYSTATIC_PORTAL_HOST = "owner-admin.example.com"
 MANAGER_PORTAL_HOST = "content-admin.example.net"
 ANALYTICS_ENABLED = "true"
 ANALYTICS_IP_MODE = "network"
-ANALYTICS_RETENTION_DAYS = "180"
+ANALYTICS_RETENTION_DAYS = "365"
 GSC_SITE_URL = ""
 
 [[r2_buckets]]
@@ -491,7 +491,7 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 #### 第一次启用
 
-1. 保持 `wrangler.toml` 中 `ANALYTICS_ENABLED = "true"`、`ANALYTICS_IP_MODE = "network"`、`ANALYTICS_RETENTION_DAYS = "180"`。
+1. 保持 `wrangler.toml` 中 `ANALYTICS_ENABLED = "true"`、`ANALYTICS_IP_MODE = "network"`、`ANALYTICS_RETENTION_DAYS = "365"`。
 2. 按步骤 3 重新执行最新 `manager-portal/schema.sql`。所有语句均为幂等，已存在的 Manager 草稿不会被删除。
 3. 生成与 `KEYSTATIC_SECRET`、`ADMIN_PORTAL_SESSION_SECRET` 不同的随机值：
 

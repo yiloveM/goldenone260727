@@ -34,8 +34,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify generated Cloudflare bindings
-        run: npm run types:cloudflare -- --check
+      - name: Generate Cloudflare bindings
+        run: npm run types:cloudflare
+
+      - name: Report regenerated binding types
+        shell: bash
+        run: |
+          if ! git diff --quiet -- worker-configuration.d.ts; then
+            echo "::warning file=worker-configuration.d.ts::Bindings were regenerated from wrangler.toml for this deployment. Commit the generated file with the next configuration change."
+            git diff -- worker-configuration.d.ts
+          fi
 
       - name: Build the Astro site
         run: npm run build

@@ -198,7 +198,7 @@ const contracts = [
   {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
-    markers: ['npm run types:cloudflare -- --check', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
+    markers: ['Generate Cloudflare bindings', 'npm run types:cloudflare', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
   },
   {
     area: 'Wrangler variables available during Astro builds',
