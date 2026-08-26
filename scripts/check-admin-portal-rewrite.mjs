@@ -51,6 +51,8 @@ assert.equal(
 const input = [
   `fetch('/api/keystatic/tree');`,
   `fetch("/api/ai/translations");`,
+  `fetch('/api/analytics/summary');`,
+  `fetch('/api/analytics/adjustments');`,
   'router.push(`/keystatic/branch/main`);',
   'new URL("/keystatic", deployedURL);',
   'const homepage = `${window.location.origin}/keystatic`;',
@@ -64,6 +66,8 @@ const output = rewritePortalText(input, portal);
 
 assert.ok(output.includes(`fetch('${prefix}/api/keystatic/tree')`));
 assert.ok(output.includes(`fetch("${prefix}/api/ai/translations")`));
+assert.ok(output.includes(`fetch('${prefix}/api/analytics/summary')`));
+assert.ok(output.includes(`fetch('${prefix}/api/analytics/adjustments')`));
 assert.ok(output.includes(`router.push(\`${prefix}/branch/main\`)`));
 assert.ok(output.includes(`new URL("${prefix}", deployedURL)`));
 assert.ok(output.includes(String.raw`replace(/^\/11111111-1111-4111-8111-111111111111\/?/, "")`));
@@ -79,8 +83,8 @@ assert.equal(rewritePortalLocation('https://github.com/login/oauth/authorize', p
 
 const manager = { ...portal, name: 'manager', uuid: '22222222-2222-4222-8222-222222222222' };
 assert.equal(
-  rewritePortalText(`fetch('/api/manager/status'); const docs = '/keystatic/help';`, manager),
-  `fetch('/${manager.uuid}/api/manager/status'); const docs = '/keystatic/help';`
+  rewritePortalText(`fetch('/api/manager/status'); fetch('/api/analytics/summary'); const docs = '/keystatic/help';`, manager),
+  `fetch('/${manager.uuid}/api/manager/status'); fetch('/${manager.uuid}/api/analytics/summary'); const docs = '/keystatic/help';`
 );
 
 console.log('Admin portal gateway and response rewrite checks passed.');

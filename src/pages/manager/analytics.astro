@@ -1,0 +1,184 @@
+---
+import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
+
+export const prerender = true;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>网站访问分析</title>
+    <script is:inline>
+      (() => {
+        const choice = localStorage.getItem('businessweb-manager-theme') || 'system';
+        const dark = choice === 'dark' || (choice === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+    <style is:global>
+      :root {
+        color-scheme: light;
+        --page-bg: #f6f7f8;
+        --sidebar-bg: #ffffff;
+        --line: #e1e5e9;
+        --ink: #172033;
+        --muted: #667085;
+        --accent: #0e7490;
+        --accent-soft: rgba(14, 116, 144, 0.1);
+      }
+
+      html[data-theme='dark'] {
+        color-scheme: dark;
+        --page-bg: #1f1f1f;
+        --sidebar-bg: #242424;
+        --line: #3f3f46;
+        --ink: #f4f4f5;
+        --muted: #a6adbb;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: var(--page-bg);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .analytics-shell {
+        display: grid;
+        grid-template-columns: 248px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      .analytics-sidebar {
+        position: sticky;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-height: 100vh;
+        padding: 20px 14px;
+        border-right: 1px solid var(--line);
+        background: var(--sidebar-bg);
+      }
+
+      .analytics-brand {
+        display: grid;
+        gap: 3px;
+        padding: 0 10px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .analytics-brand strong { font-size: 17px; }
+      .analytics-brand span { color: var(--muted); font-size: 12px; }
+
+      .analytics-nav {
+        display: grid;
+        gap: 5px;
+      }
+
+      .analytics-nav a {
+        display: flex;
+        min-height: 40px;
+        align-items: center;
+        border-radius: 6px;
+        padding: 0 10px;
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .analytics-nav a:hover,
+      .analytics-nav a.is-active { background: var(--accent-soft); }
+
+      .theme-select {
+        width: 100%;
+        min-height: 38px;
+        margin-top: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0 9px;
+        color: var(--ink);
+        background: var(--sidebar-bg);
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .analytics-content {
+        min-width: 0;
+        padding: 28px clamp(16px, 3vw, 42px) 48px;
+      }
+
+      html[data-theme='dark'] .bw-analytics {
+        --wa-bg: #1f1f1f;
+        --wa-panel: #242424;
+        --wa-muted-bg: #2f2f32;
+        --wa-hover: #303033;
+        --wa-border: #45454a;
+        --wa-border-soft: #36363a;
+        --wa-text: #f4f4f5;
+        --wa-muted: #a6adbb;
+        --wa-accent: #38bdf8;
+        --wa-accent-2: #f59e0b;
+      }
+
+      @media (max-width: 820px) {
+        .analytics-shell { grid-template-columns: 1fr; }
+        .analytics-sidebar {
+          position: static;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          min-height: 0;
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .analytics-brand { grid-column: 1 / -1; }
+        .analytics-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .theme-select { width: 116px; margin: 0; }
+        .analytics-content { padding: 20px 14px 36px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="analytics-shell">
+      <aside class="analytics-sidebar">
+        <div class="analytics-brand"><strong>BusinessWeb</strong><span>内容管理</span></div>
+        <nav class="analytics-nav" aria-label="Manager sections">
+          <a href="./">内容工作台</a>
+          <a class="is-active" href="./analytics" aria-current="page">数据分析</a>
+        </nav>
+        <select class="theme-select" id="analyticsTheme" aria-label="显示模式">
+          <option value="system">跟随系统</option>
+          <option value="light">浅色</option>
+          <option value="dark">深色</option>
+        </select>
+      </aside>
+      <section class="analytics-content">
+        <AnalyticsDashboard surface="manager" client:load />
+      </section>
+    </main>
+    <script is:inline>
+      const select = document.getElementById('analyticsTheme');
+      const media = matchMedia('(prefers-color-scheme: dark)');
+      const applyTheme = value => {
+        const safeValue = ['system', 'light', 'dark'].includes(value) ? value : 'system';
+        const dark = safeValue === 'dark' || (safeValue === 'system' && media.matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        localStorage.setItem('businessweb-manager-theme', safeValue);
+        if (select) select.value = safeValue;
+      };
+      applyTheme(localStorage.getItem('businessweb-manager-theme') || 'system');
+      select?.addEventListener('change', event => applyTheme(event.currentTarget.value));
+      media.addEventListener('change', () => {
+        if ((localStorage.getItem('businessweb-manager-theme') || 'system') === 'system') applyTheme('system');
+      });
+    </script>
+  </body>
+</html>

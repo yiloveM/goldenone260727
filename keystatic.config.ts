@@ -8,6 +8,7 @@ import { aiTranslatorField } from './src/keystatic/ai-translator-field';
 import { sitePublisherField } from './src/keystatic/site-publisher-field';
 import { translationDraftReviewField } from './src/keystatic/translation-draft-review-field';
 import { siteLanguageBulkActionsField, siteLanguageCheckboxField } from './src/keystatic/site-language-selector-field';
+import { analyticsDashboardField } from './src/keystatic/analytics-dashboard-field';
 import siteLocaleConfig from './src/data/site-locales.json';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -118,12 +119,20 @@ export default config({
   ui: {
     brand: { name: '通用企业网站内容管理' },
     navigation: {
-      '站点设置': ['siteFoundation', 'siteLanguages', 'customerReviews'],
+      '站点设置': ['analyticsDashboard', 'siteFoundation', 'siteLanguages', 'customerReviews'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
   },
   singletons: {
+    analyticsDashboard: singleton({
+      label: '数据分析',
+      path: 'src/keystatic/analytics-dashboard',
+      format: 'json',
+      schema: {
+        dashboard: analyticsDashboardField({ label: '网站访问分析' }),
+      },
+    }),
     customerReviews: singleton({
       label: '评价系统',
       path: 'src/data/customer-reviews',

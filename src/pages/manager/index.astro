@@ -396,6 +396,10 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         box-shadow: none;
       }
 
+      .tab.tab-link {
+        text-decoration: none;
+      }
+
       .product-manager-header {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
@@ -3146,6 +3150,10 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
               <span class="nav-group-label">媒体</span>
               <button class="tab" data-tab="images" type="button">图片池</button>
             </div>
+            <div class="nav-group">
+              <span class="nav-group-label">数据</span>
+              <a class="tab tab-link" id="managerAnalyticsLink" href="#">网站访问分析</a>
+            </div>
           </nav>
         </aside>
 
@@ -3907,6 +3915,8 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       const productPageSize = 12;
 
       const $ = id => document.getElementById(id);
+      const analyticsLink = $('managerAnalyticsLink');
+      if (analyticsLink) analyticsLink.href = `${window.location.pathname.replace(/\/+$/, '')}/analytics`;
       const escapeHtml = value =>
         String(value ?? '')
           .replace(/&/g, '&amp;')

@@ -19,6 +19,12 @@ PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "goldenone260727"
 PUBLIC_R2_ASSET_BASE_URL = "https://goldenone.arkalpooltech.workers.dev/r2"
 # Change to "edge-webp" only after the custom domain transformation check in README succeeds.
 PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"
+ANALYTICS_ENABLED = "true"
+# network stores only IPv4 /24 or IPv6 /48 prefixes. Use full only after a privacy review.
+ANALYTICS_IP_MODE = "network"
+ANALYTICS_RETENTION_DAYS = "180"
+# Exact Search Console property, for example sc-domain:example.com. Empty disables the optional integration.
+GSC_SITE_URL = ""
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"

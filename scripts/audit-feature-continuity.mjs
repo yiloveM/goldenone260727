@@ -23,12 +23,12 @@ const contracts = [
   {
     area: 'Cloudflare bindings',
     file: 'wrangler.toml',
-    markers: ['main = "./src/worker.ts"', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'nodejs_compat'],
+    markers: ['main = "./src/worker.ts"', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'ANALYTICS_IP_MODE', 'nodejs_compat'],
   },
   {
     area: 'Private portal host gateway',
     file: 'src/worker.ts',
-    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath'],
+    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'capturePublicPageView', 'context.waitUntil'],
   },
   {
     area: 'Private portal configuration boundary',
@@ -48,7 +48,7 @@ const contracts = [
   {
     area: 'Keystatic owner workflow',
     file: 'keystatic.config.ts',
-    markers: ["kind: 'github'", 'siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslatorField', 'r2ImagePoolField', 'sitePublisherField', 'translationDraftReviewField', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField'],
+    markers: ["kind: 'github'", 'analyticsDashboardField', 'siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslatorField', 'r2ImagePoolField', 'sitePublisherField', 'translationDraftReviewField', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField'],
   },
   {
     area: 'Keystatic website language bulk controls',
@@ -109,6 +109,16 @@ const contracts = [
     area: 'Manager API routes',
     file: 'src/pages/api/manager/products.ts',
     markers: ['requireManagerAccess', 'getRuntimeEnv', 'modelStrategy'],
+  },
+  {
+    area: 'Private first-party analytics',
+    file: 'src/pages/api/analytics/summary.ts',
+    markers: ['requireInternalPortalAccess', 'requireManagerAccess', 'readAnalyticsOverview', 'getSearchConsoleAnalytics'],
+  },
+  {
+    area: 'Owner analytics reconciliation',
+    file: 'src/pages/api/analytics/adjustments.ts',
+    markers: ['requireOwner', 'upsertAnalyticsAdjustment', 'deleteAnalyticsAdjustment', 'Cross-origin writes are not allowed'],
   },
   {
     area: 'AI translation runtime',
@@ -218,6 +228,14 @@ const requiredFiles = [
   'src/pages/api/manager/r2/assets.ts',
   'src/pages/api/manager/review-drafts.ts',
   'src/pages/api/manager/review-drafts/[id]/apply.ts',
+  'src/pages/api/analytics/summary.ts',
+  'src/pages/api/analytics/adjustments.ts',
+  'src/pages/manager/analytics.astro',
+  'src/components/admin/AnalyticsDashboard.tsx',
+  'src/lib/analytics/capture.ts',
+  'src/lib/analytics/d1.ts',
+  'src/lib/analytics/google-search-console.ts',
+  'src/keystatic/analytics-dashboard-field.tsx',
   'src/pages/manager/reviews.astro',
   'src/pages/api/deploy/site.ts',
   'src/pages/api/manager/deploy/site.ts',

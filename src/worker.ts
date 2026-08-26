@@ -7,6 +7,7 @@ import {
   type AdminPortalName,
 } from './lib/admin-portals';
 import { rewritePortalLocation, rewritePortalText } from './lib/admin-portal-rewrite';
+import { capturePublicPageView } from './lib/analytics/capture';
 
 type WorkerEnv = Parameters<(typeof astroServer)['fetch']>[1] & Record<string, unknown>;
 type WorkerContext = Parameters<(typeof astroServer)['fetch']>[2];
@@ -25,12 +26,13 @@ const PRIVATE_HEADERS = {
 };
 
 const isProtectedPublicPath = (pathname: string) =>
-  /^\/(?:manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/manager$|r2\/assets$))/.test(
+  /^\/(?:manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:analytics(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/manager$|r2\/assets$))/.test(
     pathname
   );
 
 const isPortalAssetPath = (pathname: string) => pathname.startsWith('/_astro/');
 const isKeystaticOAuthCallback = (pathname: string) => pathname === '/api/keystatic/github/oauth/callback';
+const isLoopbackHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 
 const notFound = () =>
   new Response('Not found.', {
@@ -119,6 +121,7 @@ const mapPortalPath = (pathname: string, portal: AdminPortalConfig) => {
   if (suffix.startsWith('/api/')) return suffix;
   if (portal.name === 'keystatic') return `/keystatic${suffix}`;
   if (portal.name === 'manager' && (suffix === '/reviews' || suffix === '/reviews/')) return '/manager/reviews/';
+  if (portal.name === 'manager' && (suffix === '/analytics' || suffix === '/analytics/')) return '/manager/analytics/';
   return null;
 };
 
@@ -210,7 +213,17 @@ export default {
       return portals ? handlePortalRequest(request, env, context, portals.manager) : unavailable();
     }
 
-    if (isProtectedPublicPath(url.pathname)) return notFound();
-    return astro.fetch(requestForInternalPath(request, url), env, context);
+    if (!isLoopbackHost(hostname) && isProtectedPublicPath(url.pathname)) return notFound();
+    const response = await astro.fetch(requestForInternalPath(request, url), env, context);
+    context.waitUntil(
+      capturePublicPageView(request, response, env).catch(error => {
+        console.error({
+          event: 'public_analytics_capture_failed',
+          error: error instanceof Error ? error.message : String(error),
+          path: url.pathname,
+        });
+      })
+    );
+    return response;
   },
 };

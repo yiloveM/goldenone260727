@@ -1,6 +1,6 @@
 # BusinessWeb 国际品牌网站模板
 
-这是面向海外买家、经销商、项目团队和决策者的通用 B2B 商业网站模板。公开网站采用 Astro 6、Tailwind 和 Cloudflare Workers；图片放在 Cloudflare R2；内容管理员通过独立 Manager 专用域名与 UUID 工作；站长通过另一个独立 Keystatic 专用域名与 UUID 管理 Git 内容、行业基础信息、图片和发布。
+这是面向海外买家、经销商、项目团队和决策者的通用 B2B 商业网站模板。公开网站采用 Astro 6、Tailwind 和 Cloudflare Workers；图片放在 Cloudflare R2；内容管理员通过独立 Manager 专用域名与 UUID 工作；站长通过另一个独立 Keystatic 专用域名与 UUID 管理 Git 内容、行业基础信息、图片和发布。公开页面访问由 Worker 异步写入现有 D1，两个后台共用一套访问分析界面，Google Search Console 可选接入真实搜索词、曝光、点击率和排名。
 
 默认公开语言只有英语。站长在 `/keystatic/` 的 **网站语言** 页面用复选框管理其它语言。`/manager/` 和 AI 翻译只显示站长已勾选的语言；公开语言切换器、`hreflang` 和站点地图只纳入固定 UI、页面文案与 FAQ 已完成审核的语言。
 
@@ -15,14 +15,17 @@
         |
         +--> 图片 --------------------------> R2 图片池 -------------------------------> CDN 图片地址
 
+公开 HTML 请求 --> Worker 无 Cookie 采集 --> D1 原始日志 + 站长校准项 --> Keystatic / Manager 同一统计结果
+Google Search Console ---------------------> 只读 API + 6 小时 D1 缓存 -------> 两个后台搜索表现
+
 AI 翻译：英语源内容 -> GitHub Actions 生成草稿 -> 人工审核 -> 手动 Publish Site -> 公开目标语言页
 ```
 
 | 地址 | 谁使用 | 用途 |
 | --- | --- | --- |
 | `/` | 海外访客 | 国际品牌公开网站 |
-| `https://站长后台专用域名/KEYSTATIC_UUID` | 站长/网站所有者 | Git 内容、行业基础、图片、翻译审核、发布 |
-| `https://内容后台专用域名/MANAGER_UUID` | 内容级管理员 | D1 草稿、R2 图片、内容审批、翻译任务、发布记录 |
+| `https://站长后台专用域名/KEYSTATIC_UUID` | 站长/网站所有者 | Git 内容、行业基础、图片、翻译审核、发布、访问分析与付费数据校准 |
+| `https://内容后台专用域名/MANAGER_UUID` | 内容级管理员 | D1 草稿、R2 图片、内容审批、翻译任务、发布记录、只读访问分析 |
 | `/r2/...` | 浏览器 | R2 图片代理地址，不应被搜索收录 |
 
 公开主域上的 `/keystatic/`、`/manager/` 及受保护后台 API 会直接返回不可索引的 404；后台专用域名的根路径和错误 UUID 也不会回落到商业前台。不要公开、推广或搜索收录完整后台 UUID 地址；`/api/` 与 `/r2/` 也已在 robots 中排除。
@@ -92,7 +95,7 @@ Astro 6 的 Cloudflare adapter 会声明名为 `SESSION` 的会话 KV。新建 W
 4. 点击数据库的 **Console** 或 **Query**。
 5. 在 GitHub 新仓库中打开 `manager-portal/schema.sql`，点击 **Raw**，复制全部 SQL。
 6. 粘贴到 Cloudflare D1 的 SQL 输入框并点击 **Execute**。
-7. 页面显示执行成功后，D1 草稿表才可用。
+7. 页面显示执行成功后，D1 草稿和访问分析表才可用。分析代码也会在首次读取或写入时执行幂等的 `CREATE TABLE IF NOT EXISTS`，但新站仍应先完整导入 schema，便于在上线前发现绑定或权限错误。
 
 ### 步骤 4：在 GitHub 网页编辑 `wrangler.toml`
 
@@ -108,6 +111,10 @@ PUBLIC_KEYSTATIC_GITHUB_APP_SLUG = "你的-keystatic-github-app-slug"
 PUBLIC_R2_ASSET_BASE_URL = "https://cdn.example.com"
 KEYSTATIC_PORTAL_HOST = "owner-admin.example.com"
 MANAGER_PORTAL_HOST = "content-admin.example.net"
+ANALYTICS_ENABLED = "true"
+ANALYTICS_IP_MODE = "network"
+ANALYTICS_RETENTION_DAYS = "180"
+GSC_SITE_URL = ""
 
 [[r2_buckets]]
 binding = "CONTENT_BUCKET"
@@ -285,6 +292,8 @@ Callback URL 只使用站长后台专用域名，路径必须逐字是 `/api/key
 | `KEYSTATIC_GITHUB_CLIENT_ID` | Secret | 步骤 6 的 Client ID | Keystatic 必需 |
 | `KEYSTATIC_GITHUB_CLIENT_SECRET` | Secret | 步骤 6 的 Client secret | Keystatic 必需 |
 | `BUSINESSWEB_GITHUB_TOKEN` | Secret | 仅授权当前仓库的 fine-grained GitHub token | manager 发布、翻译、草稿写回 |
+| `ANALYTICS_HASH_SECRET` | Secret | 另行生成的 32 字符以上随机值 | 访问分析必需；只用于每日访客 HMAC，不得复用后台签名 Secret |
+| `GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON` | Secret | GSC 只读 service account 的完整 JSON | 可选；只有配置 GSC 集成时添加 |
 | `RESEND_API_KEY` | Secret | 已配置 Resend 时的 API Key | 联系表单按需 |
 | `CONTACT_FROM_EMAIL` | Variable | 已在 Resend 验证过的发件人地址 | 联系表单按需 |
 | `CONTACT_TO_EMAIL` | Variable | 仅在收件邮箱不同于站点公开联系邮箱时填写 | 可选覆盖 |
@@ -366,6 +375,7 @@ $bytes = New-Object byte[] 48; $rng = [System.Security.Cryptography.RandomNumber
 3. 打开 `https://内容后台专用域名/MANAGER_PORTAL_UUID`，确认不要求输入浏览器口令，随后能看到内容管理员界面。关闭页面再访问专用域名根路径，根路径仍必须是 404。
 4. 在 Manager 的 **Assets** 试传一张无敏感信息的测试图片，确认图片可显示，再删除测试文件。
 5. 确认 GitHub Actions 页面可以看到 `Publish Site` 与 `AI Translation Drafts` 两个工作流。只测试已经按步骤 8 配置过的可选功能。
+6. 在公开网站打开两三个页面，稍后进入 Keystatic **站点设置 -> 数据分析** 和 Manager **数据分析**；两边应显示相同统计，近期访问的 IP 与国家应在同一列。若配置了 GSC，再确认 Google 搜索表现可读取。
 
 只有站长需要步骤 1 至 10 的账户、密钥和部署权限。内容管理员从本 README 的“内容管理员使用”部分开始，不需要接触 Cloudflare、GitHub App、API Token 或任何 Secret。
 
@@ -442,6 +452,82 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 3. 在 **Assets** 上传或挑选 R2 图片。
 4. 内容负责人审核后执行页面中的写回/审批操作，系统才会通过 GitHub Actions 把草稿转换为仓库内容。
 5. 到 **Publish site updates** 可查看并发起手动发布。
+6. 点击 **数据分析** 查看与站长相同的访客、浏览量、时间趋势、来源、落地页、国家、设备、可见关键词、GSC 搜索词和近期访问；Manager 不能修改站长校准项。
+
+### 网站访问分析：默认免费方案与操作边界
+
+本项目默认不把 GA4 当作唯一数据源，也不要求额外部署 Umami、Plausible 或 Matomo。当前实现直接复用已经存在的 Cloudflare Worker 和 `MANAGER_DB` D1 binding：没有第三方前端脚本、没有分析 Cookie、没有额外服务器，也不会因广告拦截器阻断浏览器分析脚本。公开请求的响应不等待分析写入；Worker 使用 `waitUntil()` 在响应后异步记录，因此分析系统故障不会阻断商业网站页面。
+
+#### 两个后台看什么
+
+- Keystatic **站点设置 -> 数据分析** 与 Manager **数据分析** 使用同一个 `/api/analytics/summary`，统计周期均可选 7、30、90 或 180 天。
+- 两边显示相同的校准后页面浏览、独立访客、落地访问、趋势图、热门页面、落地页、来源、国家、设备、浏览器、可见关键词、GSC 关键词/页面和近期 40 条访问。
+- 近期访问把 **IP / 国家** 放在同一列。默认 `network` 模式仅保存 IPv4 `/24` 或 IPv6 `/48` 网段；不是完整个人 IP。
+- 站长比 Manager 多一个 **付费数据校准** 编辑区。Manager 看到校准后的相同总数和趋势，但只能读取，不能新增、修改或删除校准项。
+
+#### 站长用付费工具校准数据
+
+校准不是修改原始日志。D1 的 `site_analytics_adjustments` 单独保存日期、指标、正负调整值、付费数据来源、校准原因、创建时间和更新时间；只追加的 `site_analytics_adjustment_audit` 保留每次新增、编辑和删除时的完整快照；原始 `site_analytics_events` 保持不变。支持校准 **页面浏览、独立访客、落地访问**，并可编辑或删除错误校准项。摘要、上期对比和每日趋势会叠加当前有效校准值，页面/来源/IP 等明细仍表示真实采集事件。
+
+**保存校准后立即生效，不需要点击 Publish Site，也不需要等待 Git 或 Worker 重新部署。** 校准项直接写入 D1；站长页面会自动重新读取，Manager 刷新页面或切换周期后看到相同结果。只有修改源代码、Git 内容或 `wrangler.toml` 才涉及网站发布。
+
+#### 默认采集规则
+
+1. 只记录公开主域中状态成功、内容类型为 HTML 的 `GET` 请求；`/keystatic/`、`/manager/`、`/api/`、`/r2/`、`/_astro/` 和后台专用域名不计入访客。
+2. 跳过常见机器人、`DNT: 1` 和 Global Privacy Control 请求。
+3. 保存页面路径，不保存页面查询字符串；保存 UTM source/medium/campaign/term、外部 referrer host、搜索来源仍可见的查询词、Cloudflare 国家/地区/城市、colo、设备、浏览器和操作系统。不保存原始 User-Agent。
+4. 日去重访客按 UTC 日期，用 `ANALYTICS_HASH_SECRET` 对 IP 与 User-Agent 做每日 HMAC。每日轮换可以统计访客日，但同一访客跨天会重新计数，不能把 30 天结果理解为 30 天长期身份追踪。Secret 缺失或短于 32 字符时仍记录浏览量，但访客键留空且访客数不计数，不使用弱摘要降级。
+5. `ANALYTICS_RETENTION_DAYS` 可设 7 至 365 天，默认 180 天。每次事件都会通过 D1 原子日期门检查是否需要执行当天的过期清理，同一天只有第一个成功获得门的请求实际删除，不需要独立 Cron。
+
+#### IP 模式
+
+| `ANALYTICS_IP_MODE` | 保存内容 | 建议 |
+| --- | --- | --- |
+| `none` | 不保存 IP，仍保存每日 HMAC 访客键及 Cloudflare 国家等粗粒度地理数据 | 隐私要求最高时使用；后台不显示 IP，但仍可统计日去重访客 |
+| `network` | IPv4 `/24` 或 IPv6 `/48` 网段 | 默认；两个后台显示同一个网段与国家 |
+| `full` | 完整 IP | 仅在已完成适用地区隐私告知、访问控制和合法性审查后使用；代码强制最多保留 30 天，两个后台都会显示完整 IP |
+
+若使用 `full`，需要把完整 IP 收集目的、保留期和有权查看的人写进实际隐私政策。国家来自 Cloudflare 边缘地理信息，不能替代法律意义上的精确位置或身份识别。
+
+#### 第一次启用
+
+1. 保持 `wrangler.toml` 中 `ANALYTICS_ENABLED = "true"`、`ANALYTICS_IP_MODE = "network"`、`ANALYTICS_RETENTION_DAYS = "180"`。
+2. 按步骤 3 重新执行最新 `manager-portal/schema.sql`。所有语句均为幂等，已存在的 Manager 草稿不会被删除。
+3. 生成与 `KEYSTATIC_SECRET`、`ADMIN_PORTAL_SESSION_SECRET` 不同的随机值：
+
+```powershell
+$bytes = New-Object byte[] 48
+[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
+4. 把输出作为 Worker 加密 Secret `ANALYTICS_HASH_SECRET`，部署最新版本。不要把生产值写进 `.env.example`、`wrangler.toml` 或 GitHub。
+5. 访问公开 HTML 页面后再打开后台。首次事件写入、首次仪表盘查询和首次校准保存都会兜底创建缺少的分析表。
+
+#### 可选接入 Google Search Console
+
+GSC 才是 Google 自然搜索关键词、搜索结果曝光、点击、CTR、平均排名和 Google 落地页的权威来源。普通 referrer 经常不会携带查询词，因此本地 **可见关键词** 不能代替 GSC。Search Console API 只保证返回内部限制下的热门行，极少量或匿名化查询不会全部出现；本界面读取截至 3 天前的 finalized 数据，并在 D1 缓存 6 小时。
+
+1. 先在 Search Console 验证正式站点，推荐 Domain property。
+2. 在 Google Cloud 项目启用 Search Console API，创建 service account 并下载 JSON key。
+3. 在 Search Console 当前 property 的 **Settings -> Users and permissions -> Add user**，把 JSON 中的 `client_email` 添加为只读用户。
+4. 在 `wrangler.toml` 把 `GSC_SITE_URL` 设为 property 的精确标识。Domain property 示例是 `sc-domain:example.com`；URL-prefix property 必须包含完整协议和末尾斜杠。
+5. 在 Worker 添加加密 Secret `GOOGLE_SEARCH_CONSOLE_SERVICE_ACCOUNT_JSON`，值为完整 JSON；部署后打开两个后台确认数据。
+
+代码只申请 `webmasters.readonly`，不会修改 Search Console。官方说明：[Search Analytics API](https://developers.google.com/webmaster-tools/v1/searchanalytics/query)、[Search Console 用户权限](https://support.google.com/webmasters/answer/7687615?hl=zh-Hans)。
+
+#### 为什么不默认使用其它常见方案
+
+| 方案 | 适合什么 | 本项目结论 |
+| --- | --- | --- |
+| Worker + D1 | 精确近期事件、IP/国家、自有后台、站长校准 | **默认主数据源**；复用已有 Worker 与 D1，免费、无前端脚本、权限边界最短 |
+| Google Search Console | Google 查询词、点击、曝光、CTR、排名 | **推荐可选补充**；不能替代全站访问日志 |
+| GA4 | 广告归因、Google Ads、复杂事件生态 | 不默认；GA4 在记录前丢弃 IP，无法满足本项目 IP 查看要求，并可能引入 Cookie/同意管理。官方说明：[GA4 区域数据收集](https://support.google.com/analytics/answer/11598602?hl=zh-Hans) |
+| Cloudflare Web Analytics | 免费隐私友好的 Web Vitals 和 Cloudflare 控制台总览 | 可选旁路观察，不作为后台 IP/逐条访问数据源。官方说明：[Web Analytics](https://developers.cloudflare.com/web-analytics/about/) |
+| Cloudflare Analytics Engine | 高基数聚合和更高流量写入 | 达到 D1 免费写入瓶颈后的迁移候选；自适应采样不适合保证逐条近期访问和人工校准审计 |
+| Umami / Plausible / Matomo | 通用自托管分析产品 | 不默认；需要新增服务、数据库或运维面。当前每日哈希、不保存原始 User-Agent 的做法参考了这类隐私分析系统的常见模式 |
+
+截至 2026-08-26，D1 Workers Free 包含每天 500 万行读取、10 万行写入和账户总计 5 GB 存储。事件表有两个索引，一个页面访问通常不只消耗一次 row write；Manager 草稿和分析也共用此数据库额度。应在 Cloudflare D1 **Metrics -> Row Metrics** 查看真实用量。达到上限时 D1 会拒绝查询直到 UTC 次日重置，因此高流量站应先降低保留期，再评估 Analytics Engine、单独付费分析服务或 Workers Paid。以 Cloudflare 最新文档为准：[D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/)。
 
 ## 六、四种“保存/发布”不要混淆
 
@@ -449,6 +535,7 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 | --- | --- | --- | --- |
 | Keystatic 普通产品/文章点击保存 | GitHub 的 `src/content/products/` 或 `src/content/blog/` | 内容已进入源代码 | 若 Workers Builds 已连接且匹配 watch paths，会自动构建部署 |
 | Manager 普通编辑点击保存草稿 | D1 | 否 | 否；还没有写回 Git |
+| Keystatic 数据分析保存校准项 | D1 当前校准表 + 只追加审计表 | 是；两个后台统计立即使用 | **否；不需要 Publish Site** |
 | AI 翻译生成/审核草稿 | `productTranslations/` 或 `blogTranslations/` | 否；生成仅是草稿 | 否；上述目录被 watch paths 排除 |
 | **Publish Site** | 触发 `site-publish.yml` | 对已审核、已写入仓库的内容执行部署 | 是，GitHub Actions 明确构建并部署 Worker |
 
@@ -901,6 +988,10 @@ npm run check:rich-results
 | Manager 完整 UUID 地址进不去 | `MANAGER_PORTAL_HOST` 是否与浏览器 Host 精确一致；UUID 和 `ADMIN_PORTAL_SESSION_SECRET` 是否为当前 Worker 加密 Secret；Custom Domain 是否 Active |
 | 后台专用域名不带 UUID 却显示商业前台 | 立即停止分享该域名；检查 Domains & Routes 是否选择当前 Worker 的 Custom Domain、Host 配置、最新部署及 `run_worker_first = true` |
 | Manager 显示 D1/R2 未连接 | `wrangler.toml` 的 D1 ID、R2 bucket 名称和 binding 名称 |
+| 数据分析没有新访问 | `ANALYTICS_ENABLED`、`MANAGER_DB` binding、访问是否为公开 HTML GET、是否开启 DNT/GPC；后台与机器人请求不会采集 |
+| 访客只显示网段而非完整 IP | 这是默认 `network` 隐私模式；只有完成隐私审查后才考虑 `full`，且完整 IP 最多保留 30 天 |
+| 保存校准后 Manager 仍是旧数字 | 不需要 Publish Site；直接刷新 Manager 或切换统计周期。若仍旧，检查 D1 binding 和浏览器是否打开当前 Worker 版本 |
+| GSC 显示未连接或无数据 | `GSC_SITE_URL` 是否与 property 精确一致、service account email 是否已加入该 property、JSON 是否作为 Worker Secret 完整保存；新站数据通常有延迟 |
 | AI 翻译没有语言可选 | 站长进入 `/keystatic/ -> 网站语言` 勾选目标语言、点击 Save，并等待该提交部署完成 |
 | 已勾选语言但公开站点没有显示 | 该语言的 `site-locales.json` 固定 UI、页面文案或 FAQ 尚未补全并审核；查看 `npm run check:template` 的警告 |
 | 切换语言跳到旧域名或打不开 | 重新部署当前模板；检查 `src/data/site-origin.json` 和 `wrangler.toml`。语言菜单已使用同站相对路径，模板自检会阻止再次改回绝对域名 |

@@ -1,6 +1,6 @@
 import { type RefObject, useEffect } from 'react';
 
-type ThemePrefix = 'pm' | 'po' | 'r2' | 'ai' | 'sp' | 'tr' | 'language';
+type ThemePrefix = 'pm' | 'po' | 'r2' | 'ai' | 'sp' | 'tr' | 'language' | 'wa';
 type Rgb = {
   r: number;
   g: number;
