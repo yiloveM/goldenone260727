@@ -497,8 +497,12 @@ Codex 在此阶段必须先查最新 Google Search Central 规范、Schema.org �
 
 ```powershell
 $bytes = New-Object byte[] 48
-[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
-[Convert]::ToBase64String($bytes)
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+$rng.Dispose()
+$base64 = [Convert]::ToBase64String($bytes)
+$urlSafeBase64 = $base64.Replace('+', '-').Replace('/', '_').TrimEnd('=')
+$urlSafeBase64
 ```
 
 4. 把输出作为 Worker 加密 Secret `ANALYTICS_HASH_SECRET`，部署最新版本。不要把生产值写进 `.env.example`、`wrangler.toml` 或 GitHub。
