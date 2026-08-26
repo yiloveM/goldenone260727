@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { adminApiUrl, readAdminJson } from '../../lib/admin-client';
 import './analytics-dashboard.css';
 
 type RankedRow = {
@@ -228,11 +229,11 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`/api/analytics/summary?days=${days}&surface=${surface}`, {
+      const response = await fetch(adminApiUrl(`analytics/summary?days=${days}&surface=${surface}`), {
         headers: { accept: 'application/json' },
       });
-      const payload = (await response.json()) as AnalyticsPayload;
-      if (!response.ok || !payload.ok) throw new Error(payload.message || '分析数据读取失败。');
+      const payload = await readAdminJson<AnalyticsPayload>(response, '分析数据读取失败。');
+      if (!payload.ok) throw new Error(payload.message || '分析数据读取失败。');
       setData(payload);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : '分析数据读取失败。');
@@ -250,13 +251,13 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
     setAdjustmentBusy(true);
     setAdjustmentMessage('');
     try {
-      const response = await fetch(`/api/analytics/adjustments?surface=${surface}`, {
+      const response = await fetch(adminApiUrl(`analytics/adjustments?surface=${surface}`), {
         method: 'POST',
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({ ...adjustmentForm, delta: Number(adjustmentForm.delta) }),
       });
-      const payload = await response.json() as { ok?: boolean; message?: string };
-      if (!response.ok || !payload.ok) throw new Error(payload.message || '校准项保存失败。');
+      const payload = await readAdminJson<{ ok?: boolean; message?: string }>(response, '校准项保存失败。');
+      if (!payload.ok) throw new Error(payload.message || '校准项保存失败。');
       setAdjustmentForm(emptyAdjustmentForm());
       setAdjustmentMessage('校准项已保存并立即生效，无需发布网站更新。');
       await load();
@@ -272,13 +273,13 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
     setAdjustmentBusy(true);
     setAdjustmentMessage('');
     try {
-      const response = await fetch(`/api/analytics/adjustments?surface=${surface}`, {
+      const response = await fetch(adminApiUrl(`analytics/adjustments?surface=${surface}`), {
         method: 'DELETE',
         headers: { accept: 'application/json', 'content-type': 'application/json' },
         body: JSON.stringify({ id: adjustment.id }),
       });
-      const payload = await response.json() as { ok?: boolean; message?: string };
-      if (!response.ok || !payload.ok) throw new Error(payload.message || '校准项删除失败。');
+      const payload = await readAdminJson<{ ok?: boolean; message?: string }>(response, '校准项删除失败。');
+      if (!payload.ok) throw new Error(payload.message || '校准项删除失败。');
       if (adjustmentForm.id === adjustment.id) setAdjustmentForm(emptyAdjustmentForm());
       setAdjustmentMessage('校准项已删除。');
       await load();

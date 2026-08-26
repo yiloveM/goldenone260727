@@ -31,6 +31,7 @@ const isProtectedPublicPath = (pathname: string) =>
   );
 
 const isPortalAssetPath = (pathname: string) => pathname.startsWith('/_astro/');
+const isDirectPortalApiPath = (pathname: string) => pathname.startsWith('/api/');
 const isKeystaticOAuthCallback = (pathname: string) => pathname === '/api/keystatic/github/oauth/callback';
 const isLoopbackHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 
@@ -187,6 +188,13 @@ const handlePortalRequest = async (
 
   if (portal.name === 'keystatic' && isKeystaticOAuthCallback(url.pathname)) {
     const response = await astro.fetch(requestForInternalPath(request, url), env, context);
+    return securePortalResponse(response, portal);
+  }
+
+  // A signed portal session is sufficient for same-host API calls. This keeps
+  // dynamically loaded admin bundles working even when their URLs were not rewritten.
+  if (isDirectPortalApiPath(url.pathname) && (await hasValidPortalSession(request, env, portal))) {
+    const response = await astro.fetch(requestForInternalPath(request, url, portal.name), env, context);
     return securePortalResponse(response, portal);
   }
 

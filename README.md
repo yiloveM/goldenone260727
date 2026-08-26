@@ -152,7 +152,9 @@ database_id = "步骤 3 的 Database ID"
 
 #### 5.1 设置自动部署的监听路径
 
-在同一 Worker 的 **Settings -> Builds -> Build watch paths** 使用白名单。**Include paths** 填入：
+在同一 Worker 的 **Settings -> Builds -> Build watch paths** 使用白名单。下面每一行都要在 Cloudflare 界面中作为一条独立规则添加，不要加开头的 `/`，不要用逗号拼成一条。
+
+**Include paths 最终只保留下列 12 条：**
 
 ```text
 src/*
@@ -169,7 +171,7 @@ worker-configuration.d.ts
 .nvmrc
 ```
 
-**Exclude paths** 填入：
+**Exclude paths 最终只保留下列 7 条：**
 
 ```text
 README.md
@@ -181,7 +183,13 @@ src/content/productTranslations/*
 src/content/blogTranslations/*
 ```
 
-这样普通产品、文章内容会自动部署，但 AI 翻译草稿不会在生成或审核过程中意外上线。
+Cloudflare 会先应用 Exclude paths，再用 Include paths 检查剩余文件。上面的配置会得到以下结果：
+
+- `src/content/productTranslations/*`、`src/content/blogTranslations/*` 中的 AI 翻译草稿不会触发自动构建，避免生成或审核途中意外上线。
+- 普通产品、文章、后台代码、API、Worker 和 `src/data/customer-reviews.json` 会触发 Workers Builds。
+- README、文档、Agent 说明、D1 建表参考和 GitHub 工作流文件本身不会触发 Workers Builds。
+
+**不要**额外排除 `src/*`、`src/data/*`、`src/data/customer-reviews.json`、`src/lib/*`、`src/worker.ts`、`keystatic.config.ts`、`worker-configuration.d.ts` 或 `wrangler.toml`，否则评分、后台修复或 Worker 配置更新会被错误跳过。保持 **Automatic deployments** 开启；本项目的 GitHub `Publish Site` 工作流只接受后台手动调用，不使用 `push` 重复部署。
 
 #### 5.2 配置两个后台 Custom Domain、UUID 与签名会话
 

@@ -28,12 +28,17 @@ const contracts = [
   {
     area: 'Private portal host gateway',
     file: 'src/worker.ts',
-    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'capturePublicPageView', 'context.waitUntil'],
+    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'capturePublicPageView', 'context.waitUntil'],
   },
   {
     area: 'Private portal configuration boundary',
     file: 'src/lib/admin-portals.ts',
     markers: ['KEYSTATIC_PORTAL_UUID', 'MANAGER_PORTAL_UUID', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'ADMIN_PORTAL_HEADER', 'requireInternalPortalAccess'],
+  },
+  {
+    area: 'Private portal browser API routing',
+    file: 'src/lib/admin-client.ts',
+    markers: ['PORTAL_UUID_PATTERN', 'currentPortalPrefix', 'adminApiUrl', 'readAdminJson'],
   },
   {
     area: 'Private portal response rewrite regression check',
@@ -216,6 +221,7 @@ const requiredFiles = [
   'src/worker.ts',
   'src/middleware.ts',
   'src/lib/admin-portals.ts',
+  'src/lib/admin-client.ts',
   'src/lib/admin-portal-rewrite.ts',
   'src/keystatic/keystatic-path.ts',
   'src/data/site-language-settings.json',

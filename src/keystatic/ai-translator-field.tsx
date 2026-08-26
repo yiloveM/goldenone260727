@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { adminApiUrl, readAdminJson } from '../lib/admin-client';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
 type SourceType = 'all' | 'products' | 'blog';
@@ -152,10 +153,9 @@ function AiTranslatorInput() {
 
   useEffect(() => {
     let disposed = false;
-    fetch('/api/ai/translation-locales', { headers: { accept: 'application/json' } })
+    fetch(adminApiUrl('ai/translation-locales'), { headers: { accept: 'application/json' } })
       .then(async response => {
-        if (!response.ok) throw new Error(await response.text());
-        return response.json() as Promise<{ locales?: LocaleOption[] }>;
+        return readAdminJson<{ locales?: LocaleOption[] }>(response, '无法读取网站语言设置。');
       })
       .then(result => {
         if (disposed) return;
@@ -196,7 +196,7 @@ function AiTranslatorInput() {
     setWorkflowStatus(null);
 
     try {
-      const response = await fetch('/api/ai/translations', {
+      const response = await fetch(adminApiUrl('ai/translations'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -208,11 +208,7 @@ function AiTranslatorInput() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
-
-      setResult((await response.json()) as TranslationResult);
+      setResult(await readAdminJson<TranslationResult>(response, 'AI 翻译任务提交失败。'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI 翻译任务失败，请稍后重试。');
     } finally {
@@ -229,13 +225,10 @@ function AiTranslatorInput() {
 
     const pollStatus = async () => {
       try {
-        const response = await fetch(`/api/ai/translation-status?requestId=${encodeURIComponent(requestId)}`, {
+        const response = await fetch(adminApiUrl(`ai/translation-status?requestId=${encodeURIComponent(requestId)}`), {
           headers: { accept: 'application/json' },
         });
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
-        const nextStatus = (await response.json()) as WorkflowStatus;
+        const nextStatus = await readAdminJson<WorkflowStatus>(response, '读取后台任务状态失败。');
         if (disposed) return;
         setWorkflowStatus(nextStatus);
         setStatusError('');
@@ -437,7 +430,7 @@ function AiTranslatorInput() {
                       <ul>
                         {workflowStatus.result.generated.slice(0, 12).map(item => {
                           const previewType = item.type === 'blog' ? 'blog' : 'product';
-                          const previewHref = `/api/ai/draft-preview?type=${previewType}&draft=${encodeURIComponent(`${item.locale}--${item.slug}`)}`;
+                          const previewHref = adminApiUrl(`ai/draft-preview?type=${previewType}&draft=${encodeURIComponent(`${item.locale}--${item.slug}`)}`);
                           return (
                             <li key={`${item.type}-${item.locale}-${item.slug}`}>
                               {item.type} / {item.locale} / {item.slug}
