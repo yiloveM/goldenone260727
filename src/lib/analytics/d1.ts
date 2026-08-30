@@ -14,7 +14,6 @@ export type AnalyticsAdjustment = {
   createdAt: number;
   updatedAt: number;
 };
-
 export type AnalyticsEvent = {
   id: string;
   occurredAt: number;
@@ -145,7 +144,7 @@ const insertEvent = (db: AnalyticsDatabase, event: AnalyticsEvent) =>
         source, medium, campaign, term, search_query, referrer_host,
         ip_address, ip_mode, country, region, city, timezone, colo,
         device, browser, os
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       event.id,
@@ -170,7 +169,7 @@ const insertEvent = (db: AnalyticsDatabase, event: AnalyticsEvent) =>
       event.colo,
       event.device,
       event.browser,
-      event.os
+      event.os,
     )
     .run();
 
@@ -181,7 +180,7 @@ const pruneExpiredEvents = async (db: AnalyticsDatabase, day: string, retentionD
        VALUES ('last-retention-prune', ?, ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
        WHERE site_analytics_maintenance.value < excluded.value
-       RETURNING value`
+       RETURNING value`,
     )
     .bind(day, Date.now())
     .first<{ value: string }>();
@@ -192,11 +191,7 @@ const pruneExpiredEvents = async (db: AnalyticsDatabase, day: string, retentionD
   await db.prepare('DELETE FROM site_analytics_external_cache WHERE expires_at < ?').bind(Date.now()).run();
 };
 
-export const recordAnalyticsEvent = async (
-  db: AnalyticsDatabase,
-  event: AnalyticsEvent,
-  retentionDays: number
-) => {
+export const recordAnalyticsEvent = async (db: AnalyticsDatabase, event: AnalyticsEvent, retentionDays: number) => {
   try {
     await insertEvent(db, event);
   } catch (error) {
@@ -223,11 +218,7 @@ const dayKey = (date: Date) => date.toISOString().slice(0, 10);
 
 const rowsFrom = <T>(result: AnalyticsD1Result<T> | undefined): T[] => result?.results || [];
 
-export const readAnalyticsOverview = async (
-  db: AnalyticsDatabase,
-  days: number,
-  _role: AnalyticsPortalRole
-) => {
+export const readAnalyticsOverview = async (db: AnalyticsDatabase, days: number, _role: AnalyticsPortalRole) => {
   const today = startOfUtcDay(new Date());
   const currentStart = new Date(today);
   currentStart.setUTCDate(currentStart.getUTCDate() - (days - 1));
@@ -248,7 +239,7 @@ export const readAnalyticsOverview = async (
           COUNT(DISTINCT CASE WHEN day >= ? AND day < ? THEN NULLIF(visitor_key, '') END) AS previous_visitors,
           SUM(CASE WHEN day >= ? AND day < ? THEN is_landing ELSE 0 END) AS previous_landings
          FROM site_analytics_events
-         WHERE day >= ?`
+         WHERE day >= ?`,
       )
       .bind(
         currentDay,
@@ -260,7 +251,7 @@ export const readAnalyticsOverview = async (
         currentDay,
         previousDay,
         currentDay,
-        previousDay
+        previousDay,
       ),
     db
       .prepare(
@@ -268,7 +259,7 @@ export const readAnalyticsOverview = async (
           COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors,
           SUM(is_landing) AS landings
          FROM site_analytics_events WHERE day >= ?
-         GROUP BY day ORDER BY day ASC`
+         GROUP BY day ORDER BY day ASC`,
       )
       .bind(currentDay),
     db
@@ -276,7 +267,7 @@ export const readAnalyticsOverview = async (
         `SELECT path AS label, COUNT(*) AS value,
           COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events WHERE day >= ?
-         GROUP BY path ORDER BY value DESC LIMIT 12`
+         GROUP BY path ORDER BY value DESC LIMIT 12`,
       )
       .bind(currentDay),
     db
@@ -284,37 +275,69 @@ export const readAnalyticsOverview = async (
         `SELECT path AS label, COUNT(*) AS value,
           COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events WHERE day >= ? AND is_landing = 1
-         GROUP BY path ORDER BY value DESC LIMIT 12`
+         GROUP BY path ORDER BY value DESC LIMIT 12`,
       )
       .bind(currentDay),
     db
       .prepare(
-        `SELECT source AS label, medium AS secondary, COUNT(*) AS value
+        `SELECT source AS label, medium AS secondary, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events WHERE day >= ?
-         GROUP BY source, medium ORDER BY value DESC LIMIT 12`
+         GROUP BY source, medium ORDER BY value DESC LIMIT 12`,
       )
       .bind(currentDay),
     db
       .prepare(
         `SELECT COALESCE(NULLIF(search_query, ''), term) AS label,
-          source AS secondary, COUNT(*) AS value
+          source AS secondary, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events
          WHERE day >= ? AND (search_query <> '' OR term <> '')
-         GROUP BY label, source ORDER BY value DESC LIMIT 20`
+         GROUP BY label, source ORDER BY value DESC LIMIT 20`,
       )
       .bind(currentDay),
     db
       .prepare(
-        `SELECT COALESCE(NULLIF(country, ''), 'Unknown') AS label, COUNT(*) AS value
+        `SELECT COALESCE(NULLIF(country, ''), 'Unknown') AS label, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events WHERE day >= ?
-         GROUP BY label ORDER BY value DESC LIMIT 12`
+         GROUP BY label ORDER BY value DESC LIMIT 12`,
       )
       .bind(currentDay),
     db
       .prepare(
-        `SELECT device AS label, browser AS secondary, COUNT(*) AS value
+        `SELECT device AS label, browser AS secondary, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
          FROM site_analytics_events WHERE day >= ?
-         GROUP BY device, browser ORDER BY value DESC LIMIT 12`
+         GROUP BY device, browser ORDER BY value DESC LIMIT 12`,
+      )
+      .bind(currentDay),
+    db
+      .prepare(
+        `SELECT COALESCE(NULLIF(locale, ''), 'en') AS label, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
+         FROM site_analytics_events WHERE day >= ?
+         GROUP BY label ORDER BY value DESC LIMIT 12`,
+      )
+      .bind(currentDay),
+    db
+      .prepare(
+        `SELECT COALESCE(NULLIF(referrer_host, ''), 'Direct') AS label,
+          source AS secondary, COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
+         FROM site_analytics_events WHERE day >= ?
+         GROUP BY label, source ORDER BY value DESC LIMIT 12`,
+      )
+      .bind(currentDay),
+    db
+      .prepare(
+        `SELECT campaign AS label,
+          source || CASE WHEN medium <> '' AND medium <> 'none' THEN ' / ' || medium ELSE '' END AS secondary,
+          COUNT(*) AS value,
+          COUNT(DISTINCT NULLIF(visitor_key, '')) AS visitors
+         FROM site_analytics_events
+         WHERE day >= ? AND campaign <> ''
+         GROUP BY campaign, source, medium ORDER BY value DESC LIMIT 12`,
       )
       .bind(currentDay),
     db
@@ -322,7 +345,7 @@ export const readAnalyticsOverview = async (
         `SELECT occurred_at, path, source, medium, campaign, ip_address,
           country, region, city, device, browser, visitor_key
          FROM site_analytics_events
-         WHERE day >= ? ORDER BY occurred_at DESC LIMIT 40`
+         WHERE day >= ? ORDER BY occurred_at DESC LIMIT 40`,
       )
       .bind(currentDay),
     db
@@ -334,7 +357,7 @@ export const readAnalyticsOverview = async (
           SUM(CASE WHEN day >= ? AND day < ? AND metric = 'pageviews' THEN delta ELSE 0 END) AS previous_pageviews,
           SUM(CASE WHEN day >= ? AND day < ? AND metric = 'visitors' THEN delta ELSE 0 END) AS previous_visitors,
           SUM(CASE WHEN day >= ? AND day < ? AND metric = 'landings' THEN delta ELSE 0 END) AS previous_landings
-         FROM site_analytics_adjustments WHERE day >= ?`
+         FROM site_analytics_adjustments WHERE day >= ?`,
       )
       .bind(
         currentDay,
@@ -346,7 +369,7 @@ export const readAnalyticsOverview = async (
         currentDay,
         previousDay,
         currentDay,
-        previousDay
+        previousDay,
       ),
     db
       .prepare(
@@ -355,14 +378,14 @@ export const readAnalyticsOverview = async (
           SUM(CASE WHEN metric = 'visitors' THEN delta ELSE 0 END) AS visitors,
           SUM(CASE WHEN metric = 'landings' THEN delta ELSE 0 END) AS landings
          FROM site_analytics_adjustments WHERE day >= ?
-         GROUP BY day ORDER BY day ASC`
+         GROUP BY day ORDER BY day ASC`,
       )
       .bind(currentDay),
   ];
 
   const results = await db.batch<NumericRow>(statements);
   const summaryRow = rowsFrom(results[0])[0] || {};
-  const adjustmentRow = rowsFrom(results[9])[0] || {};
+  const adjustmentRow = rowsFrom(results[12])[0] || {};
   const raw = {
     pageviews: numberValue(summaryRow.pageviews),
     visitors: numberValue(summaryRow.visitors),
@@ -413,7 +436,7 @@ export const readAnalyticsOverview = async (
     },
     timeseries: (() => {
       const rawByDay = new Map(rowsFrom(results[1]).map(row => [String(row.day || ''), row]));
-      const adjustmentsByDay = new Map(rowsFrom(results[10]).map(row => [String(row.day || ''), row]));
+      const adjustmentsByDay = new Map(rowsFrom(results[13]).map(row => [String(row.day || ''), row]));
       return Array.from({ length: days }, (_value, index) => {
         const date = new Date(currentStart);
         date.setUTCDate(date.getUTCDate() + index);
@@ -434,7 +457,10 @@ export const readAnalyticsOverview = async (
     keywords: mapRankedRows(results[5]),
     countries: mapRankedRows(results[6]),
     devices: mapRankedRows(results[7]),
-    recent: rowsFrom(results[8]).map(row => ({
+    locales: mapRankedRows(results[8]),
+    referrers: mapRankedRows(results[9]),
+    campaigns: mapRankedRows(results[10]),
+    recent: rowsFrom(results[11]).map(row => ({
       occurredAt: numberValue(row.occurred_at),
       path: String(row.path || ''),
       source: String(row.source || ''),
@@ -466,27 +492,22 @@ export const readAnalyticsAdjustments = async (db: AnalyticsDatabase, limit = 10
   const result = await db
     .prepare(
       `SELECT id, day, metric, delta, source, note, created_at, updated_at
-       FROM site_analytics_adjustments ORDER BY day DESC, updated_at DESC LIMIT ?`
+       FROM site_analytics_adjustments ORDER BY day DESC, updated_at DESC LIMIT ?`,
     )
     .bind(Math.max(1, Math.min(200, Math.round(limit))))
     .run();
   return rowsFrom(result as AnalyticsD1Result<NumericRow>).map(adjustmentFromRow);
 };
 
-export const upsertAnalyticsAdjustment = async (
-  db: AnalyticsDatabase,
-  adjustment: AnalyticsAdjustment
-) => {
+export const upsertAnalyticsAdjustment = async (db: AnalyticsDatabase, adjustment: AnalyticsAdjustment) => {
   const existing = await db
     .prepare(
       `SELECT id, day, metric, delta, source, note, created_at, updated_at
-       FROM site_analytics_adjustments WHERE id = ?`
+       FROM site_analytics_adjustments WHERE id = ?`,
     )
     .bind(adjustment.id)
     .first<NumericRow>();
-  const persisted = existing
-    ? { ...adjustment, createdAt: numberValue(existing.created_at) }
-    : adjustment;
+  const persisted = existing ? { ...adjustment, createdAt: numberValue(existing.created_at) } : adjustment;
   const upsert = db
     .prepare(
       `INSERT INTO site_analytics_adjustments (
@@ -498,7 +519,7 @@ export const upsertAnalyticsAdjustment = async (
         delta = excluded.delta,
         source = excluded.source,
         note = excluded.note,
-        updated_at = excluded.updated_at`
+        updated_at = excluded.updated_at`,
     )
     .bind(
       persisted.id,
@@ -508,20 +529,20 @@ export const upsertAnalyticsAdjustment = async (
       persisted.source,
       persisted.note,
       persisted.createdAt,
-      persisted.updatedAt
+      persisted.updatedAt,
     );
   const audit = db
     .prepare(
       `INSERT INTO site_analytics_adjustment_audit (
         audit_id, adjustment_id, action, payload_json, recorded_at
-       ) VALUES (?, ?, ?, ?, ?)`
+       ) VALUES (?, ?, ?, ?, ?)`,
     )
     .bind(
       crypto.randomUUID(),
       persisted.id,
       existing ? 'updated' : 'created',
       JSON.stringify(persisted),
-      persisted.updatedAt
+      persisted.updatedAt,
     );
   await db.batch([upsert, audit]);
 };
@@ -530,7 +551,7 @@ export const deleteAnalyticsAdjustment = async (db: AnalyticsDatabase, id: strin
   const existing = await db
     .prepare(
       `SELECT id, day, metric, delta, source, note, created_at, updated_at
-       FROM site_analytics_adjustments WHERE id = ?`
+       FROM site_analytics_adjustments WHERE id = ?`,
     )
     .bind(id)
     .first<NumericRow>();
@@ -543,7 +564,7 @@ export const deleteAnalyticsAdjustment = async (db: AnalyticsDatabase, id: strin
       .prepare(
         `INSERT INTO site_analytics_adjustment_audit (
           audit_id, adjustment_id, action, payload_json, recorded_at
-         ) VALUES (?, ?, 'deleted', ?, ?)`
+         ) VALUES (?, ?, 'deleted', ?, ?)`,
       )
       .bind(crypto.randomUUID(), id, JSON.stringify(adjustment), now),
   ]);
@@ -576,7 +597,7 @@ export const writeExternalCache = async (db: AnalyticsDatabase, key: string, val
        ON CONFLICT(key) DO UPDATE SET
          payload_json = excluded.payload_json,
          expires_at = excluded.expires_at,
-         updated_at = excluded.updated_at`
+         updated_at = excluded.updated_at`,
     )
     .bind(key, JSON.stringify(value), now + ttlSeconds * 1000, now)
     .run();

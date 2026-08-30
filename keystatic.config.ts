@@ -26,8 +26,8 @@ if (isProduction && !githubAppSlug) {
   );
 }
 
-const [githubOwner = 'your-org', githubName = 'businessweb'] = (
-  configuredGitHubRepo || 'your-org/businessweb'
+const [githubOwner = 'yiloveM', githubName = 'goldenone260727'] = (
+  configuredGitHubRepo || 'yiloveM/goldenone260727'
 ).split('/');
 
 const translationLocaleOptions = [
@@ -117,7 +117,7 @@ export default config({
     ? { kind: 'github', repo: { owner: githubOwner, name: githubName } }
     : { kind: 'local' },
   ui: {
-    brand: { name: '通用企业网站内容管理' },
+    brand: { name: 'Golden One 内容管理' },
     navigation: {
       '站点设置': ['analyticsDashboard', 'siteFoundation', 'siteLanguages', 'customerReviews'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
@@ -130,6 +130,11 @@ export default config({
       path: 'src/keystatic/analytics-dashboard',
       format: 'json',
       schema: {
+        managerVisible: fields.checkbox({
+          label: '在 Manager 显示“网站访问分析”',
+          description: '默认关闭。保存后还需使用“发布网站更新”；关闭后 Manager 不显示入口，直接访问分析地址也会返回 404。',
+          defaultValue: false,
+        }),
         dashboard: analyticsDashboardField({ label: '网站访问分析' }),
       },
     }),
@@ -228,7 +233,7 @@ export default config({
           defaultValue: 'template',
         }),
         brand: fields.object({
-          name: fields.text({ label: '对外品牌名称', defaultValue: 'BusinessWeb' }),
+          name: fields.text({ label: '对外品牌名称', defaultValue: 'Golden One' }),
           tagline: fields.text({ label: '对外品牌短句', defaultValue: 'International B2B brand platform' }),
           legalName: fields.text({ label: '公司法定名称', defaultValue: '' }),
           description: fields.text({ label: '面向客户的品牌定位', multiline: true, defaultValue: '' }),
@@ -494,7 +499,7 @@ export default config({
           pickerTitle: '选择文章封面图',
           description: '可粘贴图片 URL，也可从图片池选择。',
         }),
-        author: fields.text({ label: '作者', defaultValue: 'BusinessWeb Editorial Team' }),
+        author: fields.text({ label: '作者', defaultValue: 'Golden One Editorial Team' }),
         featured: fields.checkbox({ label: '首页推荐', defaultValue: false }),
         content: fields.markdoc({ label: '正文内容', components: r2MarkdocComponents }),
       },

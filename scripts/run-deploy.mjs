@@ -13,4 +13,4 @@ const run = args => {
 };
 
 const buildStatus = run(['run-astro.mjs', 'verified-build']);
-process.exit(buildStatus === 0 ? run(['run-wrangler.mjs', 'deploy']) : buildStatus);
+process.exit(buildStatus === 0 ? run(['run-wrangler-deploy-with-retry.mjs']) : buildStatus);

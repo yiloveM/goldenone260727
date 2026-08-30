@@ -55,7 +55,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
   if (!db) return jsonError(503, 'Analytics database is not connected.');
 
   const requestedDays = Number(new URL(request.url).searchParams.get('days') || 30);
-  const days = [7, 30, 90, 180].includes(requestedDays) ? requestedDays : 30;
+  const days = [7, 30, 90, 180, 365].includes(requestedDays) ? requestedDays : 30;
 
   try {
     await ensureAnalyticsSchema(db);

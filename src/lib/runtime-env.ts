@@ -4,15 +4,15 @@ export type RuntimeEnv = Record<string, unknown> | undefined;
 
 export type BackendTaskPurpose = 'manager' | 'translation' | 'publish';
 
-export const DEFAULT_GITHUB_REPO = 'your-org/businessweb';
+export const DEFAULT_GITHUB_REPO = 'yiloveM/goldenone260727';
 export const DEFAULT_BRANCH = 'main';
 
 export const getEnvString = (env: RuntimeEnv, key: string) =>
   typeof env?.[key] === 'string' ? env[key].trim() : '';
 
-export const getRuntimeEnv = (locals: unknown) => {
+export const getRuntimeEnv = (locals?: unknown) => {
   const processEnv = typeof process !== 'undefined' ? process.env : {};
-  const contextEnv = ((locals as any).cfContext?.env || (locals as any).env || {}) as Record<string, unknown>;
+  const contextEnv = ((locals as any)?.cfContext?.env || (locals as any)?.env || {}) as Record<string, unknown>;
   return { ...processEnv, ...cloudflareEnv, ...contextEnv } as RuntimeEnv;
 };
 

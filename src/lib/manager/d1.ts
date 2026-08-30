@@ -256,7 +256,7 @@ export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPaylo
   const description = String(body.description || '').trim();
   const category = String(body.category || '').trim();
   const image = String(body.image || '').trim();
-  const author = String(body.author || 'BusinessWeb Editorial Team').trim();
+  const author = String(body.author || 'Golden One Editorial Team').trim();
   const publishDate = String(body.publishDate || new Date().toISOString()).trim();
   const content = String(body.body || '').trim();
 

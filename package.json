@@ -11,6 +11,7 @@
     "build": "node scripts/run-astro.mjs verified-build",
     "preview": "node scripts/run-astro.mjs preview",
     "deploy": "node scripts/run-deploy.mjs",
+    "deploy:worker": "node scripts/run-wrangler-deploy-with-retry.mjs",
     "types:cloudflare": "node scripts/run-wrangler-types.mjs",
     "check": "node scripts/run-astro.mjs check",
     "check:template": "node scripts/run-template-check.mjs",

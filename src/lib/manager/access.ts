@@ -4,18 +4,8 @@ import { getEnvString, getRuntimeEnv, type RuntimeEnv } from '../runtime-env';
 export type ManagerEnv = RuntimeEnv;
 export { getEnvString, getRuntimeEnv };
 
-export const getManagerEmail = (request: Request, env: ManagerEnv) => {
-  if (import.meta.env.PROD) return '';
-  try {
-    const hostname = new URL(request.url).hostname.toLowerCase();
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '::1') {
-      return 'local-manager@goldenone.local';
-    }
-  } catch {
-    return '';
-  }
-
-  const bypassToken = getEnvString(env, 'MANAGER_ACCESS_BYPASS_TOKEN') || getEnvString(env, 'KEYSTATIC_SECRET');
+const getLocalBypassEmail = (request: Request, env: ManagerEnv) => {
+  const bypassToken = getEnvString(env, 'KEYSTATIC_SECRET');
   const authorization = request.headers.get('authorization') || '';
   const bearerToken = authorization.toLowerCase().startsWith('bearer ') ? authorization.slice(7).trim() : '';
 
@@ -28,10 +18,13 @@ export const getManagerEmail = (request: Request, env: ManagerEnv) => {
 
 export const requireManagerAccess = (request: Request, env: ManagerEnv) => {
   const portalDenied = requireInternalPortalAccess(request, env, 'manager');
-  if (!portalDenied) return { email: 'manager-portal@goldenone.local', response: null };
+  if (portalDenied) {
+    const email = !import.meta.env.PROD ? getLocalBypassEmail(request, env) : '';
+    return {
+      email,
+      response: email ? null : portalDenied,
+    };
+  }
 
-  const email = getManagerEmail(request, env);
-  if (!email) return { email: '', response: portalDenied };
-
-  return { email, response: null };
+  return { email: '内容管理员', response: null };
 };

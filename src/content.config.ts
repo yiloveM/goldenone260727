@@ -29,7 +29,7 @@ const blog = defineCollection({
     publishDate: z.date(),
     category: z.string(),
     image: z.string().default(''),
-    author: z.string().default('BusinessWeb Editorial Team'),
+    author: z.string().default('Golden One Editorial Team'),
     featured: z.boolean().default(false),
   }),
 });

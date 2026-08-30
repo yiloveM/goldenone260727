@@ -23,12 +23,12 @@ const contracts = [
   {
     area: 'Cloudflare bindings',
     file: 'wrangler.toml',
-    markers: ['main = "./src/worker.ts"', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'ANALYTICS_IP_MODE', 'nodejs_compat'],
+    markers: ['account_id = "473b41497c5031874c630ecb9bc45ced"', 'main = "./src/worker.ts"', 'keep_vars = true', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'ANALYTICS_IP_MODE', 'nodejs_compat'],
   },
   {
     area: 'Private portal host gateway',
     file: 'src/worker.ts',
-    markers: ['ADMIN_PORTAL_SESSION_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'capturePublicPageView', 'context.waitUntil'],
+    markers: ['getScopedRuntimeSecret', 'admin-portal-session', 'KEYSTATIC_SECRET', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', '__Host-goldenone-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'capturePublicPageView', 'context.waitUntil'],
   },
   {
     area: 'Private portal configuration boundary',
@@ -38,7 +38,7 @@ const contracts = [
   {
     area: 'Private portal browser API routing',
     file: 'src/lib/admin-client.ts',
-    markers: ['PORTAL_UUID_PATTERN', 'currentPortalPrefix', 'adminApiUrl', 'readAdminJson'],
+    markers: ['PORTAL_UUID_PATTERN', 'currentPortalPrefix', 'adminApiUrl', 'adminRequestHeaders', 'readAdminJson'],
   },
   {
     area: 'Private portal response rewrite regression check',
@@ -53,7 +53,7 @@ const contracts = [
   {
     area: 'Keystatic owner workflow',
     file: 'keystatic.config.ts',
-    markers: ["kind: 'github'", 'analyticsDashboardField', 'siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslatorField', 'r2ImagePoolField', 'sitePublisherField', 'translationDraftReviewField', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField'],
+    markers: ["kind: 'github'", 'analyticsDashboardField', 'managerVisible', 'siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslatorField', 'r2ImagePoolField', 'sitePublisherField', 'translationDraftReviewField', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField'],
   },
   {
     area: 'Keystatic website language bulk controls',
@@ -68,7 +68,7 @@ const contracts = [
   {
     area: 'Keystatic Chinese navigation and browser dependency interop',
     file: 'keystatic.config.ts',
-    markers: ["brand: { name: '通用企业网站内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"],
+    markers: ["brand: { name: 'Golden One 内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"],
   },
   {
     area: 'Keystatic local browser dependency optimization',
@@ -88,7 +88,7 @@ const contracts = [
   {
     area: 'Manager access and GitHub write-back',
     file: 'src/lib/manager/access.ts',
-    markers: ['requireInternalPortalAccess', 'manager-portal@goldenone.local', 'MANAGER_ACCESS_BYPASS_TOKEN', 'import.meta.env.PROD'],
+    markers: ['requireInternalPortalAccess', 'local-manager@goldenone.local', 'KEYSTATIC_SECRET', '内容管理员', 'import.meta.env.PROD'],
   },
   {
     area: 'Manager GitHub integration',
@@ -108,7 +108,7 @@ const contracts = [
   {
     area: 'Manager public interface',
     file: 'src/pages/manager/index.astro',
-    markers: ["/api/manager/status", "/api/manager/products", "/api/manager/r2/assets", 'offeringType', 'modelStrategy'],
+    markers: ["/api/manager/status", "/api/manager/products", "/api/manager/r2/assets", '/api/manager/ai/translation-locales', 'portalApiUrl', 'managerAnalyticsEnabled', 'offeringType', 'modelStrategy'],
   },
   {
     area: 'Manager API routes',
@@ -203,7 +203,7 @@ const contracts = [
   {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
-    markers: ['Generate Cloudflare bindings', 'npm run types:cloudflare', 'npm run build', 'node scripts/run-wrangler.mjs deploy', 'CLOUDFLARE_API_TOKEN'],
+    markers: ['push:', 'paths-ignore:', 'Generate Cloudflare bindings', 'npm run types:cloudflare', 'npm run build', 'npm run deploy:worker', 'CLOUDFLARE_API_TOKEN'],
   },
   {
     area: 'Wrangler variables available during Astro builds',
@@ -223,6 +223,7 @@ const requiredFiles = [
   'src/lib/admin-portals.ts',
   'src/lib/admin-client.ts',
   'src/lib/admin-portal-rewrite.ts',
+  'src/lib/runtime-secret.ts',
   'src/keystatic/keystatic-path.ts',
   'src/data/site-language-settings.json',
   'src/data/site-origin.json',
@@ -230,6 +231,7 @@ const requiredFiles = [
   'src/pages/api/keystatic/[...params].ts',
   'src/pages/api/ai/translations.ts',
   'src/pages/api/manager/ai/translations.ts',
+  'src/pages/api/manager/ai/translation-locales.ts',
   'src/pages/api/manager/status.ts',
   'src/pages/api/manager/r2/assets.ts',
   'src/pages/api/manager/review-drafts.ts',
@@ -242,6 +244,7 @@ const requiredFiles = [
   'src/lib/analytics/d1.ts',
   'src/lib/analytics/google-search-console.ts',
   'src/keystatic/analytics-dashboard-field.tsx',
+  'src/keystatic/analytics-dashboard.json',
   'src/pages/manager/reviews.astro',
   'src/pages/api/deploy/site.ts',
   'src/pages/api/manager/deploy/site.ts',
@@ -260,6 +263,7 @@ const requiredFiles = [
   'scripts/run-deploy.mjs',
   'scripts/run-wrangler.mjs',
   'scripts/run-wrangler-types.mjs',
+  'scripts/run-wrangler-deploy-with-retry.mjs',
   'src/pages/robots.txt.ts',
   'src/pages/product-catalog.json.ts',
   'src/data/i18n.ts',
@@ -368,6 +372,26 @@ function auditProject(root, label) {
     const text = readText(readme);
     for (const marker of ['check:template', 'industry:brief', 'R2', 'D1', 'AI', 'Astro 6', 'Cloudflare Workers', 'Tailwind']) {
       if (!text.includes(marker)) addError(`${label}: README.md is missing deployment guidance for ${marker}.`);
+    }
+    const requiredHeadings = [
+      '## 一、Repo 功能汇总',
+      '## 二、手把手部署教程',
+      '## 三、Keystatic 站长使用教程',
+      '## 四、Manager 内容管理员使用教程',
+      '## 五、项目重要位置',
+      '## 六、两阶段 Codex 建站流程',
+      '## 七、避坑指南',
+    ];
+    let previousHeading = -1;
+    for (const heading of requiredHeadings) {
+      const index = text.indexOf(heading);
+      if (index < 0 || index <= previousHeading) {
+        addError(`${label}: README.md must preserve the owner-locked seven-chapter order; missing or misplaced ${heading}.`);
+      }
+      previousHeading = index;
+    }
+    if ((text.match(/<details>/g) || []).length < 4 || (text.match(/<\/details>/g) || []).length < 4) {
+      addError(`${label}: README.md must keep the Keystatic, Manager, two-stage Codex, and troubleshooting sections collapsed.`);
     }
   }
 

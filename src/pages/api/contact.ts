@@ -4,6 +4,7 @@ import { getProductModelCodes, INQUIRY_CART_MAX_ITEMS, INQUIRY_CART_MAX_QUANTITY
 import { isProductPublished } from '../../data/productCategories';
 import { siteInfo } from '../../data/site';
 import { getRuntimeEnv } from '../../lib/runtime-env';
+import { getScopedRuntimeSecret } from '../../lib/runtime-secret';
 
 export const prerender = false;
 
@@ -33,10 +34,9 @@ interface ArtworkAttachment {
 }
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
-const getCaptchaSecret = (env: Env) =>
-  getEnvString(env, 'CONTACT_FORM_SECRET') ||
-  getEnvString(env, 'KEYSTATIC_SECRET') ||
-  'businessweb-contact-form-local-secret';
+const getCaptchaSecret = async (env: Env) =>
+  (await getScopedRuntimeSecret(env, 'contact-form-captcha')) ||
+  (!import.meta.env.PROD ? 'goldenone-contact-form-local-secret' : '');
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -355,7 +355,9 @@ const sendInquiryEmail = async ({
 
 export const GET: APIRoute = async ({ locals }) => {
   const env = getRuntimeEnv(locals);
-  return json(await createCaptcha(getCaptchaSecret(env)));
+  const secret = await getCaptchaSecret(env);
+  if (!secret) return json({ ok: false, message: 'Inquiry verification is not configured.' }, 503);
+  return json(await createCaptcha(secret));
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
@@ -372,7 +374,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
     return json({ ok: true, message: 'Thank you. Your inquiry has been received.' });
   }
 
-  const captchaOk = await validateCaptcha(getCaptchaSecret(env), field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
+  const captchaSecret = await getCaptchaSecret(env);
+  if (!captchaSecret) return json({ ok: false, message: 'Inquiry verification is not configured.' }, 503);
+  const captchaOk = await validateCaptcha(captchaSecret, field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
   if (!captchaOk) {
     return json({ ok: false, message: 'The verification code is incorrect or expired. Please try the new code.' }, 400);
   }

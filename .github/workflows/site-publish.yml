@@ -1,19 +1,40 @@
-name: Publish Site
-run-name: Publish site / ${{ inputs.requestId }}
+name: Publish Golden One Site
+run-name: Deploy Golden One / ${{ inputs.requestId || github.sha }}
+
+# Owner-locked: this is the only site build/deploy workflow. Cloudflare Workers
+# Builds must remain disconnected so one publish request produces one build.
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'docs/**'
+      - '.agents/**'
+      - '**/*.txt'
+      - 'manager-portal/**'
+      - 'src/content/products/**'
+      - 'src/content/blog/**'
+      - 'src/content/productTranslations/**'
+      - 'src/content/blogTranslations/**'
+      - 'src/keystatic/*.json'
+      - 'src/data/site-language-settings.json'
+      - '.github/ai-translation-results/**'
   workflow_dispatch:
     inputs:
       requestId:
         description: Internal request id for manager status polling
-        required: true
+        required: false
+        default: manual
         type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: site-publish-${{ github.ref }}
+  group: goldenone-site-publish
   cancel-in-progress: false
 
 jobs:
@@ -34,6 +55,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify Cloudflare authentication
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/run-wrangler.mjs whoami
+
       - name: Generate Cloudflare bindings
         run: npm run types:cloudflare
 
@@ -51,5 +77,4 @@ jobs:
       - name: Deploy the Worker and static assets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
-        run: node scripts/run-wrangler.mjs deploy
+        run: npm run deploy:worker

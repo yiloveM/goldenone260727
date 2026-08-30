@@ -66,7 +66,7 @@ const parseCookies = (request: Request) => {
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
 const getRepoFullName = (env: Env) =>
-  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'yiloveM/goldenone260727';
 const getBranch = (env: Env) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 const getWorkflowFile = (env: Env) => getEnvString(env, 'SITE_PUBLISH_WORKFLOW_FILE') || DEFAULT_WORKFLOW_FILE;
 const getDispatchToken = (env: Env) => getBackendTaskToken(env, 'publish');

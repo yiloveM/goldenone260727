@@ -17,6 +17,8 @@ export const adminApiUrl = (resource: string) => {
   return `/${[...currentPortalPrefix(), 'api', ...resourceSegments].join('/')}${suffix}`;
 };
 
+export const adminRequestHeaders = (_surface: 'keystatic' | 'manager', headers?: HeadersInit) => new Headers(headers);
+
 const responseMessage = (body: string) => {
   const text = body.trim();
   if (!text) return '';
@@ -30,7 +32,7 @@ const responseMessage = (body: string) => {
   }
 
   if (text.startsWith('Admin portal configuration is unavailable')) {
-    return '后台入口配置不可用。请检查 Cloudflare 中两套后台域名、两个 UUID 和 ADMIN_PORTAL_SESSION_SECRET，然后重新打开秘密入口。';
+    return '后台入口配置不可用。请检查 Cloudflare 中两个 UUID、GitHub App Client Secret 和后台登录密码，然后重新打开秘密入口。';
   }
   if (text === 'Not found.') {
     return '后台会话已失效或入口地址不正确。请关闭此页，并从完整的后台秘密入口重新进入。';

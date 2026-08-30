@@ -1,10 +1,12 @@
 import type { AdminPortalConfig } from './admin-portals';
 
 export const rewritePortalText = (text: string, portal: AdminPortalConfig) => {
+  // Manager prefixes its own API requests. Rewriting the inline helper would
+  // also rewrite its '/api/' guard and produce a duplicated UUID path.
+  if (portal.name === 'manager') return text;
+
   const prefix = `/${portal.uuid}`;
   let rewritten = text.replace(/(["'`])\/api\//g, (_match, quote: string) => `${quote}${prefix}/api/`);
-
-  if (portal.name !== 'keystatic') return rewritten;
 
   rewritten = rewritten
     .replace(/(["'`])\/keystatic(?=\/|["'`?])/g, (_match, quote: string) => `${quote}${prefix}`)

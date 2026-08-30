@@ -29,7 +29,7 @@ const getEnvString = (env: Record<string, unknown> | undefined, key: string) =>
   typeof env?.[key] === 'string' ? env[key].trim() : '';
 
 const getRepoFullName = (env: Record<string, unknown> | undefined) =>
-  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'yiloveM/goldenone260727';
 
 const getBranch = (env: Record<string, unknown> | undefined) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 

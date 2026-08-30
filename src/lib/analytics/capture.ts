@@ -1,4 +1,5 @@
 import { getEnvString, type RuntimeEnv } from '../runtime-env';
+import { getScopedRuntimeSecret, hasScopedRuntimeSecret } from '../runtime-secret';
 import {
   getAnalyticsDb,
   recordAnalyticsEvent,
@@ -52,8 +53,8 @@ const getIpMode = (env: RuntimeEnv): AnalyticsIpMode => {
 };
 
 const getRetentionDays = (env: RuntimeEnv, ipMode: AnalyticsIpMode) => {
-  const parsed = Number(getEnvString(env, 'ANALYTICS_RETENTION_DAYS') || 180);
-  const requested = Number.isFinite(parsed) ? Math.max(7, Math.min(365, Math.round(parsed))) : 180;
+  const parsed = Number(getEnvString(env, 'ANALYTICS_RETENTION_DAYS') || 365);
+  const requested = Number.isFinite(parsed) ? Math.max(7, Math.min(365, Math.round(parsed))) : 365;
   return ipMode === 'full' ? Math.min(requested, 30) : requested;
 };
 
@@ -93,7 +94,7 @@ const createVisitorKey = async (env: RuntimeEnv, day: string, ip: string, userAg
   if (!ip) return '';
   const encoder = new TextEncoder();
   const payload = encoder.encode(`v1|${day}|${ip}|${userAgent.slice(0, 240)}`);
-  const secret = getEnvString(env, 'ANALYTICS_HASH_SECRET');
+  const secret = await getScopedRuntimeSecret(env, 'analytics-visitor-identity');
   if (secret.length < 32) return '';
   const digest = await crypto.subtle.sign(
     'HMAC',
@@ -245,6 +246,6 @@ export const getAnalyticsRuntimeStatus = (env: RuntimeEnv) => {
     databaseBound: Boolean(getAnalyticsDb(env)),
     ipMode,
     retentionDays: getRetentionDays(env, ipMode),
-    visitorIdentity: getEnvString(env, 'ANALYTICS_HASH_SECRET').length >= 32 ? 'hmac' : 'disabled',
+    visitorIdentity: hasScopedRuntimeSecret(env) ? 'hmac' : 'disabled',
   };
 };

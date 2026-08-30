@@ -1,8 +1,11 @@
 name = "goldenone"
-# Wrangler resolves the Worker entry point as a file path in Workers Builds.
+account_id = "473b41497c5031874c630ecb9bc45ced"
 main = "./src/worker.ts"
 compatibility_date = "2026-05-15"
 compatibility_flags = ["nodejs_compat"]
+# Preserve non-secret variables managed in the Cloudflare dashboard. Worker
+# Secrets are preserved by Wrangler deployments independently of this setting.
+keep_vars = true
 
 [assets]
 directory = "./dist"

@@ -1,6 +1,9 @@
 ---
+import analyticsDashboardSettings from '../../keystatic/analytics-dashboard.json';
+
 export const prerender = true;
 const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https://cdn.example.com').replace(/\/+$/, '');
+const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 ---
 
 <!doctype html>
@@ -9,7 +12,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>BusinessWeb 内容管理</title>
+    <title>Golden One 内容管理</title>
     <style is:global>
       :root {
         color-scheme: light;
@@ -3111,8 +3114,8 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       <div class="admin-layout">
         <aside class="sidebar">
           <div class="brand-mark">
-            <a href="/" aria-label="Open BusinessWeb home page">
-              <strong>BusinessWeb</strong>
+            <a href="/" aria-label="Open Golden One home page">
+              <strong>Golden One</strong>
               <span>内容管理</span>
             </a>
           </div>
@@ -3150,10 +3153,12 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
               <span class="nav-group-label">媒体</span>
               <button class="tab" data-tab="images" type="button">图片池</button>
             </div>
-            <div class="nav-group">
-              <span class="nav-group-label">数据</span>
-              <a class="tab tab-link" id="managerAnalyticsLink" href="#">网站访问分析</a>
-            </div>
+            {managerAnalyticsEnabled ? (
+              <div class="nav-group">
+                <span class="nav-group-label">数据</span>
+                <a class="tab tab-link" id="managerAnalyticsLink" href="#">网站访问分析</a>
+              </div>
+            ) : null}
           </nav>
         </aside>
 
@@ -3582,8 +3587,6 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
               <li>不填 slug 时，会按“要翻译什么内容”批量生成草稿。</li>
               <li>填写 slug 时，只翻译这个 slug 对应的一个页面；选“产品和文章”会自动判断它是产品还是文章。</li>
               <li>点击“提交后台 AI 翻译任务”。任务提交后可以关闭当前页面，后台会继续处理。</li>
-              <li>AI 处理通道必须由站长提前配置好；后台这里只负责提交任务，不需要管理员填写密钥。</li>
-              <li>如果站长配置了多个 AI 处理通道，后台会自动轮换，避免单个通道额度不够。</li>
               <li>等待后台任务完成后，到“产品翻译草稿”或“文章翻译草稿”逐个检查，确认后打开“审核后发布”并保存。</li>
             </ol>
           </div>
@@ -3899,7 +3902,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
           faqs: [],
         },
         richEditorSelection: null,
-        themeChoice: localStorage.getItem('businessweb-manager-theme') || 'system',
+        themeChoice: localStorage.getItem('goldenone-manager-theme') || 'system',
         formData: {
           galleryImages: [],
           detailImages: [],
@@ -4137,11 +4140,11 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
           const image = element.querySelector('img');
           if (!image) return '';
           const caption = element.querySelector('figcaption')?.textContent?.trim() || '';
-          const alt = image.getAttribute('alt') || caption || 'BusinessWeb content image';
+          const alt = image.getAttribute('alt') || caption || 'Golden One content image';
           return `![${alt.replace(/]/g, '\\]')}](${image.getAttribute('src') || ''})`;
         }
         if (tag === 'IMG') {
-          return `![${(element.getAttribute('alt') || 'BusinessWeb content image').replace(/]/g, '\\]')}](${element.getAttribute('src') || ''})`;
+          return `![${(element.getAttribute('alt') || 'Golden One content image').replace(/]/g, '\\]')}](${element.getAttribute('src') || ''})`;
         }
         return richInlineToMarkdown(element).trim();
       };
@@ -4205,7 +4208,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         saveRichSelection(editorId);
       };
       const insertRichEditorImage = (editorId, url) => {
-        insertHtmlInRichEditor(editorId, richImageHtml({ src: url, alt: 'BusinessWeb content image', caption: '' }));
+        insertHtmlInRichEditor(editorId, richImageHtml({ src: url, alt: 'Golden One content image', caption: '' }));
       };
       const insertRichEditorDocument = (editorId, url, filename) => {
         const title = filename || 'PDF document';
@@ -4428,6 +4431,32 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         return Number.isNaN(date.valueOf()) ? new Date().toISOString() : date.toISOString();
       };
       const authHeaders = () => ({});
+      const portalUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const portalApiUrl = value => {
+        const url = new URL(value, window.location.origin);
+        if (url.origin !== window.location.origin || !url.pathname.startsWith('/api/')) return value;
+        const firstSegment = window.location.pathname.split('/').filter(Boolean)[0] || '';
+        if (portalUuidPattern.test(firstSegment)) url.pathname = `/${firstSegment}${url.pathname}`;
+        return `${url.pathname}${url.search}${url.hash}`;
+      };
+      const apiResponseMessage = text => {
+        const value = String(text || '').trim();
+        if (value.startsWith('Admin portal configuration is unavailable')) {
+          return '后台暂时无法连接，请稍后重试；如仍无法使用，请联系站长。';
+        }
+        if (value === 'Not found.') {
+          return '登录已过期。请关闭此页面，并从站长提供的完整入口重新登录。';
+        }
+        return value;
+      };
+      const parseJsonResponse = (text, fallback) => {
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw new Error(apiResponseMessage(text) || fallback);
+        }
+      };
       const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
       const resolveTheme = choice => (choice === 'system' ? (themeMedia.matches ? 'dark' : 'light') : choice);
       const themeLabels = { light: '浅色', dark: '深色', system: '跟随系统' };
@@ -4442,7 +4471,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       const applyTheme = choice => {
         const safeChoice = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
         state.themeChoice = safeChoice;
-        localStorage.setItem('businessweb-manager-theme', safeChoice);
+        localStorage.setItem('goldenone-manager-theme', safeChoice);
         document.documentElement.dataset.theme = resolveTheme(safeChoice);
         $('themeMenuLabel').textContent = themeLabels[safeChoice] || themeLabels.system;
         document.querySelectorAll('[data-theme-option]').forEach(button => {
@@ -4452,7 +4481,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       };
 
       const requestJson = async (url, options = {}) => {
-        const response = await fetch(url, {
+        const response = await fetch(portalApiUrl(url), {
           ...options,
           headers: {
             'content-type': 'application/json',
@@ -4461,15 +4490,15 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
           },
         });
         const text = await response.text();
-        if (!response.ok) throw new Error(text || `Request failed: ${response.status}`);
-        return text ? JSON.parse(text) : {};
+        if (!response.ok) throw new Error(apiResponseMessage(text) || `请求失败（HTTP ${response.status}）`);
+        return parseJsonResponse(text, '后台返回的数据格式不正确，请刷新页面后重试。');
       };
 
       const requestForm = async (url, formData) => {
-        const response = await fetch(url, { method: 'POST', body: formData, headers: authHeaders() });
+        const response = await fetch(portalApiUrl(url), { method: 'POST', body: formData, headers: authHeaders() });
         const text = await response.text();
-        if (!response.ok) throw new Error(text || `Request failed: ${response.status}`);
-        return text ? JSON.parse(text) : {};
+        if (!response.ok) throw new Error(apiResponseMessage(text) || `请求失败（HTTP ${response.status}）`);
+        return parseJsonResponse(text, '上传完成后后台返回的数据格式不正确，请刷新页面后检查。');
       };
 
       const addPreviewBase = html => {
@@ -4492,7 +4521,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         }
         setStatus(statusId, '正在打开预览...');
         try {
-          const response = await fetch(url, { headers: authHeaders() });
+          const response = await fetch(portalApiUrl(url), { headers: authHeaders() });
           const html = await response.text();
           if (!response.ok) throw new Error(html || `Request failed: ${response.status}`);
           const objectUrl = URL.createObjectURL(new Blob([addPreviewBase(html)], { type: 'text/html;charset=utf-8' }));
@@ -4596,8 +4625,8 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         $('connectionPanel').classList.toggle('is-connected', connected);
         $('connectionTitle').textContent = connected ? '内容后台已连接' : '连接内容后台';
         $('connectionDetail').textContent = connected
-          ? detail || '当前浏览器已通过内容管理专用域名和签名会话验证。'
-          : detail || '请从站长提供的完整专用域名和 UUID 地址重新进入。';
+          ? detail || '登录状态正常，可以开始管理网站内容。'
+          : detail || '登录已失效，请关闭此页面并从站长提供的入口重新登录。';
       };
 
       const checkManagerStatus = async () => {
@@ -5389,7 +5418,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         $('blogSlug').readOnly = true;
         $('blogCategory').value = post.category || '';
         $('blogPublishDate').value = toDateTimeLocal(post.publishDate);
-        $('blogAuthor').value = post.author || 'BusinessWeb Editorial Team';
+        $('blogAuthor').value = post.author || 'Golden One Editorial Team';
         $('blogFeatured').checked = post.featured === true;
         $('blogImage').value = post.image || '';
         updateImageFieldPreview('blogImage');
@@ -5411,7 +5440,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         $('blogSlug').readOnly = false;
         $('blogCategory').value = '';
         $('blogPublishDate').value = toDateTimeLocal(new Date().toISOString());
-        $('blogAuthor').value = 'BusinessWeb Editorial Team';
+        $('blogAuthor').value = 'Golden One Editorial Team';
         $('blogFeatured').checked = false;
         $('blogImage').value = '';
         updateImageFieldPreview('blogImage');
@@ -5430,7 +5459,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
         description: $('blogDescription').value.trim(),
         category: $('blogCategory').value.trim(),
         image: $('blogImage').value.trim(),
-        author: $('blogAuthor').value.trim() || 'BusinessWeb Editorial Team',
+        author: $('blogAuthor').value.trim() || 'Golden One Editorial Team',
         publishDate: fromDateTimeLocal($('blogPublishDate').value),
         featured: $('blogFeatured').checked,
         body: getRichTextValue('blogBody').trim(),
@@ -6009,9 +6038,10 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
       };
 
       const loadTranslationLocales = async () => {
-        const response = await fetch('/api/ai/translation-locales', { headers: { accept: 'application/json' } });
-        if (!response.ok) throw new Error(await response.text());
-        const payload = await response.json();
+        const payload = await requestJson('/api/manager/ai/translation-locales', {
+          method: 'GET',
+          headers: { accept: 'application/json' },
+        });
         const configured = Array.isArray(payload.locales) ? payload.locales : [];
         locales.splice(0, locales.length, ...configured
           .filter(item => item && typeof item.value === 'string' && typeof item.label === 'string')

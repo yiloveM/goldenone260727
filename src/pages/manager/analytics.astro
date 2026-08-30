@@ -13,7 +13,7 @@ export const prerender = true;
     <title>网站访问分析</title>
     <script is:inline>
       (() => {
-        const choice = localStorage.getItem('businessweb-manager-theme') || 'system';
+        const choice = localStorage.getItem('goldenone-manager-theme') || 'system';
         const dark = choice === 'dark' || (choice === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       })();
@@ -149,7 +149,7 @@ export const prerender = true;
   <body>
     <main class="analytics-shell">
       <aside class="analytics-sidebar">
-        <div class="analytics-brand"><strong>BusinessWeb</strong><span>内容管理</span></div>
+        <div class="analytics-brand"><strong>Golden One</strong><span>内容管理</span></div>
         <nav class="analytics-nav" aria-label="Manager sections">
           <a href="./">内容工作台</a>
           <a class="is-active" href="./analytics" aria-current="page">数据分析</a>
@@ -171,13 +171,13 @@ export const prerender = true;
         const safeValue = ['system', 'light', 'dark'].includes(value) ? value : 'system';
         const dark = safeValue === 'dark' || (safeValue === 'system' && media.matches);
         document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-        localStorage.setItem('businessweb-manager-theme', safeValue);
+        localStorage.setItem('goldenone-manager-theme', safeValue);
         if (select) select.value = safeValue;
       };
-      applyTheme(localStorage.getItem('businessweb-manager-theme') || 'system');
+      applyTheme(localStorage.getItem('goldenone-manager-theme') || 'system');
       select?.addEventListener('change', event => applyTheme(event.currentTarget.value));
       media.addEventListener('change', () => {
-        if ((localStorage.getItem('businessweb-manager-theme') || 'system') === 'system') applyTheme('system');
+        if ((localStorage.getItem('goldenone-manager-theme') || 'system') === 'system') applyTheme('system');
       });
     </script>
   </body>

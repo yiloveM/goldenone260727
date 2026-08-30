@@ -45,7 +45,7 @@ description: ""
 publishDate: ${new Date().toISOString()}
 category: ""
 image: ""
-author: BusinessWeb Editorial Team
+author: Golden One Editorial Team
 featured: false
 ---
 `;
@@ -63,7 +63,7 @@ document.set('title', String(payload.title).trim());
 document.set('description', String(payload.description).trim());
 document.set('category', String(payload.category).trim());
 document.set('image', String(payload.image || '').trim());
-document.set('author', String(payload.author || 'BusinessWeb Editorial Team').trim());
+document.set('author', String(payload.author || 'Golden One Editorial Team').trim());
 document.set('publishDate', String(payload.publishDate || new Date().toISOString()).trim());
 document.set('featured', payload.featured === true);
 
