@@ -81,14 +81,14 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 
 ## 二、手把手部署教程
 
-以下步骤按“从现有资源重新部署或迁移到新 Worker”的实际顺序编写。Golden One 已断开 Cloudflare Workers 的 Git 存储库链接，后续不要重新连接。
+以下步骤按“从现有资源重新部署或迁移到新 Worker”的实际顺序编写。Golden One 的构建日志位于 GitHub Actions，Cloudflare 保持为接收 Wrangler 部署结果的运行平台。
 
 ### 第 1 步：核对仓库与本地项目
 
 1. GitHub 仓库必须是 `yiloveM/goldenone260727`，默认分支必须是 `main`。
 2. 本地项目目录是 `D:\aquamamaweb\goldenone`。
 3. 检查 `wrangler.toml` 中的 Worker 名称、Account ID、R2 bucket、D1 Database ID、两个后台 Host 和公开站 URL。
-4. 不要把 Aquamama、BusinessWeb 或其他客户的 Account ID、bucket、D1 ID、域名和 GitHub App 凭据复制进来。
+4. 本项目只使用本章列出的 Golden One Account ID、bucket、D1 ID、域名和 GitHub App 凭据。
 5. 本地验证命令：
 
 ```powershell
@@ -105,15 +105,15 @@ npm run build
 2. 打开 **Storage & databases -> R2**，确认 bucket `goldenone` 存在且 R2 已激活。
 3. 打开 **Storage & databases -> D1**，确认数据库 `goldenone` 的 ID 是 `2c5ddd64-6fe0-4fd9-af99-c100496ec872`。
 4. 在 D1 Console 执行仓库 `manager-portal/schema.sql` 的完整 SQL。脚本使用 `CREATE TABLE IF NOT EXISTS`，对已有正确表结构可重复执行。
-5. Astro 的 `SESSION` KV 由 Cloudflare adapter 和 Wrangler 管理。除非部署日志明确要求，不要手工伪造 KV ID。
+5. Astro 的 `SESSION` KV 由 Cloudflare adapter 和 Wrangler 自动管理。
 
 D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrangler 部署日志中报错，不会让 GitHub push“完全没有触发记录”。
 
 ### 第 3 步：确认 Cloudflare 原生 Git 构建已关闭
 
 1. Cloudflare -> **Workers & Pages -> goldenone -> Settings -> Builds**。
-2. 页面不得显示活动的 Git repository connection；若仍显示，点击 **Disconnect**。
-3. 不配置 Build command、Deploy command、Build watch paths 或 Cloudflare Build Token。
+2. 页面显示活动的 Git repository connection 时，点击 **Disconnect**。
+3. 完成后页面应无 repository connection、Build command、Deploy command 和 Build Trigger。
 4. 后续构建日志只在 GitHub 仓库的 **Actions** 页面查看，Cloudflare Build History 为 0 是正常现象。
 
 ### 第 4 步：创建唯一部署 API Token
@@ -121,7 +121,7 @@ D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrang
 1. Cloudflare 右上角头像 -> **My Profile -> API Tokens -> Create Token**。
 2. 选择官方 **Edit Cloudflare Workers** 模板。
 3. Account Resources 只选择 Account ID `473b41497c5031874c630ecb9bc45ced`。
-4. 确认 Token 能编辑该 Account 的 Workers；使用模板给出的关联权限，不要拿 Global API Key、Build Token、R2 S3 Token 或 AI Key 代替。
+4. 确认 Token 能编辑该 Account 的 Workers；部署凭据类型固定为此 API Token。
 5. 创建后立即复制一次完整 Token，保存到密码管理器。
 
 ### 第 5 步：配置 GitHub Actions
@@ -148,7 +148,7 @@ D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrang
    - Deploy the Worker and static assets
 4. `wrangler whoami` 若报 `9109`、invalid token 或 permission denied，更新 `CLOUDFLARE_API_TOKEN` 后在同一个 Actions 页面点 **Re-run failed jobs**。
 5. 成功后回到 Cloudflare，确认 Worker `goldenone` 已存在且最新 Version 已部署。
-6. 不要因为 Cloudflare Build History 没记录而重新连接 Git；本方案的日志本来就在 GitHub。
+6. Cloudflare Build History 没有记录属于正常状态，完整日志以当前 GitHub Actions Run 为准。
 
 ### 第 7 步：恢复或确认三个域名
 
@@ -159,7 +159,7 @@ D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrang
    - `manager.ebr.kdns.fr`
 4. 两个后台 Host 必须与 `wrangler.toml` 完全一致，不写协议、路径或 UUID。
 5. 等待两个 Custom Domain 都显示 Active。
-6. 不要把后台专用域名配置成 Route，也不要手工 CNAME 到 `workers.dev`。
+6. 添加类型统一选择 **Custom Domain**，由 Cloudflare 自动管理 DNS 和证书。
 
 ### 第 8 步：生成两个 UUID 和后台密码
 
@@ -227,9 +227,9 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 | `KEYSTATIC_SECRET` | 第 8 步后台密码 |
 | `BUSINESSWEB_GITHUB_TOKEN` | 第 10 步 fine-grained token |
 
-`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥。
+`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥；旧版的四个拆分 Secret 已不再需要。
 
-`KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
+`KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback，因此也不必额外创建 `R2_IMAGE_POOL_WRITE_TOKEN`。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
 
 ### 第 12 步：配置 AI 翻译
 
@@ -245,20 +245,100 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 
 ### 第 13 步：确认 R2 图片与 CDN
 
-当前最少配置已经可用：
+当前 Worker 代理模式已经可用：
 
 - bucket：`goldenone`
 - binding：`CONTENT_BUCKET`
 - 公开资源前缀：`https://goldenone.arkalpooltech.workers.dev/r2`
 - `PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"`
 
-如以后启用独立 R2 CDN：
+先用无痕窗口打开一个现有 `/r2/` 图片地址。能正常显示时，说明 Worker、`CONTENT_BUCKET` 和 bucket `goldenone` 的现有绑定有效。下面按步骤把它升级为独立 R2 CDN。
 
-1. 在 R2 bucket -> **Settings -> Custom Domains** 绑定 CDN 子域名。
-2. 等待证书和域名 Active。
-3. 把 `PUBLIC_R2_ASSET_BASE_URL` 改成 CDN 根地址。
-4. 确认旧 `/r2` 图片、新上传图片和 PDF 都能打开。
-5. 只有在自定义域名的 Cloudflare 图片转换验证成功后，才把 delivery mode 改为 `edge-webp`；R2 内仍保存原图。
+#### 13.1 准备 CDN 主机名
+
+1. 选择 Golden One 专用 CDN 主机名，例如 `cdn.goldenonemfg.com`。
+2. 打开 Cloudflare Account 首页，确认该根域名的 Zone 位于 Account ID `473b41497c5031874c630ecb9bc45ced`，状态为 **Active**。
+3. 根域名尚未加入 Cloudflare 时，先进入 **Websites -> Add a domain**，输入根域名并完成页面要求的 nameserver 设置。
+4. 等 Zone 变为 Active 后继续。R2 Custom Domain 只能连接同一 Cloudflare Account 中可管理的 Zone。
+
+#### 13.2 把 CDN 主机名连接到 R2
+
+1. Cloudflare 左侧进入 **Storage & databases -> R2 Object Storage**。
+2. 点击 bucket `goldenone`。
+3. 打开 **Settings**。
+4. 找到 **Custom Domains**，点击 **Add** 或 **Connect Domain**。
+5. 输入 CDN 主机名，例如 `cdn.goldenonemfg.com`；这里只填主机名。
+6. 页面要求选择 Zone 时，选择 Golden One 正式域名。
+7. 确认连接，等待状态从 Pending 变为 **Active**。
+8. 在同一 Settings 页面找到 **Public Development URL**，确认状态为 **Disabled**。
+
+#### 13.3 创建 CDN 缓存规则
+
+1. 返回 Cloudflare Account，点击 CDN 主机名所属的网站 Zone。
+2. 左侧进入 **Rules -> Cache Rules**。
+3. 点击 **Create rule**。
+4. Rule name 填 `Golden One R2 public media cache`。
+5. 选择 **Custom filter expression**，填写：
+
+```text
+http.host eq "cdn.goldenonemfg.com"
+```
+
+6. 如果实际 CDN 主机名不同，把表达式中的示例换成真实值。
+7. **Cache eligibility** 选择 **Eligible for cache**。
+8. **Edge TTL** 选择 **Respect existing headers**。
+9. **Browser TTL** 选择 **Respect existing headers**。
+10. 点击 **Deploy**，回到规则列表确认状态为 Enabled。
+
+#### 13.4 检查图片公开访问
+
+1. 在 CDN Zone 左侧进入 **Security -> Settings**。
+2. 找到全局 **Hotlink Protection**，设置为 **Off**，让 Golden One 网站、Google 图片和合法空 Referer 可以读取公开媒体。
+3. 后续确需防盗链时，进入 **Security -> Security rules -> WAF -> Custom rules**，先用 Log 观察访问来源，再建立精确规则。
+4. CDN 主机名保持公开媒体用途，不添加后台登录验证。
+
+#### 13.5 修改 Golden One 配置
+
+1. 打开本地 `wrangler.toml`。
+2. 把公开资源前缀改成真实 CDN 根地址，保留原图模式：
+
+```toml
+PUBLIC_R2_ASSET_BASE_URL = "https://cdn.goldenonemfg.com"
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "original"
+```
+
+3. URL 包含 `https://`，末尾不加斜杠。
+4. 提交到 `main`，等待 **Publish Golden One Site** 部署成功。
+5. 旧 `workers.dev/r2` 地址仍可读取，部署后的新上传文件会使用 CDN 地址。
+
+#### 13.6 上传图片和 PDF 验证
+
+1. 登录 Manager 或 Keystatic 图片池。
+2. 上传一张 JPG 或 PNG，再上传一个 PDF。
+3. 复制两个公开 URL，确认主机名是 Golden One CDN 域名。
+4. 使用无痕窗口分别打开，确认图片正常显示、PDF 正常下载。
+5. 打开公开首页、产品页和文章页，确认所有图片均正常。
+6. Cloudflare CDN Zone -> **Analytics & Logs**，确认该主机名开始出现请求。
+
+#### 13.7 可选启用边缘 WebP
+
+1. CDN Zone 左侧进入 **Media -> Images -> Transformations** 或 **Image Transformations**。
+2. 按页面提示为当前 Zone 启用图片转换。
+3. 使用刚上传的 JPG 测试：
+
+```text
+https://cdn.goldenonemfg.com/path/image.jpg
+https://cdn.goldenonemfg.com/cdn-cgi/image/format=webp,quality=82/path/image.jpg
+```
+
+4. 浏览器按 `F12` -> **Network** -> 转换请求。
+5. 响应状态为 200 且 `content-type` 为 `image/webp` 后，把配置改为：
+
+```toml
+PUBLIC_R2_IMAGE_DELIVERY_MODE = "edge-webp"
+```
+
+6. 转换未开通时维持 `original`。R2 中只保存原图，PDF 始终保持原格式。
 
 ### 第 14 步：启用访问分析与可选 GSC
 
