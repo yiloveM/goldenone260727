@@ -25,9 +25,9 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 - 产品分类、型号、材料、工艺、参数表、应用、FAQ、图库、详情图和排序管理。
 - 博客、客户评价、询盘购物车、艺术稿上传、联系邮件和 R2 图片池。
 - 英语为唯一源语言；站长以复选框启用目标语言，当前已启用西班牙语。
-- AI 仅生成翻译草稿；审核与明确发布之前会自动公开。
+- AI 仅生成翻译草稿；审核与明确发布之前不会自动公开。
 - Keystatic 直接管理 Git 内容；Manager 先写 D1 草稿，再经专用 Actions 写回 Git。
-- 两套后台共用登录用户名 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 和密码 `KEYSTATIC_SECRET`，但使用同 Host 和 UUID。
+- 两套后台共用登录用户名 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 和密码 `KEYSTATIC_SECRET`，但使用不同 Host 和 UUID。
 
 ### 3. SEO/GEO 能力
 
@@ -76,7 +76,7 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 - 产品、文章、翻译、网站语言和 `src/keystatic/*.json` 写回不自动部署，等待站长或内容管理员点击“发布网站更新”。
 - `src/data/customer-reviews.json` 不在忽略路径中，评价写回 Git 后会自动部署。
 - 内容写回 Actions 只修改 Git，不在写回任务内构建或部署。
-- 部署 workflow 只读取 GitHub Secret `CLOUDFLARE_API_TOKEN`。Account ID 固定在 `wrangler.toml`。
+- 部署 workflow 只读取 GitHub Secret `CLOUDFLARE_API_TOKEN`。Account ID 固定在 `wrangler.toml`，不再创建 `CLOUDFLARE_ACCOUNT_ID` Secret 或 Variable。
 - 这条边界未经站长针对本次改动明确同意，任何 AI 或自动化不得修改。
 
 ## 二、手把手部署教程
@@ -140,9 +140,15 @@ D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrang
 
 1. 打开 GitHub 仓库 -> **Actions -> Publish Golden One Site**。
 2. 如果推送的提交已经自动启动，直接打开该 Run；否则点击 **Run workflow -> main -> Run workflow**。
-3. `wrangler whoami` 若报 `9109`、invalid token 或 permission denied，更新 `CLOUDFLARE_API_TOKEN` 后在同一个 Actions 页面点 **Re-run failed jobs**。
-4. 成功后回到 Cloudflare，确认 Worker `goldenone` 已存在且最新 Version 已部署。
-5. Cloudflare Build History 没有记录属于正常状态，完整日志以当前 GitHub Actions Run 为准。
+3. 日志必须按顺序出现：
+   - Install dependencies
+   - Verify Cloudflare authentication
+   - Generate Cloudflare bindings
+   - Build the Astro site
+   - Deploy the Worker and static assets
+4. `wrangler whoami` 若报 `9109`、invalid token 或 permission denied，更新 `CLOUDFLARE_API_TOKEN` 后在同一个 Actions 页面点 **Re-run failed jobs**。
+5. 成功后回到 Cloudflare，确认 Worker `goldenone` 已存在且最新 Version 已部署。
+6. Cloudflare Build History 没有记录属于正常状态，完整日志以当前 GitHub Actions Run 为准。
 
 ### 第 7 步：恢复或确认三个域名
 
@@ -155,27 +161,37 @@ D1/R2 已存在不会阻止 Worker 创建或部署；绑定错误只会在 Wrang
 5. 等待两个 Custom Domain 都显示 Active。
 6. 添加类型统一选择 **Custom Domain**，由 Cloudflare 自动管理 DNS 和证书。
 
-### 第 8 步：生成两个 UUID 和后台密码
+### 第 8 步：一次生成全部后台登录凭据
 
-在 PowerShell 执行：
+打开 Windows PowerShell 5.1 或 PowerShell 7，整段粘贴后按一次 Enter：
 
 ```powershell
-$KeyStaticUuid = [guid]::NewGuid().ToString()
-$ManagerUuid = [guid]::NewGuid().ToString()
 $bytes = New-Object byte[] 48
 $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$rng.GetBytes($bytes)
-$PortalPassword = [Convert]::ToBase64String($bytes)
-$rng.Dispose()
-"KEYSTATIC_PORTAL_UUID=$KeyStaticUuid"
-"MANAGER_PORTAL_UUID=$ManagerUuid"
-"KEYSTATIC_SECRET=$PortalPassword"
+try {
+  $rng.GetBytes($bytes)
+  $credentials = [ordered]@{
+    KEYSTATIC_PORTAL_UUID = [guid]::NewGuid().ToString()
+    MANAGER_PORTAL_UUID   = [guid]::NewGuid().ToString()
+    KEYSTATIC_SECRET      = [Convert]::ToBase64String($bytes).Replace('+', '-').Replace('/', '_')
+  }
+} finally {
+  $rng.Dispose()
+}
+
+$lines = $credentials.GetEnumerator() | ForEach-Object { '{0}={1}' -f $_.Key, $_.Value }
+$lines
+if (Get-Command Set-Clipboard -ErrorAction SilentlyContinue) {
+  $lines | Set-Clipboard
+  Write-Host "以上三行已复制到剪贴板。"
+}
 ```
 
-1. 三个值存入密码管理器；两个 UUID 必须不同，密码至少 32 个字符。
-2. 后台登录用户名无需新建 Secret，固定使用 `wrangler.toml` 的 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`，当前是 `goldenone260727`。
-3. 修改 UUID 或密码后，保存 Cloudflare 设置并部署新 Version；旧会话会失效。
-4. 登录地址分别是：
+1. 命令会一次输出三条带名称的值；系统支持剪贴板时还会自动复制。
+2. 三个值存入密码管理器。填写 Cloudflare Secret 时，名称使用等号左侧，值只复制等号右侧。
+3. 后台登录用户名无需新建 Secret，固定使用 `wrangler.toml` 的 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG`，当前是 `goldenone260727`。
+4. 修改 UUID 或密码后，保存 Cloudflare 设置并部署新 Version；旧会话会失效。
+5. 登录地址分别是：
    - `https://admin.ebr.kdns.fr/KEYSTATIC_PORTAL_UUID`
    - `https://manager.ebr.kdns.fr/MANAGER_PORTAL_UUID`
 
@@ -199,7 +215,7 @@ $rng.Dispose()
    - Actions：Read and write
    - Metadata：Read-only
 4. 保存 Token，名称建议记录为 Golden One Manager backend。
-5. 该 Token 在 Worker 中使用 `BUSINESSWEB_GITHUB_TOKEN` 这个兼容变量名，供 Manager 写回、翻译调度和 Publish Site 调度共同复用。
+5. 该 Token 在 Worker 中使用 `BUSINESSWEB_GITHUB_TOKEN` 这个兼容变量名，供 Manager 写回、翻译调度和 Publish Site 调度共同复用；不需要再建多个发布 Token。
 
 ### 第 11 步：一次性配置 Worker Variables 与 Secrets
 
@@ -221,7 +237,7 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 | `KEYSTATIC_SECRET` | 第 8 步后台密码 |
 | `BUSINESSWEB_GITHUB_TOKEN` | 第 10 步 fine-grained token |
 
-`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥。
+`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥；旧版的四个拆分 Secret 已不再需要。
 
 `KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback，因此也不必额外创建 `R2_IMAGE_POOL_WRITE_TOKEN`。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
 
