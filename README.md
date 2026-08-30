@@ -227,14 +227,9 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 | `KEYSTATIC_SECRET` | 第 8 步后台密码 |
 | `BUSINESSWEB_GITHUB_TOKEN` | 第 10 步 fine-grained token |
 
-`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥，所以不要再创建：
+`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥。
 
-- `ADMIN_PORTAL_SESSION_SECRET`
-- `ANALYTICS_HASH_SECRET`
-- `CONTACT_FORM_SECRET`
-- `MANAGER_ACCESS_BYPASS_TOKEN`
-
-`KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback，因此也不必额外创建 `R2_IMAGE_POOL_WRITE_TOKEN`。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
+`KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
 
 ### 第 12 步：配置 AI 翻译
 
