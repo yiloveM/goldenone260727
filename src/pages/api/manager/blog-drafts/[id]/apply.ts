@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
 
   const draftId = String(params.id || '').trim();
   if (!/^blog-[a-z0-9-]+-[a-z0-9]+$/.test(draftId)) {
-    return new Response('Bad blog draft id.', {
+    return new Response('文章草稿信息不正确，请重新打开后重试。', {
       status: 400,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -42,7 +42,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
 
   const db = getManagerDb(env);
   if (!db) {
-    return new Response('草稿库未连接，请联系站长检查后台配置。', {
+    return new Response('内容草稿服务暂时不可用，请稍后重试。', {
       status: 503,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
 
   const dispatchToken = getDispatchToken(env, 'manager');
   if (!dispatchToken) {
-    return new Response('后台内容更新授权未配置，请联系站长检查后台配置。', {
+    return new Response('内容更新服务暂时不可用，请稍后重试。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -68,7 +68,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
     .first<BlogDraftRecord>();
 
   if (!record) {
-    return new Response('Blog draft was not found.', {
+    return new Response('找不到这条文章草稿。', {
       status: 404,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -95,7 +95,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
     });
   } catch (error) {
     void githubErrorText(error);
-    return new Response('提交内容更新失败，请稍后重试或联系站长。', {
+    return new Response('提交内容更新失败，请稍后重试。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });

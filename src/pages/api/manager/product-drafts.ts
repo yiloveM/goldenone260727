@@ -18,7 +18,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
 
   const db = getManagerDb(env);
   if (!db) {
-    return new Response('草稿库未连接，请联系站长检查后台配置。', {
+    return new Response('内容草稿服务暂时不可用，请稍后重试。', {
       status: 503,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -56,7 +56,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const db = getManagerDb(env);
   if (!db) {
-    return new Response('草稿库未连接，请联系站长检查后台配置。', {
+    return new Response('内容草稿服务暂时不可用，请稍后重试。', {
       status: 503,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -70,14 +70,15 @@ export const POST: APIRoute = async ({ locals, request }) => {
     requestedId = String(body.id || '').trim();
     payload = normalizeProductDraftPayload(body.payload);
   } catch (error) {
-    return new Response(error instanceof Error ? error.message : 'Bad product draft payload.', {
+    void error;
+    return new Response('产品草稿内容不完整，请检查后重试。', {
       status: 400,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
   }
 
   if (requestedId && !/^product-[a-z0-9-]+-[a-z0-9]+$/.test(requestedId)) {
-    return new Response('Bad product draft id.', {
+    return new Response('产品草稿信息不正确，请重新打开后重试。', {
       status: 400,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });

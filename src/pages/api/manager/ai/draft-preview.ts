@@ -248,7 +248,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
 
   const type = normalizeDraftType(url.searchParams.get('type'));
   const draftSlug = safeDraftSlug(url.searchParams.get('draft'));
-  if (!draftSlug) return new Response('Draft slug is invalid.', { status: 400 });
+  if (!draftSlug) return new Response('翻译草稿信息不正确，请重新打开后重试。', { status: 400 });
 
   const accessToken = getDispatchToken(env, 'translation');
   let draft: { data: Record<string, any>; body: string } | null = null;

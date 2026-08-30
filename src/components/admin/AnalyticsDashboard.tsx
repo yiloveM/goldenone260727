@@ -163,9 +163,9 @@ const metricLabels: Record<AdjustmentMetric, string> = {
 };
 
 const ipModeLabels: Record<AnalyticsPayload['status']['ipMode'], string> = {
-  none: '不保存',
-  network: '匿名网段',
-  full: '完整地址',
+  none: '不记录',
+  network: '大致网络区域',
+  full: '详细网络地址',
 };
 
 const emptyAdjustmentForm = () => ({
@@ -462,7 +462,11 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
   ];
   const setupNotices = [
     !status.enabled ? '访问采集当前已关闭。' : '',
-    status.visitorIdentity !== 'hmac' ? '尚未设置独立访客哈希 Secret；页面浏览仍记录，但独立访客暂不计数。' : '',
+    status.visitorIdentity !== 'hmac'
+      ? surface === 'manager'
+        ? '独立访客统计暂时不可用；页面浏览仍会记录。请稍后重试。'
+        : '独立访客标识尚未正确设置；页面浏览仍记录，但独立访客暂不计数。'
+      : '',
   ].filter(Boolean);
 
   return (
@@ -471,7 +475,7 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
         <div>
           <h1>网站访问分析</h1>
           <p>
-            {analytics.range.start} 至 {analytics.range.end} · 数据按 UTC 统计
+            {analytics.range.start} 至 {analytics.range.end} · 数据按世界标准时间统计
           </p>
         </div>
         <div className="bw-analytics__controls">
@@ -547,7 +551,7 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
           <div className="bw-analytics__panel-head">
             <div>
               <h2>付费数据校准</h2>
-              <p>保存后立即写入 D1 并同步统计，无需发布网站更新</p>
+              <p>保存后立即纳入统计，无需发布网站更新</p>
             </div>
             <span className="bw-analytics__status">{data.adjustments.length} 项</span>
           </div>
@@ -770,7 +774,7 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
           <div className="bw-analytics__panel-head">
             <div>
               <h2>国家地区</h2>
-              <p>Cloudflare 边缘地理信息，用于确定优先市场和本地化方向</p>
+              <p>边缘地理信息，用于确定优先市场和本地化方向</p>
             </div>
           </div>
           <RankedList rows={analytics.countries} total={summary.pageviews} />
@@ -995,22 +999,22 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
               <dd>{status.retentionDays} 天</dd>
             </div>
             <div>
-              <dt>IP 保存</dt>
+              <dt>位置记录范围</dt>
               <dd>{ipModeLabels[status.ipMode]}</dd>
             </div>
             <div>
-              <dt>访客标识</dt>
+              <dt>独立访客统计</dt>
               <dd>{status.visitorIdentity === 'hmac' ? '已启用' : '未启用'}</dd>
             </div>
             <div>
-              <dt>本期校准</dt>
+              <dt>本期数据修正</dt>
               <dd>
-                PV {signedNumber(summary.adjustments.pageviews)} / UV {signedNumber(summary.adjustments.visitors)}
+                浏览量 {signedNumber(summary.adjustments.pageviews)} / 访客 {signedNumber(summary.adjustments.visitors)}
               </dd>
             </div>
             <div>
-              <dt>后台权限</dt>
-              <dd>{data.role === 'keystatic' ? '站长级' : '内容管理员级'}</dd>
+              <dt>查看范围</dt>
+              <dd>{data.role === 'keystatic' ? '完整管理视图' : '内容管理视图'}</dd>
             </div>
           </dl>
         </section>
@@ -1020,7 +1024,7 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
         <div className="bw-analytics__panel-head">
           <div>
             <h2>近期访问</h2>
-            <p>最多显示 40 条公开 HTML 页面访问，用来抽查真实落地路径、来源和设备</p>
+            <p>最多显示 40 条公开网站页面访问，用来抽查真实落地路径、来源和设备</p>
           </div>
         </div>
         <div className="bw-analytics__table-wrap">
@@ -1031,7 +1035,7 @@ function AnalyticsDashboard({ surface }: AnalyticsDashboardProps) {
                   <th>时间</th>
                   <th>页面</th>
                   <th>来源</th>
-                  <th>IP / 国家</th>
+                  <th>网络地址 / 国家</th>
                   <th>城市 / 地区</th>
                   <th>设备</th>
                   <th>访客标识</th>

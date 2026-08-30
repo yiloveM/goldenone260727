@@ -154,7 +154,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
 
   const bucket = getBucket(env);
   if (!bucket) {
-    return new Response('图片池未连接，请联系站长检查后台配置。', { status: 503 });
+    return new Response('图片管理服务暂时不可用，请稍后重试。', { status: 503 });
   }
 
   let prefix = '';
@@ -226,7 +226,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const bucket = getBucket(env);
   if (!bucket) {
-    return new Response('图片池未连接，请联系站长检查后台配置。', { status: 503 });
+    return new Response('图片管理服务暂时不可用，请稍后重试。', { status: 503 });
   }
 
   const formData = await request.formData();
@@ -251,7 +251,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
     const isPdf = isPdfFileName(file.name, file.type);
     if (isPdf && file.size > MAX_PDF_BYTES) {
-      return new Response(`PDF 文件不得超过 ${MAX_PDF_BYTES} bytes：${file.name}`, { status: 400 });
+      return new Response(`PDF 文件不能超过 ${Math.round(MAX_PDF_BYTES / 1024 / 1024)} MB：${file.name}`, { status: 400 });
     }
 
     let key = keyFromPrefixAndFilename(prefix, file.name);
@@ -291,7 +291,7 @@ export const PUT: APIRoute = async ({ locals, request }) => {
 
   const bucket = getBucket(env);
   if (!bucket) {
-    return new Response('图片池未连接，请联系站长检查后台配置。', { status: 503 });
+    return new Response('图片管理服务暂时不可用，请稍后重试。', { status: 503 });
   }
 
   let folderPrefix = '';
@@ -328,7 +328,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
 
   const bucket = getBucket(env);
   if (!bucket) {
-    return new Response('图片池未连接，请联系站长检查后台配置。', { status: 503 });
+    return new Response('图片管理服务暂时不可用，请稍后重试。', { status: 503 });
   }
 
   let keys: string[] = [];
@@ -375,7 +375,7 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
 
   const bucket = getBucket(env);
   if (!bucket) {
-    return new Response('图片池未连接，请联系站长检查后台配置。', { status: 503 });
+    return new Response('图片管理服务暂时不可用，请稍后重试。', { status: 503 });
   }
 
   let key = '';

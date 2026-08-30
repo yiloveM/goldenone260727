@@ -1,9 +1,11 @@
 ---
 import analyticsDashboardSettings from '../../keystatic/analytics-dashboard.json';
+import industryProfile from '../../data/industry-profile.json';
 
 export const prerender = true;
 const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https://cdn.example.com').replace(/\/+$/, '');
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
+const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
 ---
 
 <!doctype html>
@@ -3114,8 +3116,8 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
       <div class="admin-layout">
         <aside class="sidebar">
           <div class="brand-mark">
-            <a href="/" aria-label="Open Golden One home page">
-              <strong>Golden One</strong>
+            <a href="/" aria-label="返回网站首页">
+              <strong>{managerOwner}</strong>
               <span>内容管理</span>
             </a>
           </div>
@@ -3237,7 +3239,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 <input id="title" name="title" required />
               </div>
               <div class="field">
-                <label for="productSlug">页面地址 Slug</label>
+                <label for="productSlug">产品页面标识</label>
                 <input id="productSlug" name="productSlug" readonly />
               </div>
               <div class="field">
@@ -3277,7 +3279,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 </span>
               </div>
               <div class="field is-wide">
-                <label for="image">产品主图 URL（首张）</label>
+                <label for="image">产品主图链接（首张）</label>
                 <div class="input-action">
                   <input id="image" name="image" placeholder="可从图片池选择或粘贴图片链接" />
                   <button class="button secondary" data-image-field="image" data-image-title="选择产品主图" type="button">选择图片</button>
@@ -3409,7 +3411,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 <input id="blogTitle" required />
               </div>
               <div class="field">
-                <label for="blogSlug">页面地址 Slug</label>
+                <label for="blogSlug">文章页面标识</label>
                 <input id="blogSlug" readonly />
               </div>
               <div class="field">
@@ -3432,7 +3434,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 </span>
               </div>
               <div class="field is-wide">
-                <label for="blogImage">文章封面 URL</label>
+                <label for="blogImage">文章封面链接</label>
                 <div class="input-action">
                   <input id="blogImage" placeholder="可从图片池选择或粘贴图片链接" />
                   <button class="button secondary" data-image-field="blogImage" data-image-title="选择文章封面" type="button">选择图片</button>
@@ -3464,7 +3466,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
             <div class="panel-head">
               <div>
                 <h2>客户评价</h2>
-                <span id="reviewSystemStatus">站长在 Keystatic 控制评价系统总开关。</span>
+                <span id="reviewSystemStatus">评价展示设置由系统统一管理，本页面可维护评价内容。</span>
               </div>
               <button class="button secondary" id="newReviewButton" type="button">新建评价草稿</button>
             </div>
@@ -3479,7 +3481,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
             <div class="panel-head">
               <div>
                 <h2>评价草稿编辑器</h2>
-                <span>保存后仍在 D1 草稿库；点击“应用到网站”才会写回正式评价数据。</span>
+                <span>保存后先进入待审核列表；点击“应用到网站”后更新正式评价。</span>
               </div>
             </div>
             <form class="form" id="reviewForm">
@@ -3527,8 +3529,8 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 <input id="reviewSourceUrl" type="url" />
               </div>
               <div class="field is-wide">
-                <label for="reviewProductSlugs">关联产品 Slug</label>
-                <textarea id="reviewProductSlugs" placeholder="每行一个，例如 custom-challenge-coins"></textarea>
+                <label for="reviewProductSlugs">关联产品页面标识</label>
+                <textarea id="reviewProductSlugs" placeholder="每行一个产品页面标识，例如 custom-challenge-coins"></textarea>
               </div>
               <div class="field">
                 <label>前台状态</label>
@@ -3584,8 +3586,8 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
             <strong>管理员按这个顺序操作：</strong>
             <ol>
               <li>先选“要翻译什么内容”和“目标语言”。</li>
-              <li>不填 slug 时，会按“要翻译什么内容”批量生成草稿。</li>
-              <li>填写 slug 时，只翻译这个 slug 对应的一个页面；选“产品和文章”会自动判断它是产品还是文章。</li>
+              <li>不填页面标识时，会按“要翻译什么内容”批量生成草稿。</li>
+              <li>填写页面标识时，只翻译对应的一个页面；选“产品和文章”会自动判断内容类型。</li>
               <li>点击“提交后台 AI 翻译任务”。任务提交后可以关闭当前页面，后台会继续处理。</li>
               <li>等待后台任务完成后，到“产品翻译草稿”或“文章翻译草稿”逐个检查，确认后打开“审核后发布”并保存。</li>
             </ol>
@@ -3609,7 +3611,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                 <input id="translationOverwrite" type="checkbox" />
                 <span>重新生成已有草稿</span>
               </span>
-              <p class="field-help">默认不要勾选。勾选后会覆盖同一 slug 和语言的已有翻译草稿，并重新消耗 AI Token；大量重复生成会明显增加 Token 成本。</p>
+              <p class="field-help">默认不要勾选。勾选后会覆盖同一内容和语言的已有翻译草稿并重新生成；大量重复生成会增加处理用量。</p>
             </div>
             <div class="field is-wide">
               <div class="locale-head">
@@ -4298,7 +4300,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         if (command === 'unorderedList') document.execCommand('insertUnorderedList');
         if (command === 'orderedList') document.execCommand('insertOrderedList');
         if (command === 'link') {
-          const url = prompt('Link URL');
+          const url = prompt('请输入链接地址');
           if (url) document.execCommand('createLink', false, url.trim());
         }
         if (command === 'separator') document.execCommand('insertHTML', false, '<hr><p><br></p>');
@@ -4442,11 +4444,15 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
       const apiResponseMessage = text => {
         const value = String(text || '').trim();
         if (value.startsWith('Admin portal configuration is unavailable')) {
-          return '后台暂时无法连接，请稍后重试；如仍无法使用，请联系站长。';
+          return '后台暂时无法连接，请稍后重试；如仍无法使用，请联系系统维护人员。';
         }
         if (value === 'Not found.') {
-          return '登录已过期。请关闭此页面，并从站长提供的完整入口重新登录。';
+          return '登录已过期。请关闭此页面，并从完整入口重新登录。';
         }
+        if (/站长|Cloudflare|\bD1\b|\bR2\b|GitHub|Keystatic|Token|Secret|Worker|workflow|repository|branch|Actions|\bAPI\b|JSON|UUID|slug|database|publishing|permission|configuration|deployment/i.test(value)) {
+          return '操作暂时无法完成，请稍后重试；如持续出现，请联系系统维护人员。';
+        }
+        if (/^[\x00-\x7F\s]+$/.test(value)) return '操作暂时无法完成，请稍后重试。';
         return value;
       };
       const parseJsonResponse = (text, fallback) => {
@@ -4490,15 +4496,15 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
           },
         });
         const text = await response.text();
-        if (!response.ok) throw new Error(apiResponseMessage(text) || `请求失败（HTTP ${response.status}）`);
-        return parseJsonResponse(text, '后台返回的数据格式不正确，请刷新页面后重试。');
+        if (!response.ok) throw new Error(apiResponseMessage(text) || '请求未完成，请稍后重试。');
+        return parseJsonResponse(text, '后台返回内容无法识别，请刷新页面后重试。');
       };
 
       const requestForm = async (url, formData) => {
         const response = await fetch(portalApiUrl(url), { method: 'POST', body: formData, headers: authHeaders() });
         const text = await response.text();
-        if (!response.ok) throw new Error(apiResponseMessage(text) || `请求失败（HTTP ${response.status}）`);
-        return parseJsonResponse(text, '上传完成后后台返回的数据格式不正确，请刷新页面后检查。');
+        if (!response.ok) throw new Error(apiResponseMessage(text) || '请求未完成，请稍后重试。');
+        return parseJsonResponse(text, '上传完成后后台返回内容无法识别，请刷新页面后检查。');
       };
 
       const addPreviewBase = html => {
@@ -4626,7 +4632,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         $('connectionTitle').textContent = connected ? '内容后台已连接' : '连接内容后台';
         $('connectionDetail').textContent = connected
           ? detail || '登录状态正常，可以开始管理网站内容。'
-          : detail || '登录已失效，请关闭此页面并从站长提供的入口重新登录。';
+          : detail || '登录已失效，请关闭此页面并从完整入口重新登录。';
       };
 
       const checkManagerStatus = async () => {
@@ -5180,7 +5186,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         renderProducts();
         renderDrafts();
         showProductEditor();
-        setStatus('statusText', '正在新建产品草稿。Slug 保存后将用于生成产品文件。');
+        setStatus('statusText', '正在新建产品草稿。页面标识保存后将用于生成产品页面。');
       };
 
       const renderDrafts = () => {
@@ -5226,7 +5232,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         } catch (error) {
           state.drafts = [];
           renderDrafts();
-          setStatus('statusText', error.message || '草稿暂时无法加载，请联系站长检查后台配置。', true);
+          setStatus('statusText', error.message || '草稿暂时无法加载，请稍后重试；如持续出现，请联系系统维护人员。', true);
         }
       };
 
@@ -5249,7 +5255,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         } catch (error) {
           state.blogDrafts = [];
           renderBlogWorkDrafts();
-          setStatus('blogStatus', error.message || '文章草稿暂时无法加载，请联系站长检查后台配置。', true);
+          setStatus('blogStatus', error.message || '文章草稿暂时无法加载，请稍后重试；如持续出现，请联系系统维护人员。', true);
         }
       };
 
@@ -5317,7 +5323,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         const data = await requestJson('/api/manager/review-drafts');
         state.reviews = data.reviews || [];
         state.reviewDrafts = data.drafts || [];
-        $('reviewSystemStatus').textContent = `评价系统总开关：${data.settings?.enabled ? '已启用' : '已关闭'}（仅站长可在 Keystatic 修改）`;
+        $('reviewSystemStatus').textContent = `评价展示：${data.settings?.enabled ? '已启用' : '已关闭'}；当前正式评价 ${data.settings?.summary?.reviewCount || 0} 条。`;
         renderReviews();
         renderReviewDrafts();
       };
@@ -5342,7 +5348,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         setStatus('reviewStatus', '正在提交评价内容更新...');
         const data = await requestJson(`/api/manager/review-drafts/${encodeURIComponent(id)}/apply`, { method: 'POST' });
         await loadReviews();
-        setStatus('reviewStatus', data.requestId ? '评价更新已提交到网站工作流。' : '评价更新已提交。');
+        setStatus('reviewStatus', data.requestId ? '评价更新已提交，处理完成后会自动显示在网站。' : '评价更新已提交。');
       };
 
       const bootstrapManager = async () => {
@@ -5450,7 +5456,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
         renderBlogPosts();
         renderBlogWorkDrafts();
         showBlogEditor();
-        setStatus('blogStatus', '正在新建文章草稿。Slug 保存后将用于生成文章页面。');
+        setStatus('blogStatus', '正在新建文章草稿。页面标识保存后将用于生成文章页面。');
       };
 
       const getBlogPayload = () => ({
@@ -5468,11 +5474,11 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
       const saveBlogDraft = async () => {
         const payload = getBlogPayload();
         if (!payload.blogSlug) {
-          setStatus('blogStatus', '请先填写文章 slug。', true);
+          setStatus('blogStatus', '请先填写文章页面标识。', true);
           return;
         }
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.blogSlug)) {
-          setStatus('blogStatus', 'Slug 只能使用小写英文、数字和短横线。', true);
+          setStatus('blogStatus', '页面标识只能使用小写英文、数字和短横线。', true);
           return;
         }
         setStatus('blogStatus', '正在保存文章草稿...');
@@ -5766,11 +5772,11 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
       const saveDraft = async () => {
         const payload = getPayload();
         if (!payload.productSlug) {
-          setStatus('statusText', '请先填写产品 slug。', true);
+          setStatus('statusText', '请先填写产品页面标识。', true);
           return;
         }
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.productSlug)) {
-          setStatus('statusText', 'Slug 只能使用小写英文、数字和短横线，例如 vx-modular-control-cabinet。', true);
+          setStatus('statusText', '页面标识只能使用小写英文、数字和短横线，例如 custom-challenge-coins。', true);
           return;
         }
         setStatus('statusText', '正在保存草稿...');
@@ -6020,7 +6026,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
 
       const renderLocaleOptions = () => {
         if (!locales.length) {
-          $('localeGrid').innerHTML = '<p class="muted">站长尚未在 /keystatic/ 的“网站语言”页面启用目标语言。</p>';
+          $('localeGrid').innerHTML = '<p class="muted">当前尚未启用可翻译的目标语言。</p>';
           syncLocaleBulkControls();
           return;
         }
@@ -6123,7 +6129,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
           <div class="notice ${toneClass}">
             <span>
               <strong>${escapeHtml(translationOutcomeLabel(result) || data.label || data.status || '任务状态')}</strong>
-              <small>${escapeHtml(data.run?.title || data.message || '')}</small>
+              <small>${escapeHtml(data.message || data.run?.title || '')}</small>
               ${
                 result
                   ? `<small>生成 ${generated} 条，跳过 ${skipped} 条，错误 ${errors} 条。</small>`
@@ -6145,7 +6151,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                         const previewType = item.type === 'blog' ? 'blog' : 'product';
                         const previewHref = `/api/manager/ai/draft-preview?type=${previewType}&draft=${encodeURIComponent(`${item.locale}--${item.slug}`)}`;
                         const retryText = item.attempts && item.attempts > 1 ? `，重试 ${item.attempts - 1} 次` : '';
-                        return `<li>${escapeHtml(item.type)} / ${escapeHtml(item.locale)} / ${escapeHtml(item.slug)}${item.keySlot ? `，AI 通道 ${escapeHtml(item.keySlot)}` : ''}${escapeHtml(retryText)} <a href="${escapeHtml(previewHref)}" data-auth-preview="${escapeHtml(previewHref)}" data-preview-status="translationStatus" target="_blank" rel="noreferrer">预览</a></li>`;
+                        return `<li>${escapeHtml(item.type)} / ${escapeHtml(item.locale)} / ${escapeHtml(item.slug)}${escapeHtml(retryText)} <a href="${escapeHtml(previewHref)}" data-auth-preview="${escapeHtml(previewHref)}" data-preview-status="translationStatus" target="_blank" rel="noreferrer">预览</a></li>`;
                       }
                     )}
                   </section>
@@ -6164,8 +6170,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
                       '本次没有失败项。',
                       item => {
                         const retryText = item.attempts && item.attempts > 1 ? `，已重试 ${item.attempts - 1} 次` : '';
-                        const keyText = item.keySlots?.length ? `，通道 ${item.keySlots.join(' -> ')}` : '';
-                        return `<li>${escapeHtml(item.type)} / ${escapeHtml(item.locale)} / ${escapeHtml(item.slug)}：${escapeHtml(item.friendlyMessage || item.message || '翻译失败')}${escapeHtml(retryText)}${escapeHtml(keyText)}</li>`;
+                        return `<li>${escapeHtml(item.type)} / ${escapeHtml(item.locale)} / ${escapeHtml(item.slug)}：${escapeHtml(item.friendlyMessage || item.message || '翻译失败')}${escapeHtml(retryText)}</li>`;
                       }
                     )}
                   </section>
@@ -6326,7 +6331,7 @@ const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === tr
           'translationEditorStatus',
           warning
             ? editable
-              ? `${warning} 当前仍可编辑，保存时会写回 GitHub。`
+              ? `${warning} 当前仍可编辑，保存后会更新待审核内容。`
               : warning
             : editable
               ? '草稿已加载。'

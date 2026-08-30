@@ -112,19 +112,19 @@ const readFileWithSha = async (repoFullName: string, branch: string, path: strin
 
 const draftKindLabel = (kind: DraftKind) => (kind === 'product' ? '产品' : '文章');
 const normalizeType = (value: string | null) => (value === 'product' || value === 'blog' ? value : 'all');
-const draftListFallbackWarning = '正在显示当前后台包内的翻译草稿；如需最新同步结果，请联系站长检查后台任务授权。';
+const draftListFallbackWarning = '正在显示当前可用的翻译草稿；最新内容暂时无法同步，请稍后重试。';
 const draftListFallbackWarningForError = (error: unknown) => {
   const message = githubErrorText(error);
   if (/bad credentials|401/i.test(message)) {
-    return '正在显示当前后台包内的翻译草稿；GitHub 后台任务授权无效或已过期，请联系站长重新配置 token。';
+    return draftListFallbackWarning;
   }
   if (/resource not accessible|403|forbidden|permission/i.test(message)) {
-    return '正在显示当前后台包内的翻译草稿；GitHub token 缺少仓库 Contents 权限，无法读取最新翻译草稿。';
+    return draftListFallbackWarning;
   }
   if (/not found|404/i.test(message)) {
-    return '正在显示当前后台包内的翻译草稿；GitHub 仓库、分支或翻译草稿路径未找到，请联系站长检查配置。';
+    return draftListFallbackWarning;
   }
-  return `${draftListFallbackWarning} GitHub 读取失败：${message.slice(0, 180)}`;
+  return draftListFallbackWarning;
 };
 const safeDraftSlug = (value: unknown) => {
   const draftSlug = String(value || '').trim();
@@ -453,7 +453,7 @@ export const PUT: APIRoute = async ({ locals, request }) => {
 
   const accessToken = getAccessToken(env);
   if (!accessToken) {
-    return new Response('站长还没有配置后台任务授权，暂时无法保存翻译草稿。', { status: 500 });
+    return new Response('翻译草稿保存服务暂时不可用，请稍后重试。', { status: 500 });
   }
 
   const payload = (await request.json().catch(() => null)) as {
@@ -525,12 +525,12 @@ export const PUT: APIRoute = async ({ locals, request }) => {
   } catch (error) {
     const message = githubErrorText(error);
     if (/bad credentials|401/i.test(message)) {
-      return new Response('后台任务授权无效或已过期，请联系站长重新配置 token。', { status: 502 });
+      return new Response('翻译草稿保存服务暂时不可用，请稍后重试。', { status: 502 });
     }
     if (/resource not accessible|403|forbidden|permission/i.test(message)) {
-      return new Response('GitHub token 缺少 Contents Read and write 权限，无法保存翻译草稿。', { status: 502 });
+      return new Response('当前无法保存翻译草稿，请稍后重试；如持续出现，请联系系统维护人员。', { status: 502 });
     }
-    return new Response(`保存翻译草稿失败：${message.slice(0, 220)}`, { status: 502 });
+    return new Response('保存翻译草稿失败，请稍后重试。', { status: 502 });
   }
 
   return new Response(
@@ -550,7 +550,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
 
   const accessToken = getAccessToken(env);
   if (!accessToken) {
-    return new Response('站长还没有配置后台任务授权，暂时无法审核翻译草稿。', { status: 500 });
+    return new Response('翻译草稿审核服务暂时不可用，请稍后重试。', { status: 500 });
   }
 
   const payload = (await request.json().catch(() => null)) as { type?: string; drafts?: unknown[] } | null;
@@ -572,7 +572,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
       void error;
       errors.push({
         draftSlug,
-        message: '审核失败，请稍后重试或联系站长。',
+        message: '审核失败，请稍后重试。',
       });
     }
   }
@@ -587,7 +587,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
       void error;
       errors.push({
         draftSlug: approvals.map(result => result.draftSlug).join(', '),
-        message: '批量提交失败，请稍后重试或联系站长。',
+        message: '批量提交失败，请稍后重试。',
       });
     }
   }

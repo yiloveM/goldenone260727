@@ -61,18 +61,17 @@ const jobsApiUrl = (repoFullName: string, runId: number) =>
 
 const dispatchErrorMessage = (error: unknown, dispatchTokenConfigured: boolean) => {
   const message = githubErrorText(error);
+  void dispatchTokenConfigured;
   if (/bad credentials|401/i.test(message)) {
-    return dispatchTokenConfigured
-      ? 'The publish token is invalid or expired. Ask the site owner to configure BUSINESSWEB_GITHUB_TOKEN again.'
-      : 'Publishing is not configured yet. Ask the site owner to configure BUSINESSWEB_GITHUB_TOKEN.';
+    return '发布服务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。';
   }
   if (/resource not accessible|403|forbidden|permission/i.test(message)) {
-    return 'The publish token does not have enough permission. Check repository Actions and Contents permissions.';
+    return '当前无法提交发布请求，请稍后重试；如持续出现，请联系系统维护人员。';
   }
   if (/not found|404/i.test(message)) {
-    return 'The publish workflow was not found. Check that site-publish.yml exists on the configured branch.';
+    return '发布任务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。';
   }
-  return 'The publish task could not be submitted. Check the site publish configuration.';
+  return '发布请求提交失败，请稍后重试。';
 };
 
 const stepNameToStage = (stepName: string): PublishStage => {
@@ -110,28 +109,31 @@ const stageLabel = (stage: PublishStage) => {
   switch (stage) {
     case 'waiting':
     case 'queued':
-      return 'Queued';
+      return '等待中';
     case 'building':
-      return 'Building';
+      return '生成中';
     case 'uploading':
-      return 'Uploading';
+      return '发布中';
     case 'success':
-      return 'Success';
+      return '已完成';
     case 'failed':
-      return 'Failed';
+      return '未完成';
     default:
-      return 'Unknown';
+      return '状态未知';
   }
 };
 
 const stageMessage = (stage: PublishStage, run?: WorkflowRun) => {
-  if (stage === 'waiting') return 'The publish request was submitted and is waiting for the workflow run to appear.';
-  if (stage === 'queued') return 'The publish workflow is queued.';
-  if (stage === 'building') return 'The site is building in GitHub Actions for Cloudflare Workers.';
-  if (stage === 'uploading') return 'The deployment is being uploaded or finalized.';
-  if (stage === 'success') return 'The site update has been published.';
-  if (stage === 'failed') return `Publishing failed: ${run?.conclusion || 'check the workflow logs and retry.'}`;
-  return run?.status || 'The current publish status is unknown.';
+  if (stage === 'waiting') return '发布请求已提交，正在等待处理。';
+  if (stage === 'queued') return '发布请求正在排队。';
+  if (stage === 'building') return '正在生成网站更新。';
+  if (stage === 'uploading') return '正在发布网站更新。';
+  if (stage === 'success') return '网站更新已发布。';
+  if (stage === 'failed') {
+    void run;
+    return '网站更新未完成，请稍后重试。';
+  }
+  return '当前发布状态暂时无法确认。';
 };
 
 const requestIdFromRun = (run: WorkflowRun) => {
@@ -195,7 +197,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const dispatchToken = getDispatchToken(env, 'publish');
   if (!dispatchToken) {
-    return new Response('Publishing is not configured yet. Ask the site owner to configure BUSINESSWEB_GITHUB_TOKEN.', {
+    return new Response('发布服务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -228,7 +230,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
       requestId,
       stage: 'queued',
       label: stageLabel('queued'),
-      message: 'The publish workflow has been submitted. Wait for the production build to finish.',
+      message: '发布请求已提交，请等待网站更新完成。',
       statusUrl: `/api/manager/deploy/site?requestId=${encodeURIComponent(requestId)}`,
     }),
     {
@@ -244,7 +246,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
 
   const accessToken = getDispatchToken(env, 'publish');
   if (!accessToken) {
-    return new Response('Publishing is not configured yet. The publish status cannot be read.', {
+    return new Response('暂时无法读取发布状态，请稍后重试。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -314,7 +316,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
     );
   } catch (error) {
     void githubErrorText(error);
-    return new Response('Could not read publish status. Retry later or ask the site owner to check the workflow.', {
+    return new Response('读取发布状态失败，请稍后重试。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -330,14 +332,14 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
   try {
     body = await request.json();
   } catch {
-    return new Response('Bad delete payload.', { status: 400 });
+    return new Response('删除请求不完整，请重新选择记录。', { status: 400 });
   }
 
   const runIds = Array.isArray(body.runIds)
     ? body.runIds.map(value => Number(value)).filter(value => Number.isSafeInteger(value) && value > 0)
     : [];
   if (!runIds.length) {
-    return new Response('Select at least one publish record to delete.', {
+    return new Response('请至少选择一条发布记录。', {
       status: 400,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -345,7 +347,7 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
 
   const accessToken = getDispatchToken(env, 'publish');
   if (!accessToken) {
-    return new Response('Publishing is not configured yet. Publish records cannot be deleted.', {
+    return new Response('暂时无法删除发布记录，请稍后重试。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -383,7 +385,7 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
         deleted.push(runId);
       } catch (error) {
         void githubErrorText(error);
-        errors.push({ runId, message: 'Delete failed. Retry later or ask the site owner to check GitHub permissions.' });
+        errors.push({ runId, message: '删除失败，请稍后重试。' });
       }
     }
 
@@ -392,7 +394,7 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
     });
   } catch (error) {
     void githubErrorText(error);
-    return new Response('Could not delete publish records. Retry later or ask the site owner to check GitHub permissions.', {
+    return new Response('删除发布记录失败，请稍后重试。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });

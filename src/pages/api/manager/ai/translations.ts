@@ -30,18 +30,17 @@ const normalizeSourceType = (value: unknown): SourceType => (value === 'products
 
 const dispatchErrorMessage = (error: unknown, dispatchTokenConfigured: boolean) => {
   const message = githubErrorText(error);
+  void dispatchTokenConfigured;
   if (/bad credentials|401/i.test(message)) {
-    return dispatchTokenConfigured
-      ? '后台任务授权无效或已过期，请联系站长重新配置后台任务授权。'
-      : '站长还没有配置后台任务授权，暂时无法提交 AI 处理任务。';
+    return '自动翻译服务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。';
   }
   if (/resource not accessible|403|forbidden|permission/i.test(message)) {
-    return '后台任务权限不足，请联系站长检查任务授权和内容写入权限。';
+    return '当前无法提交自动翻译任务，请稍后重试；如持续出现，请联系系统维护人员。';
   }
   if (/not found|404/i.test(message)) {
-    return '找不到后台 AI 处理任务，请联系站长检查任务配置。';
+    return '自动翻译任务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。';
   }
-  return '后台 AI 处理任务提交失败，请联系站长检查任务配置。';
+  return '自动翻译任务提交失败，请稍后重试。';
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
@@ -60,7 +59,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   try {
     body = await request.json();
   } catch {
-    return new Response('Bad AI translation payload.', { status: 400 });
+    return new Response('提交的翻译内容不完整，请检查后重试。', { status: 400 });
   }
 
   const targetLocales = normalizeLocales(body.locales);
@@ -82,7 +81,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     if (!matchedSourceCount) {
-      return new Response(`找不到这个 slug：${sourceSlug}。请检查网址最后一段是否复制正确，或调整生成范围。`, {
+      return new Response(`找不到这个页面标识：${sourceSlug}。请检查后重试，或调整生成范围。`, {
         status: 404,
         headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
       });
@@ -91,7 +90,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const dispatchToken = getDispatchToken(env, 'translation');
   if (!dispatchToken) {
-    return new Response('站长还没有配置后台任务授权，暂时无法提交 AI 处理任务。', {
+    return new Response('自动翻译服务暂时不可用，请稍后重试；如持续出现，请联系系统维护人员。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });

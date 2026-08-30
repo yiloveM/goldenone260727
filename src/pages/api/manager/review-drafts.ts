@@ -15,10 +15,7 @@ export const prerender = false;
 
 const selectFields = `id, review_id, buyer_label, payload_json, status, created_by, updated_by,
   created_at, updated_at, applied_at, workflow_request_id, workflow_url`;
-const databaseUnavailable = () => new Response(
-  'The review draft database is not connected. Ask the site owner to check the Manager configuration.',
-  { status: 503 },
-);
+const databaseUnavailable = () => new Response('评价草稿服务暂时不可用，请稍后重试。', { status: 503 });
 
 export const GET: APIRoute = async ({ locals, request }) => {
   const env = getRuntimeEnv(locals);
@@ -51,10 +48,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
     requestedId = String(body.id || '').trim();
     payload = normalizeReviewDraftPayload(body.payload);
   } catch (error) {
-    return new Response(error instanceof Error ? error.message : 'Bad review draft payload.', { status: 400 });
+    void error;
+    return new Response('评价草稿内容不完整，请检查后重试。', { status: 400 });
   }
   if (requestedId && !/^review-[a-z0-9-]+-[a-z0-9]+$/.test(requestedId)) {
-    return new Response('Bad review draft id.', { status: 400 });
+    return new Response('评价草稿信息不正确，请重新打开后重试。', { status: 400 });
   }
 
   await ensureManagerSchema(db);

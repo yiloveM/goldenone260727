@@ -27,19 +27,19 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
   const access = requireManagerAccess(request, env);
   if (access.response) return access.response;
   const draftId = String(params.id || '').trim();
-  if (!/^review-[a-z0-9-]+-[a-z0-9]+$/.test(draftId)) return new Response('Bad review draft id.', { status: 400 });
+  if (!/^review-[a-z0-9-]+-[a-z0-9]+$/.test(draftId)) return new Response('评价草稿信息不正确，请重新打开后重试。', { status: 400 });
   const db = getManagerDb(env);
   if (!db) {
-    return new Response('The review draft database is not connected. Ask the site owner to check the Manager configuration.', { status: 503 });
+    return new Response('评价草稿服务暂时不可用，请稍后重试。', { status: 503 });
   }
   const token = getDispatchToken(env, 'manager');
   if (!token) {
-    return new Response('Manager publishing authorization is not configured. Ask the site owner to check the Worker secrets.', { status: 500 });
+    return new Response('评价更新服务暂时不可用，请稍后重试。', { status: 500 });
   }
 
   await ensureManagerSchema(db);
   const record = await db.prepare(`SELECT ${selectFields} FROM manager_review_drafts WHERE id = ?`).bind(draftId).first<ReviewDraftRecord>();
-  if (!record) return new Response('Review draft was not found.', { status: 404 });
+  if (!record) return new Response('找不到这条评价草稿。', { status: 404 });
   const repo = getRepoFullName(env);
   const branch = getBranch(env);
   const requestId = createRequestId('manager-review');
@@ -55,7 +55,7 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
     });
   } catch (error) {
     void githubErrorText(error);
-    return new Response('Submitting the review update failed. Try again or ask the site owner to check the publishing workflow.', {
+    return new Response('提交评价更新失败，请稍后重试。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });

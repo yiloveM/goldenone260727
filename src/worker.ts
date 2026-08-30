@@ -21,7 +21,7 @@ const PORTAL_COOKIE = '__Host-goldenone-portal';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const portalBrand = String(industryProfile.brand?.name || 'Golden One').trim() || 'Golden One';
-const portalOwner = String(industryProfile.governance?.contentOwner || 'Site owner').trim() || 'Site owner';
+const portalOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
 const PRIVATE_HEADERS = {
   'cache-control': 'private, no-store, max-age=0',
   'permissions-policy': 'camera=(), geolocation=(), microphone=()',
@@ -144,7 +144,7 @@ const portalLoginResponse = (
   options: { error?: string; status?: number } = {}
 ) => {
   const portalLabel = portal.name === 'keystatic' ? '站长后台' : '内容管理后台';
-  const portalPrompt = portal.name === 'keystatic' ? '' : '请使用站长提供的账号登录';
+  const portalPrompt = portal.name === 'keystatic' ? '' : '请使用提供的账号密码登录';
   const submitLabel = portal.name === 'keystatic' ? '登录' : '进入内容后台';
   const action = escapeHtml(`/${portal.uuid}`);
   const error = options.error
@@ -299,7 +299,7 @@ const handlePortalRequest = async (
       const credentials = getPortalLoginCredentials(env);
       if (!hasPortalLoginCredentials(credentials)) {
         return portal.name === 'manager'
-          ? portalLoginResponse(request, portal, { error: '暂时无法登录，请联系站长检查后台设置。', status: 503 })
+          ? portalLoginResponse(request, portal, { error: '暂时无法登录，请稍后重试；如仍无法使用，请联系系统维护人员。', status: 503 })
           : unavailable();
       }
       if (request.method === 'GET' || request.method === 'HEAD') return portalLoginResponse(request, portal);
@@ -316,7 +316,7 @@ const handlePortalRequest = async (
         !timingSafeEqual(submitted.password, credentials.password)
       ) {
         return portalLoginResponse(request, portal, {
-          error: portal.name === 'manager' ? '账号或密码不正确，请确认后重试；如仍无法登录，请联系站长。' : '用户名或密码不正确。',
+          error: portal.name === 'manager' ? '账号或密码不正确，请确认后重试。' : '用户名或密码不正确。',
           status: 401,
         });
       }

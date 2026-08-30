@@ -97,11 +97,11 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   if (access.response) return access.response;
 
   const requestId = url.searchParams.get('requestId')?.trim() || '';
-  if (!requestId) return new Response('Missing requestId.', { status: 400 });
+  if (!requestId) return new Response('缺少任务信息，请重新提交翻译任务。', { status: 400 });
 
   const accessToken = getDispatchToken(env, 'translation');
   if (!accessToken) {
-    return new Response('站长还没有配置后台任务授权，暂时无法读取 AI 处理状态。', {
+    return new Response('暂时无法读取翻译任务状态，请稍后重试。', {
       status: 500,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
@@ -129,7 +129,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
           found: false,
           status: 'waiting',
           label: statusLabel(undefined),
-          message: '后台触发请求已发出，但运行记录可能还没创建。请稍后刷新。',
+          message: '任务已提交，正在等待处理，请稍后刷新。',
         }),
         {
           headers: { 'cache-control': 'no-store', 'content-type': 'application/json; charset=utf-8' },
@@ -165,6 +165,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
         status: matchedRun.status || 'unknown',
         conclusion: matchedRun.conclusion || '',
         label: statusLabel(matchedRun),
+        message: statusLabel(matchedRun),
         run: {
           id: matchedRun.id,
           title: matchedRun.display_title || matchedRun.name || '',
@@ -187,7 +188,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
     );
   } catch (error) {
     void githubErrorText(error);
-    return new Response('读取后台 AI 处理状态失败，请稍后重试或联系站长。', {
+    return new Response('读取翻译任务状态失败，请稍后重试。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
