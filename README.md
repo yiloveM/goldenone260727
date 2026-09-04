@@ -2,7 +2,7 @@
 
 Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购团队的定制金属礼品商业网站。公开站、Keystatic 站长后台、Manager 内容后台、AI 翻译、D1 草稿、R2 图片与访问分析均由本仓库统一维护。
 
-> **README 结构由站长锁定。** 本文件必须始终按以下七章及当前顺序维护：一、Repo 功能汇总；二、手把手部署教程；三、Keystatic 站长使用教程（折叠）；四、Manager 内容管理员使用教程（折叠）；五、项目重要位置；六、两阶段 Codex 建站流程（折叠）；七、避坑指南（折叠）。任何 AI 或自动化只能在改动所属章节更新内容，不得擅自改名、调序、拆分、合并或新增同级章节。部署边界、后台入口、变量配置、发布规则和已验证的故障结论必须保留；新增文字只写完成部署或使用所必需的步骤。
+> **README 结构由站长锁定。** 本文件必须始终按以下八章及当前顺序维护：一、Repo 功能汇总；二、手把手部署教程；三、Keystatic 站长使用教程（折叠）；四、Manager 内容管理员使用教程（折叠）；五、项目重要位置；六、两阶段 Codex 建站流程（折叠）；七、避坑指南（折叠）；八、预览功能（折叠）。任何 AI 或自动化只能在改动所属章节更新内容，不得擅自改名、调序、拆分、合并或新增同级章节。部署边界、后台入口、变量配置、发布规则和已验证的故障结论必须保留；新增文字只写完成部署或使用所必需的步骤。
 
 ## 一、Repo 功能汇总
 
@@ -17,17 +17,19 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 | 站长后台 | Keystatic GitHub mode，独立域名、UUID、用户名和密码 |
 | 内容后台 | Manager，D1 草稿、R2 图片、审批写回 Git，独立域名、UUID、用户名和密码 |
 | 自动化 | GitHub Actions：内容写回、AI 翻译，以及唯一的 Worker 构建部署链路 |
-| 邮件 | Resend，可发送询盘内容和不超过 5 MB 的 JPG、PNG、WebP、PDF 艺术稿附件 |
+| 邮件与留资 | Resend 将完整询盘发送到 `CONTACT_TO_EMAIL`；D1 同步保存访客资料、来源页和投递状态；保留不超过 5 MB 的 JPG、PNG、WebP、PDF 艺术稿附件 |
 
 ### 2. 网站能力
 
 - Golden One 定制徽章、奖牌、挑战币、钥匙扣和金属礼品产品架构。
 - 产品分类、型号、材料、工艺、参数表、应用、FAQ、图库、详情图和排序管理。
-- 博客、客户评价、询盘购物车、艺术稿上传、联系邮件和 R2 图片池。
-- 英语为唯一源语言；站长以复选框启用目标语言，当前已启用西班牙语。
+- 博客、客户评价、询盘购物车、艺术稿上传、共享 CAPTCHA、联系邮件、D1 留资和 R2 图片池。
+- 英语为唯一源语言；站长以复选框启用目标语言，当前只额外启用西班牙语。新增的日语、马来语、荷兰语、希腊语和泰语预置均保持关闭。
 - AI 仅生成翻译草稿；审核与明确发布之前不会自动公开。
 - Keystatic 直接管理 Git 内容；Manager 先写 D1 草稿，再经专用 Actions 写回 Git。
 - 两套后台共用登录用户名 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 和密码 `KEYSTATIC_SECRET`，但使用不同 Host 和 UUID。
+- 可配置受控 PDF 下载默认关闭且白名单为空；客户资料 URL 只有在 CAPTCHA、D1 和 Resend 全部成功后才由服务端返回。
+- Worker 优先读取 Astro 预渲染静态资源，避免 `/manager/`、文章和详情页被错误交给 SSR 后返回 404。
 
 ### 3. SEO/GEO 能力
 
@@ -78,6 +80,7 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 - 内容写回 Actions 只修改 Git，不在写回任务内构建或部署。
 - 部署 workflow 只读取 GitHub Secret `CLOUDFLARE_API_TOKEN`。Account ID 固定在 `wrangler.toml`，不再创建 `CLOUDFLARE_ACCOUNT_ID` Secret 或 Variable。
 - 这条边界未经站长针对本次改动明确同意，任何 AI 或自动化不得修改。
+- 独立 `goldenone-preview` 只允许连接站长批准且已经存在的非 `main` 分支；分支不存在时不创建、不构建、不部署。预览可复用现有 R2/D1/分析配置，但不得接管生产域名或改变上述生产链路。
 
 ## 二、手把手部署教程
 
@@ -86,7 +89,7 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 ### 第 1 步：核对仓库与本地项目
 
 1. GitHub 仓库必须是 `yiloveM/goldenone260727`，默认分支必须是 `main`。
-2. 本地项目目录是 `D:\aquamamaweb\goldenone`。
+2. 本地项目目录是 `D:\cornerhardware\goldenone`。
 3. 检查 `wrangler.toml` 中的 Worker 名称、Account ID、R2 bucket、D1 Database ID、两个后台 Host 和公开站 URL。
 4. 本项目只使用本章列出的 Golden One Account ID、bucket、D1 ID、域名和 GitHub App 凭据。
 5. 本地验证命令：
@@ -237,7 +240,7 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 | `KEYSTATIC_SECRET` | 第 8 步后台密码 |
 | `BUSINESSWEB_GITHUB_TOKEN` | 第 10 步 fine-grained token |
 
-`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和联系表单验证码密钥；旧版的四个拆分 Secret 已不再需要。
+`KEYSTATIC_GITHUB_CLIENT_SECRET` 同时作为站内密钥根。Worker 用 HKDF-SHA256 分别派生后台会话签名、匿名访客标识和公共表单 CAPTCHA 密钥；旧版的四个拆分 Secret 已不再需要。
 
 `KEYSTATIC_SECRET` 同时是双后台登录密码、Keystatic OAuth secret 和 R2 图片池写入的 fallback，因此也不必额外创建 `R2_IMAGE_POOL_WRITE_TOKEN`。所有值保存后部署新 Version。`keep_vars = true` 会让后续 GitHub Actions Wrangler 部署保留 Dashboard 中未写入 `wrangler.toml` 的 Variables；Worker Secrets 无论 `keep_vars` 是否开启都不会被 Wrangler 部署删除。
 
@@ -291,21 +294,86 @@ Cloudflare -> Worker `goldenone` -> **Settings -> Variables and Secrets**。
 5. 选择 **Custom filter expression**，填写：
 
 ```text
-http.host eq "cdn.goldenonemfg.com"
+(http.host eq "cdn.goldenonemfg.com"
+ and http.request.method in {"GET" "HEAD"})
 ```
 
 6. 如果实际 CDN 主机名不同，把表达式中的示例换成真实值。
 7. **Cache eligibility** 选择 **Eligible for cache**。
 8. **Edge TTL** 选择 **Respect existing headers**。
 9. **Browser TTL** 选择 **Respect existing headers**。
-10. 点击 **Deploy**，回到规则列表确认状态为 Enabled。
+10. **Cache key / Caching level** 保持 **Standard**，不要全局忽略 Query String。
+11. 点击 **Deploy**，回到规则列表确认状态为 Enabled。
+12. 进入 **Caching -> Tiered Cache**；新版界面如归入 Smart Shield，则进入对应页面。启用 **Tiered Cache** 并选择 **Smart** topology。
+13. 不为 R2 CDN 启用 Cache Reserve；R2 来源请求不使用该能力。
+14. 同 key 曾返回 404、被覆盖或删除时，在 **Caching -> Configuration -> Purge Cache -> Custom Purge** 按 URL 清理缓存。
 
-#### 13.4 检查图片公开访问
+#### 13.4 配置不影响 SEO 的防盗链
 
-1. 在 CDN Zone 左侧进入 **Security -> Settings**。
-2. 找到全局 **Hotlink Protection**，设置为 **Off**，让 Golden One 网站、Google 图片和合法空 Referer 可以读取公开媒体。
-3. 后续确需防盗链时，进入 **Security -> Security rules -> WAF -> Custom rules**，先用 Log 观察访问来源，再建立精确规则。
-4. CDN 主机名保持公开媒体用途，不添加后台登录验证。
+##### 13.4.1 固定策略
+
+1. **Security -> Settings** 中全局 **Hotlink Protection** 保持 **Off**。该全局开关覆盖格式有限，并可能阻止 Google Images、Pinterest 和 Facebook；Golden One 的公开媒体还包括 WebP、AVIF、SVG 和 PDF，因此使用下面的精确 WAF 规则。
+2. R2 bucket 的 **Public Development URL (`r2.dev`)** 保持 **Disabled**，避免绕过自定义域名的 WAF 与缓存。
+3. 始终允许空 `Referer`。直接打开图片/PDF、隐私浏览器、搜索抓取和 Cloudflare 图片请求都可能没有 Referer。
+4. 允许 `cf.client.bot` 验证机器人，确保 Googlebot、Bingbot 等不进入阻断条件。
+5. 公开产品图、文章图、Open Graph 图和公开 PDF 不加登录、Cookie、短时 HMAC 或一次性 URL，保持稳定、可抓取、可缓存。
+
+##### 13.4.2 阻断非读取方法
+
+1. 进入 **Security -> Security rules -> WAF -> Custom rules -> Create rule**。
+2. Rule name 填 `Golden One CDN read methods only`。
+3. 把示例主机名换成真实 CDN 后填写：
+
+```text
+(http.host eq "cdn.goldenonemfg.com"
+ and not (http.request.method in {"GET" "HEAD" "OPTIONS"}))
+```
+
+4. Action 选择 **Block**。Manager 和 Keystatic 通过 Worker 的 R2 binding 上传，不通过 CDN 自定义域名，因此不受影响。
+
+##### 13.4.3 观察后阻断明确第三方嵌入
+
+1. 在 **Security Analytics / Security Events** 按 CDN Host 和非空 Referer 筛选，连续观察至少 48 小时；先记录主站、两个后台、搜索、社交预览和实际预览 Worker 来源。
+2. 创建规则前，把下列主机替换为 Golden One 的真实公开站、后台和 CDN。表达式只匹配“非空 Referer、非验证机器人、且明确来自未授权第三方”的 GET/HEAD 请求：
+
+```text
+(http.host eq "cdn.goldenonemfg.com"
+ and http.request.method in {"GET" "HEAD"}
+ and http.referer ne ""
+ and not cf.client.bot
+ and not starts_with(lower(http.referer), "https://www.goldenonemfg.com/")
+ and not starts_with(lower(http.referer), "https://goldenone.arkalpooltech.workers.dev/")
+ and not starts_with(lower(http.referer), "https://admin.ebr.kdns.fr/")
+ and not starts_with(lower(http.referer), "https://manager.ebr.kdns.fr/")
+ and not starts_with(lower(http.referer), "https://cdn.goldenonemfg.com/")
+ and not starts_with(lower(http.referer), "http://localhost:")
+ and not starts_with(lower(http.referer), "http://127.0.0.1:")
+ and not starts_with(lower(http.referer), "https://www.google.")
+ and not starts_with(lower(http.referer), "https://images.google.")
+ and not starts_with(lower(http.referer), "https://lens.google.")
+ and not starts_with(lower(http.referer), "https://www.bing.com/")
+ and not starts_with(lower(http.referer), "https://cn.bing.com/")
+ and not starts_with(lower(http.referer), "https://www.facebook.com/")
+ and not starts_with(lower(http.referer), "https://l.facebook.com/")
+ and not starts_with(lower(http.referer), "https://www.pinterest.")
+ and not starts_with(lower(http.referer), "https://pinterest.")
+ and not starts_with(lower(http.referer), "https://www.linkedin.com/")
+ and not starts_with(lower(http.referer), "https://lnkd.in/")
+ and not starts_with(lower(http.referer), "https://x.com/")
+ and not starts_with(lower(http.referer), "https://t.co/"))
+```
+
+3. `www.goldenonemfg.com` 只是待正式域名确认的示例；未绑定前删除该行，绑定后改成准确 Origin。预览分支不存在时不加预览来源；存在后只加入其准确 `workers.dev` Origin。
+4. 合法经销商或合作平台确需嵌入时，只增加准确 HTTPS Origin 和尾部 `/`，不要用宽泛的 `contains`。
+5. 套餐有 **Log** action 时先运行 24-72 小时；确认无误后 Rule name 填 `Golden One CDN explicit third-party hotlinks`，Action 选 **Block**。不要选 Managed Challenge 或 JavaScript Challenge，媒体请求无法完成挑战。
+6. 误拦截时先关闭这一条第三方防盗链规则；缓存规则和读取方法规则不需回滚。
+
+##### 13.4.4 不采用的方案
+
+- CORS 不能阻止 `<img>` 盗链，不替代 WAF。
+- R2 presigned URL 只适用于 S3 API 域名，不能直接用于 R2 自定义域名。
+- WAF timed HMAC 适合未来独立的私有/付费下载前缀，不适合公开 SEO 图片、Open Graph 和公开 PDF。
+- 不为隐藏 `/cdn-cgi/image/` 另建图片 Worker；这会增加缓存、递归转换和故障风险，不构成访问控制。
 
 #### 13.5 修改 Golden One 配置
 
@@ -349,6 +417,38 @@ PUBLIC_R2_IMAGE_DELIVERY_MODE = "edge-webp"
 ```
 
 6. 转换未开通时维持 `original`。R2 中只保存原图，PDF 始终保持原格式。
+7. 启用防盗链后同时验证原图和 `/cdn-cgi/image/` 转换 URL；两者都必须允许 Golden One、空 Referer 和验证机器人。
+
+#### 13.8 防盗链与缓存验收
+
+```powershell
+$asset = 'https://cdn.goldenonemfg.com/<真实对象-key>'
+curl.exe -I $asset
+curl.exe -I -e 'https://goldenone.arkalpooltech.workers.dev/products/' $asset
+curl.exe -I -e 'https://images.google.com/' $asset
+curl.exe -I -e 'https://unauthorized.example/hotlink-test' $asset
+```
+
+1. 前三条应返回 `200`；第三方规则启用后最后一条应返回 `403`。第一条专门确认空 Referer 可直接访问。
+2. 连续请求同一 URL，预热后检查 `CF-Cache-Status: HIT`；不要要求第一次请求就是 HIT。
+3. 在无痕窗口检查首页、分类、产品详情、文章、分享预览、PDF、Manager、Keystatic 和实际存在的预览 Worker，确认没有坏图或 403。
+4. Security Events 中被拦截请求必须都带非空未授权 Referer；发现合法来源时先停用规则再精确补 Origin。
+5. 不给公开 CDN 对象添加 `X-Robots-Tag: noindex`、登录、Cookie 或签名参数。
+6. 规则依据母版已核验的 Cloudflare 官方文档：[R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/)、[R2 cache](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/)、[Cache Rules](https://developers.cloudflare.com/cache/how-to/cache-rules/)、[Hotlink Protection](https://developers.cloudflare.com/waf/tools/scrape-shield/hotlink-protection/)、[verified bots](https://developers.cloudflare.com/waf/custom-rules/use-cases/allow-traffic-from-verified-bots/)、[R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)。
+
+#### 13.9 按授权旧站映射上传 R2
+
+仅在客户明确授权旧站迁移时执行：
+
+```powershell
+npm run oldsite:crawl -- --url "https://old.example.com" --authorized --rebuild
+npm run oldsite:prepare -- --bucket "goldenone" --cdn-base "https://cdn.goldenonemfg.com"
+cd .\oldsite\r2-upload\legacy
+.\upload.ps1 -Bucket 'goldenone' -DryRun
+.\upload.ps1 -Bucket 'goldenone'
+```
+
+`upload.ps1` 逐条读取 `r2-upload-manifest.json` 的 `packageFile -> r2ObjectKey`，因此从任意本地 A 文件夹运行都会上传到同一映射 key，不会带入盘符或本地包装目录。每个 key 结合原页面 slug、真实 `alt/title/caption` 或原文件名、同页语义角色和短内容哈希；上传前按关键词到页面映射复核 `seoKeyBasis`，不得塞入与媒体无关的关键词。完整流程见 `docs/OLD-SITE-MIGRATION.md`。
 
 ### 第 14 步：启用访问分析与可选 GSC
 
@@ -374,10 +474,31 @@ PUBLIC_R2_IMAGE_DELIVERY_MODE = "edge-webp"
 1. 在 Resend 验证发件域名。
 2. Worker Secret 新建 `RESEND_API_KEY`。
 3. Worker Variable 新建 `CONTACT_FROM_EMAIL`，填写已验证域名的发件地址。
-4. `CONTACT_TO_EMAIL` 可选；不填时发送到 Golden One 站点资料中的 `sales@goldenonemfg.com`。
-5. 联系表单验证码使用派生密钥，不再配置 `CONTACT_FORM_SECRET`。
-6. 测试普通询盘和一个小于 5 MB 的 JPG、PNG、WebP 或 PDF 艺术稿；邮件必须包含页面、询盘产品和附件。
-7. Resend 未配置时接口会明确返回配置错误，不会伪装为发送成功。
+4. Worker Variable 新建 `CONTACT_TO_EMAIL`，填写实际询盘收件邮箱；这是必填项，不再回退到站点公开邮箱。
+5. 联系表单统一使用共享 CAPTCHA，密钥由现有根 Secret 派生，不再配置 `CONTACT_FORM_SECRET`。
+6. 确认第 2 步已执行最新版 `manager-portal/schema.sql`，D1 中存在 `public_form_submissions`。
+7. 测试普通询盘和一个小于 5 MB 的 JPG、PNG、WebP 或 PDF 艺术稿；邮件必须包含来源页面、完整访客资料、询盘产品和附件，D1 还应记录艺术稿文件名与 `delivery_status`。
+8. Resend 未配置、D1 保存失败或 CAPTCHA 无效时接口会明确失败，不会伪装为发送成功。
+
+查询最近留资：
+
+```sql
+SELECT form_type, source_page, name, email, phone_whatsapp, company_project,
+       country, selected_pdf, attachment_name, delivery_status, resend_email_id, created_at
+FROM public_form_submissions
+ORDER BY created_at DESC
+LIMIT 50;
+```
+
+#### 15.1 按需启用受控 PDF 下载
+
+1. 当前 `src/data/catalog-downloads.json` 保持 `enabled: false` 且列表为空，不会改变 Golden One 前台。
+2. 确有需求时，先把已核实 PDF 上传到 R2/CDN，并逐个验证 HTTPS 地址。
+3. Keystatic -> **站点设置 -> 受控下载**，保持总开关关闭，填写唯一 ID、真实文件名、访客标题、说明和 R2/CDN 地址。
+4. 按买家流程把 `CatalogDownloadGate.astro` 接入指定客户页面并匹配当时的公共视觉；本次能力迁移不自动放置组件。
+5. 验证 CAPTCHA、D1、Resend 和文件白名单后再勾选总开关并点击“发布网站更新”。
+6. 成功前页面 HTML 不得包含 PDF 直链；成功邮件只发送访客资料和所选 PDF 名称，不发送 PDF 附件。
+7. 关闭总开关并发布后，配置和历史留资保留，`/api/download` 返回 404。
 
 ### 第 16 步：确认保存与发布规则
 
@@ -396,6 +517,7 @@ src/content/productTranslations/**
 src/content/blogTranslations/**
 src/keystatic/*.json
 src/data/site-language-settings.json
+src/data/catalog-downloads.json
 .github/ai-translation-results/**
 ```
 
@@ -406,7 +528,7 @@ src/data/site-language-settings.json
 | Keystatic/Manager 产品写回 | `src/content/products/**` | 否，等待 Publish Site |
 | Keystatic/Manager 文章写回 | `src/content/blog/**` | 否，等待 Publish Site |
 | AI 翻译和审核 | 翻译目录 | 否，等待 Publish Site |
-| 网站语言或 Manager 分析开关 | 配置 JSON | 否，等待 Publish Site |
+| 网站语言、受控下载或 Manager 分析开关 | 配置 JSON | 否，等待 Publish Site |
 | 客户评价应用到网站 | `src/data/customer-reviews.json` | 是 |
 | 前台、Worker、API、样式、配置代码 | 代码路径 | 是 |
 | 点击“发布网站更新” | `workflow_dispatch` | 立即构建并部署当前 `main` |
@@ -419,9 +541,11 @@ src/data/site-language-settings.json
 4. 两个正确 UUID 地址先显示 Golden One 登录面板。
 5. 用户名填写 `goldenone260727`，密码填写 `KEYSTATIC_SECRET`。
 6. Manager 能读取 D1 草稿、R2 图片、翻译语言和网站访问分析。
-7. Keystatic 能完成 GitHub OAuth、保存内容、提交 AI 翻译和发布。
-8. 提交一条不在忽略路径中的测试代码提交，GitHub Actions 自动运行；Cloudflare 不出现第二次 Git Build。
-9. 运行：
+7. 关闭评价系统时 Manager 不显示评价入口；Manager 主界面与分析页左上角显示同一内容负责人名称。
+8. Keystatic 能完成 GitHub OAuth、保存内容、提交 AI 翻译和发布，且保存 JSON singleton 不产生 `.json.json`。
+9. 联系表单 CAPTCHA 可加载/刷新，成功提交同时进入 D1 和 `CONTACT_TO_EMAIL`。
+10. 提交一条不在忽略路径中的测试代码提交，GitHub Actions 自动运行；Cloudflare 不出现第二次 Git Build。
+11. 运行：
 
 ```powershell
 npm run types:cloudflare -- --check
@@ -451,6 +575,7 @@ npm run build
 3. **产品管理/产品排序**：维护 Golden One 产品、图库、参数、型号、FAQ、发布状态与顺序。
 4. **博客**：维护英语源文章和封面。
 5. **评价系统**：演示评价只用于布局且不能进入 SEO；真实评价必须有可核实来源后才能设置 `seoEligible: true`。
+6. **受控下载**：按开关下方小字顺序操作，先上传并验证 PDF，再填写白名单，再确认页面组件、D1、Resend 和 CAPTCHA，最后才开启并发布。当前保持关闭且为空。
 
 ### 图片池
 
@@ -486,7 +611,8 @@ npm run build
 1. 修改某个 UUID，只会更换对应完整入口。
 2. 修改 `KEYSTATIC_SECRET` 会更换两个后台登录密码并使现有签名会话失效。
 3. 修改 `KEYSTATIC_GITHUB_CLIENT_SECRET` 会使两个后台会话失效，并同时轮换三种派生运行时密钥；Keystatic 需重新授权。
-4. 修改后关闭旧页面，从新完整入口重新登录。
+4. 本次后台统一会话 Cookie 后，升级前已登录的浏览器需要从完整 UUID 入口重新登录一次。
+5. 修改后关闭旧页面，从新完整入口重新登录。
 
 </details>
 
@@ -519,6 +645,8 @@ npm run build
 
 ### 客户评价
 
+评价总开关关闭时，Manager 左侧不显示此入口；内容管理员不能绕过站长开关开启评价系统。
+
 1. 先保存评价草稿，再点击应用到网站。
 2. 评价写回 `customer-reviews.json` 后会自动触发网站部署。
 3. 只有真实、可核实且有来源的评价才能进入 SEO；演示评价保持 `seoEligible: false`。
@@ -529,6 +657,7 @@ npm run build
 2. 查看访问趋势、落地页、来源、关键词、国家、设备、语言、引荐和 Campaign。
 3. SEO 决策摘要用于判断先优化哪个页面、标题、摘要、语言或流量来源。
 4. Manager 为只读分析界面，数据校准由站长在 Keystatic 完成。
+5. 左上角公司名称与 Manager 主界面统一读取“品牌与行业基础”的内容负责人。
 
 ### 发布网站更新
 
@@ -547,7 +676,7 @@ npm run build
 | `.github/workflows/site-publish.yml` | 唯一网站构建部署 workflow |
 | `.github/workflows/ai-translation.yml` | AI 翻译草稿 |
 | `.github/workflows/manager-apply-*.yml` | Manager 产品、文章、评价写回 |
-| `src/worker.ts` | 双后台 Host/UUID/登录/会话、公开路径隔离、分析采集 |
+| `src/worker.ts` | 双后台统一登录/会话、静态资源优先、公开路径隔离、下载 API 与分析采集 |
 | `src/lib/runtime-secret.ts` | HKDF 派生运行时密钥 |
 | `src/lib/admin-portals.ts` | 后台 Host、UUID 和内部访问校验 |
 | `src/lib/admin-portal-rewrite.ts` | Keystatic URL 重写与 Manager 防重复 UUID |
@@ -560,17 +689,30 @@ npm run build
 | `src/keystatic/analytics-dashboard.json` | Manager 分析入口当前状态 |
 | `src/data/industry-profile.json` | Golden One 品牌、市场、产品架构与治理事实 |
 | `src/data/site-language-settings.json` | 唯一目标语言启用源 |
+| `src/data/catalog-downloads.json` | 受控下载总开关和服务端 PDF 白名单；当前关闭且为空 |
 | `src/data/site-origin.json` | 公开站生产 origin 与退役 Host |
 | `src/content/products/` | 英语产品 |
 | `src/content/blog/` | 英语文章 |
 | `src/content/productTranslations/` | 产品翻译草稿/内容 |
 | `src/content/blogTranslations/` | 文章翻译草稿/内容 |
 | `src/data/customer-reviews.json` | 评价总开关、汇总与评价记录 |
-| `src/pages/api/contact.ts` | 询盘验证码、Resend 和艺术稿附件 |
-| `manager-portal/schema.sql` | Manager 草稿与访问分析 D1 表结构 |
+| `src/lib/form-captcha.ts` | 联系与下载表单共用的签名 CAPTCHA |
+| `src/lib/public-form-submissions.ts` | 公开表单 D1 留资和 Resend 投递状态 |
+| `src/pages/api/contact.ts` | 询盘 CAPTCHA、D1、Resend 和艺术稿附件 |
+| `src/pages/api/download.ts` | 受控下载白名单、D1、Resend 与成功后 URL 返回 |
+| `src/components/CatalogDownloadGate.astro` | 仅在明确启用时接入客户页面的通用下载门控组件 |
+| `manager-portal/schema.sql` | Manager 草稿、访问分析与公开表单留资 D1 表结构 |
 | `scripts/run-wrangler-deploy-with-retry.mjs` | 仅瞬时错误部署重试 |
 | `scripts/audit-feature-continuity.mjs` | 核心能力连续性检查 |
 | `scripts/audit-template-readiness.mjs` | 建站和生产就绪检查 |
+| `scripts/crawl-authorized-oldsite.mjs` | 已授权旧站公开页面、元数据与媒体采集 |
+| `scripts/prepare-oldsite-r2.mjs` | 逐页媒体目录、R2 key 映射、manifest 与 `upload.ps1` 生成 |
+| `scripts/audit-oldsite-routes.mjs` | 原 URL、内容、媒体和 SEO 对应关系审计 |
+| `scripts/run-preview-deploy.mjs` | 远端预览分支存在性与独立 Worker 门禁 |
+| `docs/OLD-SITE-MIGRATION.md` | 授权旧站归档、原 URL 继承和 R2 上传流程 |
+| `docs/AI-INDUSTRY-BUILD-PROMPT.md` | 第一阶段完整输入与 A/B/C/D 边界提示词 |
+| `docs/ASTROWIND-INTEGRATION.md` | AstroWind 只作为工程参考的边界 |
+| `docs/PUBLIC-VISUAL-FOUNDATION.md` | Golden One 公共视觉与通用能力隔离边界 |
 | `.agents/skills/businessweb-seo-geo/SKILL.md` | 两阶段建站执行规则 |
 | `AGENTS.md` | AI 必须遵守的 Golden One 系统边界 |
 
@@ -593,6 +735,10 @@ custom sports medals, running medals, leather keychain, anime keychain,
 promotional keychains。
 目标语言：英语为源语言；需要时启用指定目标语言。
 保留现有 Golden One 品牌、产品结构、后台、部署和艺术稿上传功能。
+旧站迁移 URL：无。
+需要留资下载的资料：不启用。
+指定参考站点：无；按当前行业与买家任务研究。
+编辑前先按 A 决策规则、B 通用工程能力、C Golden One 公共实现、D 客户数据产物归类；如需修改技术栈、工程能力或部署边界，先说明差异并等待“确认修改能力”。
 ```
 
 Codex 必须：
@@ -602,7 +748,9 @@ Codex 必须：
 3. 依据定制金属礼品买家任务设计分类、产品比较、询盘路径、视觉系统和页面信息架构。
 4. 使用真实或明确标注为可替换的视觉资产；不把示例图当成 Golden One 已生产项目。
 5. 保留 Keystatic、Manager、D1、R2、翻译、评价、联系附件和部署边界。
-6. 运行完整检查并交付可供上传真实资料的站点。
+6. 如明确提供“旧站迁移+网址”，先按 `docs/OLD-SITE-MIGRATION.md` 保存公开页面、文案、参数、元数据、媒体和原 URL；旧站逐页真实文案是唯一改写底稿，Google 靠前同行业页面只用于学习买家语言、术语、信息密度和句式节奏。必须在旧文案基础上去 AI 化，不得脱离旧文案从零生成，也不得改变事实或抄写竞争者。
+7. 检查导航/二级菜单、轮播、图库、标签、筛选、分享、询盘车、表单、CAPTCHA、键盘/触摸、错误状态、重复标题和模板遗留。
+8. 运行完整检查并交付可供上传真实资料的站点。
 
 ### 第二阶段：全站 SEO 与 GEO
 
@@ -645,6 +793,10 @@ Codex 必须先调查最新搜索规范和真实 SERP，再完成关键词到页
 | Dashboard Variable 部署后消失 | `keep_vars` 被删除 | 恢复 `keep_vars = true`；Secrets 本来不会被 deploy 删除 |
 | 自动重试仍失败 | 鉴权、权限或绑定错误 | 重试器只处理网络、429、500/502/503/504；按首个确定性错误修复 |
 | 构建卡在远程图片 | 图片 URL、HTTP 状态或网络问题 | 看具体 URL；不要通过启用第二套 CI 掩盖 |
+| Manager 或预渲染详情页 404 | Worker 未先查 Static Assets | 保留 `ASSETS` binding、`html_handling = "none"` 和静态资源优先路由 |
+| 保存后出现 `*.json.json` | Keystatic singleton path 错带 `.json` | path 去掉扩展名，迁移有效数据后删除重复文件 |
+| CAPTCHA 无法加载 | 根 Secret、Host/API 路由或部署版本不一致 | 核对后台根 Secret 与公开 API，重新部署并测试加载、刷新和过期 |
+| 受控下载返回 404 | 总开关关闭、白名单为空或页面未接入 | 按 Keystatic 小字顺序配置；无真实资料时保持关闭即为正常 |
 
 ### 后台登录与 API
 
@@ -665,5 +817,52 @@ Codex 必须先调查最新搜索规范和真实 SERP，再完成关键词到页
 - `SITE_URL` 与 `site-origin.json` 的 `productionUrl` 必须一致，否则 canonical、sitemap、OAuth 和预览会出现不同 origin。
 - R2 的 PDF 不应使用图片转换；切换 `edge-webp` 前必须验证自定义 CDN 与原图回退。
 - 不把任何生产 Secret、UUID、PAT、API Key 或艺术稿写进仓库、README、`wrangler.toml` 或聊天记录。
+
+</details>
+
+## 八、预览功能
+
+<details>
+<summary><strong>展开预览分支与独立 Worker 配置</strong></summary>
+
+### 适用边界
+
+- 预览只用于客户查看非 `main` 分支的公共页面、响应式和浏览器功能。
+- 生产仍由 `.github/workflows/site-publish.yml` 独占，生产 Worker `goldenone`、生产域名、资源 ID 和 `main` 发布规则不变。
+- 预览使用独立 `goldenone-preview`。它可以复用当前 R2、D1、分析和公开运行变量，但不绑定生产自定义域名。
+
+### 分支不存在时
+
+远端预览分支不存在时，不创建、不构建、不部署预览 Worker，也不连接 Cloudflare Git。`npm run preview:deploy` 会在部署前检查远端分支并拒绝 `main`。
+
+### 分支存在后首次创建
+
+1. 创建并推送站长批准的非 `main` 预览分支。
+2. 在该分支运行：
+
+```powershell
+npm run preview:deploy -- --branch "<preview-branch>" --worker "goldenone-preview"
+```
+
+3. 确认命令检测到远端分支、构建成功并部署到独立 Worker。
+4. 用 `workers.dev` 预览地址检查全部公开页面和所需功能；不要添加生产自定义域名。
+
+### 连接 Cloudflare Git
+
+1. 只在远端预览分支已存在且需要持续客户预览时，进入 Cloudflare -> **Workers & Pages -> goldenone-preview -> Settings -> Build -> Connect**。
+2. 连接 `yiloveM/goldenone260727`，Root directory 填 `/`。
+3. Build command 填 `npm run build`。
+4. Deploy command 填 `npm run preview:deploy -- --branch "$WORKERS_CI_BRANCH" --worker "goldenone-preview"`。
+5. Production branch 只选择该预览分支，不选择 `main`。
+6. 关闭 **Builds for non-production branches**，确保其它分支和 `main` 不触发该 Worker。
+7. `goldenone` 生产 Worker 的 Cloudflare Git 继续保持断开；`main` 仍只由 GitHub Actions 发布。
+
+Cloudflare 控制台会把所选分支称为 `goldenone-preview` 的 production branch，但它仍是流量、名称和职责独立的预览 Worker，不是 Golden One 正式生产环境。分支控制参考 [Cloudflare Workers Builds branches](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/)。
+
+### 验收与停止
+
+1. 验证预览 URL、R2 图片、语言、表单、后台隔离和浏览器交互，不把预览结果当作生产流量数据结论。
+2. 合并或删除预览分支不会改变 `main` 的唯一生产发布链路。
+3. 不再需要预览时，断开 `goldenone-preview` 的 Git 连接；是否删除独立 Worker 由站长决定。
 
 </details>

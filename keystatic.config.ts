@@ -45,6 +45,11 @@ const translationLocaleOptions = [
   { label: 'Filipino（菲律宾语）', value: 'fil' },
   { label: 'Korean（韩语）', value: 'ko' },
   { label: 'Uzbek（乌兹别克语）', value: 'uz' },
+  { label: 'Japanese（日语）', value: 'ja' },
+  { label: 'Malay（马来语）', value: 'ms' },
+  { label: 'Dutch（荷兰语）', value: 'nl' },
+  { label: 'Greek（希腊语）', value: 'el' },
+  { label: 'Thai（泰语）', value: 'th' },
 ] as const;
 
 const localeEntries = (siteLocaleConfig.locales || {}) as Record<string, {
@@ -119,7 +124,7 @@ export default config({
   ui: {
     brand: { name: 'Golden One 内容管理' },
     navigation: {
-      '站点设置': ['analyticsDashboard', 'siteFoundation', 'siteLanguages', 'customerReviews'],
+      '站点设置': ['analyticsDashboard', 'siteFoundation', 'catalogDownloads', 'siteLanguages', 'customerReviews'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
@@ -136,6 +141,38 @@ export default config({
           defaultValue: false,
         }),
         dashboard: analyticsDashboardField({ label: '网站访问分析' }),
+      },
+    }),
+    catalogDownloads: singleton({
+      label: '受控下载',
+      path: 'src/data/catalog-downloads',
+      format: 'json',
+      schema: {
+        enabled: fields.checkbox({
+          label: '启用前台受控下载（总开关）',
+          defaultValue: false,
+          description: '配置顺序：先上传并验证 PDF -> 填写下方白名单 -> 确认前台组件、D1、Resend 与 CAPTCHA -> 最后勾选并发布。默认关闭；关闭只停用下载，不删除配置或历史留资。',
+        }),
+        documents: fields.array(
+          fields.object({
+            id: fields.text({
+              label: '唯一 ID',
+              description: '使用英文小写、数字和短横线，例如 product-catalogue。',
+            }),
+            fileName: fields.text({ label: 'PDF 文件名', description: '例如 product-catalogue.pdf。' }),
+            title: fields.text({ label: '访客看到的标题' }),
+            description: fields.text({ label: '简短说明', multiline: true, defaultValue: '' }),
+            url: fields.text({
+              label: 'R2/CDN HTTPS 地址',
+              description: '必须是已核实的 https:// 地址；文件本身不写入 Git。',
+            }),
+          }),
+          {
+            label: '允许留资下载的 PDF',
+            description: '此列表是服务端白名单。前台不会直接输出文件 URL，提交成功后才返回下载地址。',
+            itemLabel: props => props.fields.title.value || props.fields.fileName.value || props.fields.id.value || 'PDF',
+          }
+        ),
       },
     }),
     customerReviews: singleton({
@@ -218,7 +255,7 @@ export default config({
     }),
     siteFoundation: singleton({
       label: '品牌与行业基础',
-      path: 'src/data/industry-profile.json',
+      path: 'src/data/industry-profile',
       format: 'json',
       schema: {
         version: fields.integer({ label: '配置结构版本', defaultValue: 1 }),
@@ -343,7 +380,7 @@ export default config({
     }),
     productTranslationReview: singleton({
       label: '产品翻译草稿',
-      path: 'src/keystatic/product-translation-review.json',
+      path: 'src/keystatic/product-translation-review',
       format: 'json',
       schema: {
         review: translationDraftReviewField({ label: '产品翻译草稿', type: 'product' }),
@@ -351,7 +388,7 @@ export default config({
     }),
     blogTranslationReview: singleton({
       label: '文章翻译草稿',
-      path: 'src/keystatic/blog-translation-review.json',
+      path: 'src/keystatic/blog-translation-review',
       format: 'json',
       schema: {
         review: translationDraftReviewField({ label: '文章翻译草稿', type: 'blog' }),
@@ -359,7 +396,7 @@ export default config({
     }),
     sitePublisher: singleton({
       label: '发布网站更新',
-      path: 'src/keystatic/site-publisher.json',
+      path: 'src/keystatic/site-publisher',
       format: 'json',
       schema: {
         publisher: sitePublisherField({ label: '发布网站更新' }),
@@ -367,7 +404,7 @@ export default config({
     }),
     aiTranslator: singleton({
       label: 'AI 翻译助手',
-      path: 'src/keystatic/ai-translator.json',
+      path: 'src/keystatic/ai-translator',
       format: 'json',
       schema: {
         translator: aiTranslatorField({ label: 'AI 翻译助手' }),
@@ -375,7 +412,7 @@ export default config({
     }),
     productManager: singleton({
       label: '产品管理',
-      path: 'src/keystatic/product-manager.json',
+      path: 'src/keystatic/product-manager',
       format: 'json',
       schema: {
         manager: productManagerField({ label: '产品管理' }),
@@ -383,7 +420,7 @@ export default config({
     }),
     productOrder: singleton({
       label: '产品排序',
-      path: 'src/keystatic/product-order.json',
+      path: 'src/keystatic/product-order',
       format: 'json',
       schema: {
         order: productOrderField({ label: '产品排序' }),
@@ -391,7 +428,7 @@ export default config({
     }),
     imagePool: singleton({
       label: '图片池',
-      path: 'src/keystatic/image-pool.json',
+      path: 'src/keystatic/image-pool',
       format: 'json',
       schema: {
         browser: r2ImagePoolField({ label: '图片池' }),

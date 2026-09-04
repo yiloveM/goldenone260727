@@ -7,7 +7,7 @@ import { industryProfile, primaryKeyword, publicSiteCopy } from './industry-prof
 import siteLocaleConfig from './site-locales.json';
 import siteLanguageSettings from './site-language-settings.json';
 
-export const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz'] as const;
+export const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'] as const;
 export type Locale = (typeof supportedLocales)[number];
 export const defaultLocale: Locale = 'en';
 
@@ -25,20 +25,25 @@ export const localeMeta: Record<
   }
 > = {
   en: { label: 'English', shortLabel: 'EN', htmlLang: 'en', dir: 'ltr', ogLocale: 'en_US', flag: 'US', countryCode: 'US', regionName: 'United States' },
-  zh: { label: 'Simplified Chinese', shortLabel: 'ZH', htmlLang: 'zh-CN', dir: 'ltr', ogLocale: 'zh_CN', flag: 'CN', countryCode: 'CN', regionName: 'China' },
-  ar: { label: 'Arabic', shortLabel: 'AR', htmlLang: 'ar', dir: 'rtl', ogLocale: 'ar_AR', flag: 'SA', countryCode: 'SA', regionName: 'Arabic' },
-  hi: { label: 'Hindi', shortLabel: 'HI', htmlLang: 'hi', dir: 'ltr', ogLocale: 'hi_IN', flag: 'IN', countryCode: 'IN', regionName: 'India' },
+  zh: { label: '简体中文', shortLabel: 'ZH', htmlLang: 'zh-CN', dir: 'ltr', ogLocale: 'zh_CN', flag: 'CN', countryCode: 'CN', regionName: 'China' },
+  ar: { label: 'العربية', shortLabel: 'AR', htmlLang: 'ar', dir: 'rtl', ogLocale: 'ar_AR', flag: 'SA', countryCode: 'SA', regionName: 'Arabic' },
+  hi: { label: 'हिन्दी', shortLabel: 'HI', htmlLang: 'hi', dir: 'ltr', ogLocale: 'hi_IN', flag: 'IN', countryCode: 'IN', regionName: 'India' },
   es: { label: 'Español', shortLabel: 'ES', htmlLang: 'es', dir: 'ltr', ogLocale: 'es_ES', flag: 'ES', countryCode: 'ES', regionName: 'Spain' },
-  fr: { label: 'French', shortLabel: 'FR', htmlLang: 'fr', dir: 'ltr', ogLocale: 'fr_FR', flag: 'FR', countryCode: 'FR', regionName: 'France' },
-  bn: { label: 'Bengali', shortLabel: 'BN', htmlLang: 'bn', dir: 'ltr', ogLocale: 'bn_BD', flag: 'BD', countryCode: 'BD', regionName: 'Bangladesh' },
-  pt: { label: 'Portuguese', shortLabel: 'PT', htmlLang: 'pt-BR', dir: 'ltr', ogLocale: 'pt_BR', flag: 'BR', countryCode: 'BR', regionName: 'Brazil' },
-  ru: { label: 'Russian', shortLabel: 'RU', htmlLang: 'ru', dir: 'ltr', ogLocale: 'ru_RU', flag: 'RU', countryCode: 'RU', regionName: 'Russia' },
-  ur: { label: 'Urdu', shortLabel: 'UR', htmlLang: 'ur', dir: 'rtl', ogLocale: 'ur_PK', flag: 'PK', countryCode: 'PK', regionName: 'Pakistan' },
-  de: { label: 'German', shortLabel: 'DE', htmlLang: 'de', dir: 'ltr', ogLocale: 'de_DE', flag: 'DE', countryCode: 'DE', regionName: 'Germany' },
-  tr: { label: 'Turkish', shortLabel: 'TR', htmlLang: 'tr', dir: 'ltr', ogLocale: 'tr_TR', flag: 'TR', countryCode: 'TR', regionName: 'Turkey' },
+  fr: { label: 'Français', shortLabel: 'FR', htmlLang: 'fr', dir: 'ltr', ogLocale: 'fr_FR', flag: 'FR', countryCode: 'FR', regionName: 'France' },
+  bn: { label: 'বাংলা', shortLabel: 'BN', htmlLang: 'bn', dir: 'ltr', ogLocale: 'bn_BD', flag: 'BD', countryCode: 'BD', regionName: 'Bangladesh' },
+  pt: { label: 'Português', shortLabel: 'PT', htmlLang: 'pt-BR', dir: 'ltr', ogLocale: 'pt_BR', flag: 'BR', countryCode: 'BR', regionName: 'Brazil' },
+  ru: { label: 'Русский', shortLabel: 'RU', htmlLang: 'ru', dir: 'ltr', ogLocale: 'ru_RU', flag: 'RU', countryCode: 'RU', regionName: 'Russia' },
+  ur: { label: 'اردو', shortLabel: 'UR', htmlLang: 'ur', dir: 'rtl', ogLocale: 'ur_PK', flag: 'PK', countryCode: 'PK', regionName: 'Pakistan' },
+  de: { label: 'Deutsch', shortLabel: 'DE', htmlLang: 'de', dir: 'ltr', ogLocale: 'de_DE', flag: 'DE', countryCode: 'DE', regionName: 'Germany' },
+  tr: { label: 'Türkçe', shortLabel: 'TR', htmlLang: 'tr', dir: 'ltr', ogLocale: 'tr_TR', flag: 'TR', countryCode: 'TR', regionName: 'Turkey' },
   fil: { label: 'Filipino', shortLabel: 'FIL', htmlLang: 'fil', dir: 'ltr', ogLocale: 'fil_PH', flag: 'PH', countryCode: 'PH', regionName: 'Philippines' },
-  ko: { label: 'Korean', shortLabel: 'KO', htmlLang: 'ko', dir: 'ltr', ogLocale: 'ko_KR', flag: 'KR', countryCode: 'KR', regionName: 'Korea' },
-  uz: { label: 'Uzbek', shortLabel: 'UZ', htmlLang: 'uz', dir: 'ltr', ogLocale: 'uz_UZ', flag: 'UZ', countryCode: 'UZ', regionName: 'Uzbekistan' },
+  ko: { label: '한국어', shortLabel: 'KO', htmlLang: 'ko', dir: 'ltr', ogLocale: 'ko_KR', flag: 'KR', countryCode: 'KR', regionName: 'Korea' },
+  uz: { label: 'Oʻzbekcha', shortLabel: 'UZ', htmlLang: 'uz', dir: 'ltr', ogLocale: 'uz_UZ', flag: 'UZ', countryCode: 'UZ', regionName: 'Uzbekistan' },
+  ja: { label: '日本語', shortLabel: 'JA', htmlLang: 'ja', dir: 'ltr', ogLocale: 'ja_JP', flag: 'JP', countryCode: 'JP', regionName: 'Japan' },
+  ms: { label: 'Bahasa Melayu', shortLabel: 'MS', htmlLang: 'ms', dir: 'ltr', ogLocale: 'ms_MY', flag: 'MY', countryCode: 'MY', regionName: 'Malaysia' },
+  nl: { label: 'Nederlands', shortLabel: 'NL', htmlLang: 'nl', dir: 'ltr', ogLocale: 'nl_NL', flag: 'NL', countryCode: 'NL', regionName: 'Netherlands' },
+  el: { label: 'Ελληνικά', shortLabel: 'EL', htmlLang: 'el', dir: 'ltr', ogLocale: 'el_GR', flag: 'GR', countryCode: 'GR', regionName: 'Greece' },
+  th: { label: 'ไทย', shortLabel: 'TH', htmlLang: 'th', dir: 'ltr', ogLocale: 'th_TH', flag: 'TH', countryCode: 'TH', regionName: 'Thailand' },
 };
 
 export const isSupportedLocale = (value: string | undefined): value is Locale =>
@@ -206,14 +211,14 @@ const baseUi = {
     name: 'Name',
     email: 'Email',
     message: 'Message',
-    verificationCode: 'Verification code',
-    enterCode: 'Enter code',
-    refreshCode: 'Refresh verification code',
+    verificationCode: 'CAPTCHA',
+    enterCode: 'Enter CAPTCHA',
+    refreshCode: 'Refresh CAPTCHA',
     sendEmail: 'Send email',
     direct: 'Or contact us directly',
     whatsappLabel: 'Contact us on WhatsApp',
     emailLabel: 'Contact us by email',
-    captchaError: 'Verification code could not load. Please refresh the page.',
+    captchaError: 'CAPTCHA could not load. Please refresh the page.',
     sending: 'Sending your message...',
     success: 'Thank you. Your message has been sent.',
     sendError: 'The message could not be sent right now.',
@@ -232,14 +237,14 @@ const baseUi = {
     workEmail: 'Work email',
     phoneWhatsapp: 'Phone / WhatsApp',
     countryRegion: 'Country / region',
-    verificationCode: 'Verification code',
-    enterCode: 'Enter code',
-    refreshCode: 'Refresh verification code',
+    verificationCode: 'CAPTCHA',
+    enterCode: 'Enter CAPTCHA',
+    refreshCode: 'Refresh CAPTCHA',
     freeDesign: 'Get my free design',
     designFile: 'Design file',
     attachmentHelp: 'Attach a JPG, PNG, WEBP, or PDF up to 5 MB. It is delivered with your inquiry, not published to the website.',
     refresh: 'Refresh',
-    captchaError: 'Verification code could not load. Please refresh this page.',
+    captchaError: 'CAPTCHA could not load. Please refresh this page.',
     sendingBrief: 'Sending your design brief...',
     briefSuccess: 'Thank you. Your design brief has been sent.',
     briefError: 'The design brief could not be sent right now.',
@@ -558,6 +563,11 @@ export const trPages = pagesByLocale.tr;
 export const dePages = pagesByLocale.de;
 export const bnPages = pagesByLocale.bn;
 export const uzPages = pagesByLocale.uz;
+export const jaPages = pagesByLocale.ja;
+export const msPages = pagesByLocale.ms;
+export const nlPages = pagesByLocale.nl;
+export const elPages = pagesByLocale.el;
+export const thPages = pagesByLocale.th;
 
 const localizedFaqs = (locale: Locale) => {
   const translated = siteLocaleEntries[locale]?.faqs;
@@ -587,6 +597,11 @@ export const urFaqs = localizedFaqs('ur');
 export const bnFaqs = localizedFaqs('bn');
 export const uzFaqs = localizedFaqs('uz');
 export const deFaqs = localizedFaqs('de');
+export const jaFaqs = localizedFaqs('ja');
+export const msFaqs = localizedFaqs('ms');
+export const nlFaqs = localizedFaqs('nl');
+export const elFaqs = localizedFaqs('el');
+export const thFaqs = localizedFaqs('th');
 
 const staticTextKeys: Record<string, string> = {
   'This series helps buyers and project teams compare models, confirm application fit and prepare quotations with clear technical data.': 'text.productOverview',

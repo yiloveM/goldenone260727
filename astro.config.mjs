@@ -28,7 +28,7 @@ if (retiredHosts.has(requestedHost)) {
 if (!configuredDefaultSite && !environmentSite) {
   console.warn('SITE_URL is not configured; using http://localhost for non-production build metadata.');
 }
-const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz'];
+const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'];
 const localeEntries = siteLocaleConfig.locales || {};
 const requiredPhraseKeys = siteLocaleConfig.requiredPhraseKeys || [];
 const requiredFaqCount = Number(siteLocaleConfig.requiredFaqCount || 0);

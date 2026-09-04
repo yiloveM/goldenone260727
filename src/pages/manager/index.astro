@@ -1,11 +1,13 @@
 ---
 import analyticsDashboardSettings from '../../keystatic/analytics-dashboard.json';
 import industryProfile from '../../data/industry-profile.json';
+import { reviewSystemEnabled } from '../../data/customerReviews';
 
 export const prerender = true;
 const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https://cdn.example.com').replace(/\/+$/, '');
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
+const managerReviewSystemEnabled = reviewSystemEnabled;
 ---
 
 <!doctype html>
@@ -3145,7 +3147,7 @@ const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B
               <button class="tab is-active" data-tab="products" type="button">产品管理</button>
               <button class="tab" data-tab="product-order" type="button">产品排序</button>
               <button class="tab" data-tab="blog" type="button">博客</button>
-              <button class="tab" data-tab="reviews" type="button">客户评价</button>
+              {managerReviewSystemEnabled ? <button class="tab" data-tab="reviews" type="button">客户评价</button> : null}
               <button class="tab" data-tab="translation" type="button">AI 翻译助手</button>
               <button class="tab" data-tab="product-drafts" type="button">产品翻译草稿</button>
               <button class="tab" data-tab="blog-drafts" type="button">文章翻译草稿</button>
@@ -3841,7 +3843,7 @@ const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B
       </section>
     </div>
 
-    <script is:inline define:vars={{ publicR2AssetBaseUrl }}>
+    <script is:inline define:vars={{ publicR2AssetBaseUrl, managerReviewSystemEnabled }}>
       // @ts-nocheck
       const state = {
         products: [],
@@ -4652,6 +4654,7 @@ const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B
       const activePanel = () => document.querySelector('.section.is-active')?.dataset.panel || '';
 
       const activateTab = tab => {
+        if (tab === 'reviews' && !managerReviewSystemEnabled) return;
         const activeNavTab = tab === 'translation-editor' ? state.translationEditor.returnTab || translationDraftTabForType(state.translationEditor.type) : tab;
         document.querySelectorAll('.tab').forEach(button => button.classList.toggle('is-active', button.dataset.tab === activeNavTab));
         document.querySelectorAll('.section').forEach(panel => panel.classList.toggle('is-active', panel.dataset.panel === tab));
@@ -5354,7 +5357,7 @@ const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B
       const bootstrapManager = async () => {
         await loadProducts();
         await loadDraftsSafely();
-        if (new URLSearchParams(window.location.search).get('section') === 'reviews') activateTab('reviews');
+        if (managerReviewSystemEnabled && new URLSearchParams(window.location.search).get('section') === 'reviews') activateTab('reviews');
       };
 
       const productToPayload = (product, sortOrder = product.sortOrder) => ({

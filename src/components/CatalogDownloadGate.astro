@@ -1,0 +1,190 @@
+---
+import { catalogDownloads, catalogDownloadsAvailable } from '../data/catalogDownloads';
+
+interface Props {
+  heading?: string;
+  description?: string;
+  contactHref?: string;
+}
+
+const {
+  heading = 'Downloads',
+  description = 'Choose a document and provide your contact details to continue.',
+  contactHref = '/contact/',
+} = Astro.props;
+const pagePath = Astro.url.pathname;
+---
+
+{catalogDownloadsAvailable && (
+  <section class="catalog-download-gate" data-catalog-download-gate aria-labelledby="catalog-download-heading">
+    <header class="catalog-download-gate__header">
+      <h2 id="catalog-download-heading">{heading}</h2>
+      <p>{description}</p>
+    </header>
+
+    <ul class="catalog-download-gate__list">
+      {catalogDownloads.map(document => (
+        <li class="catalog-download-gate__item">
+          <div>
+            <h3>{document.title}</h3>
+            {document.description && <p>{document.description}</p>}
+          </div>
+          <button
+            type="button"
+            class="catalog-download-gate__trigger"
+            data-download-id={document.id}
+            data-download-name={document.fileName}
+          >
+            {document.fileName}
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    <noscript>
+      <p>Please <a href={contactHref}>contact the team</a> to request a document.</p>
+    </noscript>
+
+    <dialog class="catalog-download-dialog" data-download-dialog>
+      <header class="catalog-download-dialog__header">
+        <h2 data-download-dialog-title>Download</h2>
+        <button type="button" data-download-close aria-label="Close download form">Close</button>
+      </header>
+      <p class="catalog-download-dialog__selection"><span>PDF</span> <strong data-selected-document></strong></p>
+      <form class="catalog-download-form" action="/api/download" method="post" data-download-form>
+        <input type="hidden" name="documentId" data-document-id />
+        <input type="hidden" name="pagePath" value={pagePath} />
+        <input type="hidden" name="captchaToken" data-download-captcha-token />
+        <div class="form-trap" aria-hidden="true">
+          <label>Website<input name="website" tabindex="-1" autocomplete="off" /></label>
+        </div>
+        <label>
+          <span>Name</span>
+          <input name="name" autocomplete="name" maxlength="120" required />
+        </label>
+        <label>
+          <span>Email</span>
+          <input name="email" type="email" autocomplete="email" maxlength="160" required />
+        </label>
+        <label>
+          <span>Phone / WhatsApp</span>
+          <input name="phoneWhatsapp" type="tel" autocomplete="tel" maxlength="80" required />
+        </label>
+        <label>
+          <span>Country</span>
+          <input name="country" autocomplete="country-name" maxlength="120" required />
+        </label>
+        <label>
+          <span>Message (optional)</span>
+          <textarea name="message" maxlength="3000" rows="4"></textarea>
+        </label>
+        <label>
+          <span>CAPTCHA</span>
+          <span class="catalog-download-form__captcha">
+            <input name="captcha" placeholder="Enter CAPTCHA" inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
+            <button type="button" data-download-captcha-refresh aria-label="Refresh CAPTCHA">
+              <strong data-download-captcha-code>----</strong>
+              <small>Refresh</small>
+            </button>
+          </span>
+        </label>
+        <button class="catalog-download-form__submit" type="submit">Download PDF</button>
+        <p class="catalog-download-form__status" data-download-status aria-live="polite"></p>
+      </form>
+    </dialog>
+  </section>
+)}
+
+<script is:inline>
+  (() => {
+    const endpoint = '/api/download';
+
+    document.querySelectorAll('[data-catalog-download-gate]').forEach(root => {
+      const dialog = root.querySelector('[data-download-dialog]');
+      const form = dialog?.querySelector('[data-download-form]');
+      if (!(dialog instanceof HTMLDialogElement) || !(form instanceof HTMLFormElement)) return;
+
+      const documentId = form.querySelector('[data-document-id]');
+      const selectedDocument = dialog.querySelector('[data-selected-document]');
+      const dialogTitle = dialog.querySelector('[data-download-dialog-title]');
+      const captchaCode = form.querySelector('[data-download-captcha-code]');
+      const captchaToken = form.querySelector('[data-download-captcha-token]');
+      const captchaInput = form.querySelector('input[name="captcha"]');
+      const refreshButton = form.querySelector('[data-download-captcha-refresh]');
+      const submitButton = form.querySelector('.catalog-download-form__submit');
+      const status = form.querySelector('[data-download-status]');
+
+      const setStatus = (message, state = '') => {
+        status.textContent = message;
+        status.dataset.state = state;
+      };
+
+      const loadCaptcha = async () => {
+        captchaCode.textContent = '....';
+        captchaToken.value = '';
+        captchaInput.value = '';
+        const response = await fetch(endpoint, {
+          headers: { accept: 'application/json' },
+          credentials: 'same-origin',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.code || !data.token) throw new Error(data.message || 'CAPTCHA could not load.');
+        captchaCode.textContent = data.code;
+        captchaToken.value = data.token;
+      };
+
+      root.querySelectorAll('[data-download-id]').forEach(trigger => {
+        trigger.addEventListener('click', async () => {
+          form.reset();
+          documentId.value = trigger.dataset.downloadId || '';
+          selectedDocument.textContent = trigger.dataset.downloadName || '';
+          dialogTitle.textContent = trigger.dataset.downloadName || 'Download';
+          setStatus('');
+          dialog.showModal();
+          try {
+            await loadCaptcha();
+            form.elements.namedItem('name')?.focus();
+          } catch (error) {
+            setStatus(error instanceof Error ? error.message : 'CAPTCHA could not load.', 'error');
+          }
+        });
+      });
+
+      dialog.querySelector('[data-download-close]')?.addEventListener('click', () => dialog.close());
+      refreshButton?.addEventListener('click', () => {
+        setStatus('');
+        loadCaptcha().catch(error => {
+          setStatus(error instanceof Error ? error.message : 'CAPTCHA could not load.', 'error');
+        });
+      });
+
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+
+        submitButton.disabled = true;
+        setStatus('Sending request...', 'pending');
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { accept: 'application/json' },
+            credentials: 'same-origin',
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || !data.ok || !data.downloadUrl) throw new Error(data.message || 'The request could not be sent.');
+
+          const downloadUrl = new URL(data.downloadUrl);
+          if (downloadUrl.protocol !== 'https:') throw new Error('The download address is invalid.');
+          setStatus(data.message || 'Your download is ready.', 'success');
+          window.location.assign(downloadUrl.href);
+        } catch (error) {
+          setStatus(error instanceof Error ? error.message : 'The request could not be sent.', 'error');
+          await loadCaptcha().catch(() => undefined);
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    });
+  })();
+</script>

@@ -31,6 +31,11 @@ const supportedLocales = new Set([
   'fil',
   'ko',
   'uz',
+  'ja',
+  'ms',
+  'nl',
+  'el',
+  'th',
 ]);
 
 const botPattern = /bot\b|crawler|spider|slurp|headless|lighthouse|pagespeed|preview|monitoring|uptime|curl\/|wget\//i;

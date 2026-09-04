@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const outputDir = path.join(root, 'src', 'data', 'articleBodyTranslations');
-const supportedLocales = ['zh', 'ar', 'hi', 'es', 'pt', 'fr', 'ru', 'ko', 'fil', 'tr', 'de', 'uz', 'bn', 'ur'];
+const supportedLocales = ['zh', 'ar', 'hi', 'es', 'pt', 'fr', 'ru', 'ko', 'fil', 'tr', 'de', 'uz', 'bn', 'ur', 'ja', 'ms', 'nl', 'el', 'th'];
 const languageSettings = JSON.parse(await readFile(path.join(root, 'src', 'data', 'site-language-settings.json'), 'utf8'));
 const locales = supportedLocales.filter(locale => languageSettings.enabledLocales?.[locale] === true);
 

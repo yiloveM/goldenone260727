@@ -9,6 +9,8 @@ keep_vars = true
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
+html_handling = "none"
 # The public site and both private portal domains share one asset bundle. Host
 # isolation must therefore run before every static-asset lookup, including `/`.
 run_worker_first = true

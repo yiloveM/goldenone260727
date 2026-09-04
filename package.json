@@ -19,6 +19,10 @@
     "check:admin-portals": "node scripts/check-admin-portal-rewrite.mjs",
     "check:continuity": "node scripts/audit-feature-continuity.mjs",
     "industry:brief": "node scripts/initialize-industry-profile.mjs",
+    "oldsite:crawl": "node scripts/crawl-authorized-oldsite.mjs",
+    "oldsite:prepare": "node scripts/prepare-oldsite-r2.mjs",
+    "oldsite:audit": "node scripts/audit-oldsite-routes.mjs",
+    "preview:deploy": "node scripts/run-preview-deploy.mjs",
     "check:seo": "node scripts/audit-product-seo.mjs",
     "check:rich-results": "node scripts/audit-product-seo.mjs --rich-results",
     "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",
@@ -44,6 +48,7 @@
     "react-dom": "^19.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "latest",
+    "undici": "^7.29.1",
     "yaml": "^2.9.0"
   },
   "devDependencies": {

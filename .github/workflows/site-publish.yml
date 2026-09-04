@@ -1,8 +1,10 @@
 name: Publish Golden One Site
 run-name: Deploy Golden One / ${{ inputs.requestId || github.sha }}
 
-# Owner-locked: this is the only site build/deploy workflow. Cloudflare Workers
-# Builds must remain disconnected so one publish request produces one build.
+# Owner-locked: this is the only production site build/deploy workflow. The
+# production Worker must remain disconnected from Cloudflare Workers Builds
+# and its Git connection. A separately named preview Worker may build only an
+# owner-approved remote preview branch.
 
 on:
   push:
@@ -21,6 +23,7 @@ on:
       - 'src/content/blogTranslations/**'
       - 'src/keystatic/*.json'
       - 'src/data/site-language-settings.json'
+      - 'src/data/catalog-downloads.json'
       - '.github/ai-translation-results/**'
   workflow_dispatch:
     inputs:
@@ -74,7 +77,7 @@ jobs:
       - name: Build the Astro site
         run: npm run build
 
-      - name: Deploy the Worker and static assets
+      - name: Deploy the production Worker and static assets
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: npm run deploy:worker

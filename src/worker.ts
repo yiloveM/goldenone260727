@@ -10,14 +10,16 @@ import { rewritePortalLocation, rewritePortalText } from './lib/admin-portal-rew
 import { capturePublicPageView } from './lib/analytics/capture';
 import { getEnvString } from './lib/runtime-env';
 import { getScopedRuntimeSecret } from './lib/runtime-secret';
+import { handleDownloadRequest } from './pages/api/download';
 import analyticsDashboardSettings from './keystatic/analytics-dashboard.json';
 import industryProfile from './data/industry-profile.json';
 
 type WorkerEnv = Parameters<(typeof astroServer)['fetch']>[1] & Record<string, unknown>;
 type WorkerContext = Parameters<(typeof astroServer)['fetch']>[2];
+type AssetFetcher = { fetch(input: Request | URL | string): Promise<Response> };
 
 const astro = astroServer;
-const PORTAL_COOKIE = '__Host-goldenone-portal';
+const PORTAL_COOKIE = '__Host-businessweb-portal';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const portalBrand = String(industryProfile.brand?.name || 'Golden One').trim() || 'Golden One';
@@ -40,6 +42,7 @@ const isPortalAssetPath = (pathname: string) => pathname.startsWith('/_astro/');
 const isDirectPortalApiPath = (pathname: string) => pathname.startsWith('/api/');
 const isKeystaticOAuthCallback = (pathname: string) => pathname === '/api/keystatic/github/oauth/callback';
 const isLoopbackHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+const isDownloadApiPath = (pathname: string) => pathname === '/api/download' || pathname === '/api/download/';
 
 const notFound = () =>
   new Response('Not found.', {
@@ -147,6 +150,8 @@ const portalLoginResponse = (
   const portalPrompt = portal.name === 'keystatic' ? '' : '请使用提供的账号密码登录';
   const submitLabel = portal.name === 'keystatic' ? '登录' : '进入内容后台';
   const action = escapeHtml(`/${portal.uuid}`);
+  const brand = escapeHtml(portalBrand);
+  const owner = escapeHtml(portalOwner);
   const error = options.error
     ? `<p class="login-error" role="alert">${escapeHtml(options.error)}</p>`
     : '<p class="login-error" aria-hidden="true"></p>';
@@ -155,24 +160,24 @@ const portalLoginResponse = (
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${portalLabel}登录 | ${escapeHtml(portalBrand)}</title>
+    <title>${portalLabel}登录 | ${brand}</title>
     <style>
       :root { color-scheme: light; font-family: Inter, "Segoe UI", system-ui, sans-serif; }
       * { box-sizing: border-box; }
       body { margin: 0; min-width: 320px; min-height: 100vh; color: #17202a; background: #f4f7f6; }
       .login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
       .login-panel { width: min(100%, 400px); padding: 32px; border: 1px solid #d6dedb; border-radius: 8px; background: #fff; box-shadow: 0 18px 48px rgba(22, 45, 39, 0.1); }
-      .brand { margin: 0 0 8px; color: #2457c5; font-size: 14px; font-weight: 750; }
+      .brand { margin: 0 0 8px; color: #087f6b; font-size: 14px; font-weight: 750; }
       h1 { margin: 0; color: #111827; font-size: 28px; line-height: 1.2; letter-spacing: 0; }
       .portal-label { margin: 8px 0 28px; color: #667085; font-size: 14px; }
       .portal-prompt { margin: -14px 0 20px; color: #475467; font-size: 14px; line-height: 1.5; }
       form { display: grid; gap: 16px; }
       label { display: grid; gap: 7px; color: #344054; font-size: 14px; font-weight: 650; }
       input { width: 100%; height: 44px; padding: 0 12px; border: 1px solid #b8c4c0; border-radius: 6px; color: #17202a; background: #fff; font: inherit; outline: none; }
-      input:focus { border-color: #2457c5; box-shadow: 0 0 0 3px rgba(36, 87, 197, 0.14); }
-      button { height: 44px; margin-top: 4px; border: 0; border-radius: 6px; color: #fff; background: #2457c5; font: inherit; font-weight: 750; cursor: pointer; }
-      button:hover { background: #183b91; }
-      button:focus-visible { outline: 3px solid rgba(36, 87, 197, 0.24); outline-offset: 2px; }
+      input:focus { border-color: #087f6b; box-shadow: 0 0 0 3px rgba(8, 127, 107, 0.14); }
+      button { height: 44px; margin-top: 4px; border: 0; border-radius: 6px; color: #fff; background: #087f6b; font: inherit; font-weight: 750; cursor: pointer; }
+      button:hover { background: #066b5b; }
+      button:focus-visible { outline: 3px solid rgba(8, 127, 107, 0.24); outline-offset: 2px; }
       .login-error { min-height: 20px; margin: 2px 0 0; color: #b42318; font-size: 13px; line-height: 1.5; }
       @media (max-width: 480px) { .login-shell { padding: 16px; } .login-panel { padding: 24px 20px; } }
     </style>
@@ -180,8 +185,8 @@ const portalLoginResponse = (
   <body>
     <main class="login-shell">
       <section class="login-panel" aria-labelledby="login-owner">
-        <p class="brand">${escapeHtml(portalBrand)}</p>
-        <h1 id="login-owner">${escapeHtml(portalOwner)}</h1>
+        <p class="brand">${brand}</p>
+        <h1 id="login-owner">${owner}</h1>
         <p class="portal-label">${portalLabel}</p>
         ${portalPrompt ? `<p class="portal-prompt">${portalPrompt}</p>` : ''}
         <form method="post" action="${action}">
@@ -247,6 +252,24 @@ const contextWithEnv = (context: WorkerContext, env: WorkerEnv) => ({
 
 const fetchAstro = (request: Request, env: WorkerEnv, context: WorkerContext) =>
   astro.fetch(request, env, contextWithEnv(context, env));
+
+const fetchPublicAsset = async (request: Request, env: WorkerEnv) => {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return null;
+  const assets = (env as WorkerEnv & { ASSETS?: AssetFetcher }).ASSETS;
+  if (!assets) return null;
+
+  const response = await assets.fetch(request);
+  if (response.status !== 404) return response;
+
+  const assetUrl = new URL(request.url);
+  if (!assetUrl.pathname.endsWith('/')) return null;
+  assetUrl.pathname = `${assetUrl.pathname}index.html`;
+  const indexResponse = await assets.fetch(new Request(assetUrl, request));
+  return indexResponse.status === 404 ? null : indexResponse;
+};
+
+const fetchPortalPage = async (request: Request, env: WorkerEnv, context: WorkerContext) =>
+  (await fetchPublicAsset(request, env)) || fetchAstro(request, env, context);
 
 const requestForInternalPath = (request: Request, target: URL, portal?: AdminPortalName) => {
   const headers = new Headers(request.headers);
@@ -334,7 +357,7 @@ const handlePortalRequest = async (
       return new Response(null, { status: 303, headers: { ...PRIVATE_HEADERS, location: `/${portal.uuid}` } });
     }
     url.pathname = mappedPath;
-    const response = await fetchAstro(requestForInternalPath(request, url, portal.name), env, context);
+    const response = await fetchPortalPage(requestForInternalPath(request, url, portal.name), env, context);
     return securePortalResponse(response, portal);
   }
 
@@ -351,7 +374,7 @@ const handlePortalRequest = async (
   }
 
   if (isPortalAssetPath(url.pathname) && (await hasValidPortalSession(request, env, portal))) {
-    const response = await fetchAstro(requestForInternalPath(request, url), env, context);
+    const response = await fetchPortalPage(requestForInternalPath(request, url), env, context);
     return securePortalResponse(response, portal);
   }
 
@@ -374,7 +397,10 @@ export default {
     }
 
     if (!isLoopbackHost(hostname) && isProtectedPublicPath(url.pathname)) return notFound();
-    const response = await fetchAstro(requestForInternalPath(request, url), env, context);
+    const response = isDownloadApiPath(url.pathname)
+      ? await handleDownloadRequest(request, env)
+      : (await fetchPublicAsset(request, env)) ||
+        (await fetchAstro(requestForInternalPath(request, url), env, context));
     context.waitUntil(
       capturePublicPageView(request, response, env).catch(error => {
         console.error({

@@ -16,6 +16,16 @@ import {
   hiFaqs,
   koPages,
   koFaqs,
+  jaPages,
+  jaFaqs,
+  msPages,
+  msFaqs,
+  nlPages,
+  nlFaqs,
+  elPages,
+  elFaqs,
+  thPages,
+  thFaqs,
   ptPages,
   ptFaqs,
   ruPages,
@@ -51,6 +61,11 @@ export const localizedPagesByLocale: Record<NonEnglishLocale, any> = {
   fil: filPages,
   ko: koPages,
   uz: uzPages,
+  ja: jaPages,
+  ms: msPages,
+  nl: nlPages,
+  el: elPages,
+  th: thPages,
 };
 
 export const getLocalizedPageCopy = (locale: NonEnglishLocale) => localizedPagesByLocale[locale];
@@ -70,6 +85,11 @@ export const localizedFaqsByLocale: Record<NonEnglishLocale, Array<{ question: s
   fil: filFaqs,
   ko: koFaqs,
   uz: uzFaqs,
+  ja: jaFaqs,
+  ms: msFaqs,
+  nl: nlFaqs,
+  el: elFaqs,
+  th: thFaqs,
 };
 
 export const getLocalizedFaqs = (locale: NonEnglishLocale) => localizedFaqsByLocale[locale];

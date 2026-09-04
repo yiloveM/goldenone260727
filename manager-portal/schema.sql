@@ -19,6 +19,32 @@ CREATE INDEX IF NOT EXISTS idx_manager_product_drafts_updated_at
 CREATE INDEX IF NOT EXISTS idx_manager_product_drafts_product_slug
   ON manager_product_drafts(product_slug);
 
+CREATE TABLE IF NOT EXISTS public_form_submissions (
+  id TEXT PRIMARY KEY,
+  form_type TEXT NOT NULL,
+  source_page TEXT NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone_whatsapp TEXT NOT NULL DEFAULT '',
+  company_project TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL DEFAULT '',
+  selected_pdf TEXT NOT NULL DEFAULT '',
+  attachment_name TEXT NOT NULL DEFAULT '',
+  inquiry_items_json TEXT NOT NULL DEFAULT '[]',
+  delivery_status TEXT NOT NULL DEFAULT 'pending',
+  resend_email_id TEXT NOT NULL DEFAULT '',
+  delivery_error TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  email_sent_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_public_form_submissions_created_at
+  ON public_form_submissions(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_public_form_submissions_source
+  ON public_form_submissions(form_type, source_page);
+
 CREATE TABLE IF NOT EXISTS site_analytics_events (
   id TEXT PRIMARY KEY,
   occurred_at INTEGER NOT NULL,

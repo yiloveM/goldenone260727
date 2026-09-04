@@ -48,10 +48,25 @@ const requiredFiles = [
   'src/pages/api/manager/r2/assets.ts',
   'src/pages/api/deploy/site.ts',
   'src/pages/api/manager/deploy/site.ts',
+  'src/pages/api/contact.ts',
+  'src/pages/api/download.ts',
+  'src/lib/form-captcha.ts',
+  'src/lib/public-form-submissions.ts',
+  'src/components/CatalogDownloadGate.astro',
+  'src/data/catalog-downloads.json',
+  'src/data/catalogDownloads.ts',
   '.github/workflows/ai-translation.yml',
   '.github/workflows/site-publish.yml',
   'manager-portal/schema.sql',
   'docs/CODEX-INDUSTRY-WORKFLOW.md',
+  'docs/AI-INDUSTRY-BUILD-PROMPT.md',
+  'docs/ASTROWIND-INTEGRATION.md',
+  'docs/OLD-SITE-MIGRATION.md',
+  'docs/PUBLIC-VISUAL-FOUNDATION.md',
+  'scripts/crawl-authorized-oldsite.mjs',
+  'scripts/prepare-oldsite-r2.mjs',
+  'scripts/audit-oldsite-routes.mjs',
+  'scripts/run-preview-deploy.mjs',
   'scripts/audit-feature-continuity.mjs',
   'scripts/check-admin-portal-rewrite.mjs',
   'scripts/load-wrangler-vars.mjs',
@@ -127,7 +142,7 @@ const sampleContact = (field, value) => {
   return /^replace with/i.test(text);
 };
 const validHex = value => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
-const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz']);
+const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th']);
 const targetLocaleCodes = [...supportedLocales].filter(locale => locale !== 'en');
 let selectedTargetLocales = [];
 
@@ -248,8 +263,8 @@ if (profile) {
 const structuralChecks = [
   ['src/layouts/BaseLayout.astro', ['rel="canonical"', 'hreflang', 'application/ld+json', 'max-image-preview:large', 'goldenone-redesign.css', 'data-visual-foundation="signature-product"', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest']],
   ['astro.config.mjs', ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', "from './src/integrations/keystatic-cloudflare.mjs'", "exclude: ['@keystatic/astro', '@keystatic/core']", "include: ['slate-react']"]],
-  ['wrangler.toml', ['account_id = "473b41497c5031874c630ecb9bc45ced"', './src/worker.ts', 'keep_vars = true', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'CONTENT_BUCKET', 'MANAGER_DB']],
-  ['src/worker.ts', ['getScopedRuntimeSecret', 'admin-portal-session', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'KEYSTATIC_SECRET', '__Host-goldenone-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'rewritePortalText', 'isProtectedPublicPath']],
+  ['wrangler.toml', ['account_id = "473b41497c5031874c630ecb9bc45ced"', './src/worker.ts', 'keep_vars = true', 'directory = "./dist"', 'binding = "ASSETS"', 'html_handling = "none"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'CONTENT_BUCKET', 'MANAGER_DB']],
+  ['src/worker.ts', ['getScopedRuntimeSecret', 'admin-portal-session', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'KEYSTATIC_SECRET', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'rewritePortalText', 'isProtectedPublicPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest']],
   ['src/middleware.ts', ['requireInternalPortalAccess', 'allowKeystaticOAuthCallback']],
   ['src/lib/admin-portals.ts', ['KEYSTATIC_PORTAL_UUID', 'MANAGER_PORTAL_UUID', 'requireInternalPortalAccess']],
   ['src/lib/admin-portal-rewrite.ts', ['rewritePortalText', '\\\/keystatic', 'rewritePortalLocation']],
@@ -258,13 +273,22 @@ const structuralChecks = [
   ['src/pages/robots.txt.ts', ['Disallow: /keystatic/', 'Disallow: /manager/', 'Disallow: /api/', 'Disallow: /r2/']],
   ['src/pages/llms.txt.ts', ['product-catalog.json', 'Content notes']],
   ['src/data/seo.ts', ['productEntitiesEnabled = true', 'ProductGroup', 'FAQPage', 'Service']],
-  ['keystatic.config.ts', ['managerVisible', 'siteFoundation', 'siteLanguages', "path: 'src/data/site-language-settings'", 'aiTranslator', 'sitePublisher', 'imagePool', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField', "brand: { name: 'Golden One 内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"]],
+  ['keystatic.config.ts', ['managerVisible', 'siteFoundation', 'catalogDownloads', 'siteLanguages', "path: 'src/data/site-language-settings'", "path: 'src/data/catalog-downloads'", "path: 'src/data/industry-profile'", 'aiTranslator', 'sitePublisher', 'imagePool', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField', "brand: { name: 'Golden One 内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"]],
   ['src/keystatic/site-language-selector-field.tsx', ['全选全部目标语言', '反选当前选择', 'languageBulkEvent', 'siteLanguageCheckboxField']],
   ['src/integrations/keystatic-cloudflare.mjs', ["'/keystatic/[...params]'", '@keystatic/astro/internal/keystatic-astro-page.astro']],
   ['src/pages/api/keystatic/[...params].ts', ['makeGenericAPIRouteHandler', 'KEYSTATIC_GITHUB_CLIENT_ID', 'KEYSTATIC_GITHUB_CLIENT_SECRET', 'KEYSTATIC_SECRET']],
   ['src/content.config.ts', ['loader: glob', 'offeringType', 'modelStrategy']],
   ['src/lib/manager/d1.ts', ['offeringType', 'modelStrategy', 'normalizeProductDraftPayload']],
-  ['src/pages/manager/index.astro', ['id="offeringType"', 'id="modelStrategy"', 'portalApiUrl', '/api/manager/ai/translation-locales', 'managerAnalyticsEnabled']],
+  ['src/pages/manager/index.astro', ['id="offeringType"', 'id="modelStrategy"', 'portalApiUrl', '/api/manager/ai/translation-locales', 'managerAnalyticsEnabled', 'managerReviewSystemEnabled']],
+  ['src/pages/manager/analytics.astro', ['industryProfile', 'managerOwner', '<strong>{managerOwner}</strong>']],
+  ['src/lib/form-captcha.ts', ['getFormCaptchaSecret', 'createFormCaptcha', 'validateFormCaptcha']],
+  ['src/lib/public-form-submissions.ts', ['public_form_submissions', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachment_name']],
+  ['src/pages/api/contact.ts', ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'validateFormCaptcha']],
+  ['src/pages/api/download.ts', ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'validateFormCaptcha']],
+  ['package.json', ['oldsite:crawl', 'oldsite:prepare', 'oldsite:audit', 'preview:deploy', 'undici']],
+  ['scripts/crawl-authorized-oldsite.mjs', ["from 'undici'", 'ProxyAgent', '--authorized', 'route-map.json', 'assets-manifest.json']],
+  ['scripts/prepare-oldsite-r2.mjs', ['r2-upload-manifest.json', 'upload.ps1', 'r2ObjectKey', 'seoKeyBasis']],
+  ['scripts/run-preview-deploy.mjs', ['WORKERS_CI_BRANCH', 'main', '-preview', 'run-wrangler-deploy-with-retry.mjs']],
   ['scripts/apply-manager-product-draft.mjs', ['normalizeOfferingType', 'normalizeModelStrategy']],
   ['scripts/run-ai-translation.mjs', ['offeringType', 'modelStrategy']],
 ];
@@ -288,6 +312,9 @@ try {
 
 try {
   const keystaticConfig = await source('keystatic.config.ts');
+  if (/path:\s*['"][^'"]+\.json['"]\s*,\s*format:\s*['"]json['"]/.test(keystaticConfig)) {
+    add('error', 'keystatic.config.ts', 'Keystatic JSON singleton paths must omit the .json extension.');
+  }
   if (/enabledLocales:\s*fields\.object\([\s\S]{0,800}?layout\s*:/.test(keystaticConfig)) {
     add('error', 'keystatic.config.ts', 'The website-language object must not use a partial Keystatic layout array.');
   }
@@ -305,6 +332,22 @@ try {
   }
 } catch {
   // Missing-file errors are already reported above.
+}
+
+for (const directory of ['src/data', 'src/keystatic']) {
+  try {
+    const scanDuplicateJson = async currentDirectory => {
+      const entries = await readdir(path.join(root, currentDirectory), { withFileTypes: true });
+      for (const entry of entries) {
+        const relativePath = path.join(currentDirectory, entry.name);
+        if (entry.isDirectory()) await scanDuplicateJson(relativePath);
+        else if (entry.name.endsWith('.json.json')) add('error', relativePath, 'Unexpected duplicate .json extension.');
+      }
+    };
+    await scanDuplicateJson(directory);
+  } catch {
+    // Required directory failures are reported by their owning checks.
+  }
 }
 
 try {

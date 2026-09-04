@@ -4,16 +4,17 @@ import { getProductModelCodes, INQUIRY_CART_MAX_ITEMS, INQUIRY_CART_MAX_QUANTITY
 import { isProductPublished } from '../../data/productCategories';
 import { siteInfo } from '../../data/site';
 import { getRuntimeEnv } from '../../lib/runtime-env';
-import { getScopedRuntimeSecret } from '../../lib/runtime-secret';
+import { createFormCaptcha, getFormCaptchaSecret, validateFormCaptcha } from '../../lib/form-captcha';
+import {
+  createPublicFormSubmission,
+  markPublicFormDelivery,
+  normalizePublicSourcePage,
+} from '../../lib/public-form-submissions';
 
 export const prerender = false;
 
 type Env = Record<string, unknown> | undefined;
 
-const CAPTCHA_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-const CAPTCHA_LENGTH = 4;
-const CAPTCHA_TTL_MS = 10 * 60 * 1000;
-const DEFAULT_TO_EMAIL = siteInfo.email;
 const MAX_ARTWORK_BYTES = 5 * 1024 * 1024;
 const ARTWORK_FILE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
 const ARTWORK_FILE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'pdf']);
@@ -34,10 +35,6 @@ interface ArtworkAttachment {
 }
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
-const getCaptchaSecret = async (env: Env) =>
-  (await getScopedRuntimeSecret(env, 'contact-form-captcha')) ||
-  (!import.meta.env.PROD ? 'goldenone-contact-form-local-secret' : '');
-
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
@@ -46,64 +43,6 @@ const json = (body: unknown, status = 200) =>
       'content-type': 'application/json; charset=utf-8',
     },
   });
-
-const randomString = (length: number, alphabet = CAPTCHA_ALPHABET) => {
-  const values = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(values, value => alphabet[value % alphabet.length]).join('');
-};
-
-const base64Url = (bytes: ArrayBuffer) => {
-  let binary = '';
-  for (const byte of new Uint8Array(bytes)) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
-};
-
-const hmac = async (secret: string, payload: string) => {
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  return base64Url(await crypto.subtle.sign('HMAC', key, encoder.encode(payload)));
-};
-
-const createCaptcha = async (secret: string) => {
-  const code = randomString(CAPTCHA_LENGTH);
-  const expires = Date.now() + CAPTCHA_TTL_MS;
-  const nonce = `${Date.now().toString(36)}${randomString(8).toLowerCase()}`;
-  const payload = `${code}.${expires}.${nonce}`;
-  const signature = await hmac(secret, payload);
-  return {
-    code,
-    token: `${payload}.${signature}`,
-    expiresAt: new Date(expires).toISOString(),
-  };
-};
-
-const timingSafeEqual = (left: string, right: string) => {
-  if (left.length !== right.length) return false;
-  let diff = 0;
-  for (let index = 0; index < left.length; index += 1) diff |= left.charCodeAt(index) ^ right.charCodeAt(index);
-  return diff === 0;
-};
-
-const validateCaptcha = async (secret: string, answer: string, token: string) => {
-  const normalized = answer.trim().toUpperCase();
-  const parts = token.split('.');
-  if (parts.length !== 4) return false;
-
-  const [code, expiresText, nonce, signature] = parts;
-  const expires = Number(expiresText);
-  if (!/^[A-Z0-9]{4}$/.test(code) || !Number.isFinite(expires) || !nonce || !signature) return false;
-  if (Date.now() > expires) return false;
-  if (normalized !== code) return false;
-
-  const expected = await hmac(secret, `${code}.${expires}.${nonce}`);
-  return timingSafeEqual(signature, expected);
-};
 
 const field = (formData: FormData, name: string, maxLength = 500) =>
   String(formData.get(name) || '')
@@ -238,7 +177,7 @@ const sendInquiryEmail = async ({
 }) => {
   const apiKey = getEnvString(env, 'RESEND_API_KEY');
   const from = getEnvString(env, 'CONTACT_FROM_EMAIL') || getEnvString(env, 'INQUIRY_FROM_EMAIL');
-  const to = getEnvString(env, 'CONTACT_TO_EMAIL') || DEFAULT_TO_EMAIL;
+  const to = getEnvString(env, 'CONTACT_TO_EMAIL');
 
   if (!apiKey) throw new Error('Missing RESEND_API_KEY.');
   if (!from) throw new Error('Missing CONTACT_FROM_EMAIL.');
@@ -335,7 +274,7 @@ const sendInquiryEmail = async ({
       authorization: `Bearer ${apiKey}`,
       'content-type': 'application/json',
       'user-agent': 'businessweb-contact-form/1.0',
-      'idempotency-key': `inquiry-${Date.now().toString(36)}-${randomString(10).toLowerCase()}`,
+      'idempotency-key': `inquiry-${crypto.randomUUID()}`,
     },
     body: JSON.stringify({
       from,
@@ -355,9 +294,9 @@ const sendInquiryEmail = async ({
 
 export const GET: APIRoute = async ({ locals }) => {
   const env = getRuntimeEnv(locals);
-  const secret = await getCaptchaSecret(env);
-  if (!secret) return json({ ok: false, message: 'Inquiry verification is not configured.' }, 503);
-  return json(await createCaptcha(secret));
+  const secret = await getFormCaptchaSecret(env, 'contact-form-captcha');
+  if (!secret) return json({ ok: false, message: 'Inquiry CAPTCHA is not configured.' }, 503);
+  return json(await createFormCaptcha(secret));
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
@@ -374,11 +313,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
     return json({ ok: true, message: 'Thank you. Your inquiry has been received.' });
   }
 
-  const captchaSecret = await getCaptchaSecret(env);
-  if (!captchaSecret) return json({ ok: false, message: 'Inquiry verification is not configured.' }, 503);
-  const captchaOk = await validateCaptcha(captchaSecret, field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
+  const captchaSecret = await getFormCaptchaSecret(env, 'contact-form-captcha');
+  if (!captchaSecret) return json({ ok: false, message: 'Inquiry CAPTCHA is not configured.' }, 503);
+  const captchaOk = await validateFormCaptcha(captchaSecret, field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
   if (!captchaOk) {
-    return json({ ok: false, message: 'The verification code is incorrect or expired. Please try the new code.' }, 400);
+    return json({ ok: false, message: 'The CAPTCHA is incorrect or expired. Please try the new CAPTCHA.' }, 400);
   }
 
   const origin = new URL(request.url).origin;
@@ -410,7 +349,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     company: field(formData, 'company', 160),
     country: field(formData, 'country', 120),
     message,
-    pageUrl: pagePath.startsWith('http') ? pagePath : new URL(pagePath, origin).toString(),
+    pageUrl: normalizePublicSourcePage(pagePath, origin, '/contact/'),
     items: inquiryItems,
     artwork,
   };
@@ -427,8 +366,27 @@ export const POST: APIRoute = async ({ locals, request }) => {
     return json({ ok: false, message: 'Please enter a valid email address.' }, 400);
   }
 
+  let submissionId: string;
+  try {
+    submissionId = await createPublicFormSubmission(env, {
+      formType: 'contact',
+      sourcePage: inquiry.pageUrl,
+      name: inquiry.name,
+      email: inquiry.email,
+      phoneWhatsapp: inquiry.phone,
+      companyProject: inquiry.company,
+      country: inquiry.country,
+      message: inquiry.message,
+      inquiryItems: inquiry.items,
+      attachmentName: inquiry.artwork?.filename || '',
+    });
+  } catch {
+    return json({ ok: false, message: 'The inquiry could not be saved right now. Please try again.' }, 503);
+  }
+
   try {
     const email = await sendInquiryEmail({ env, request, inquiry });
+    await markPublicFormDelivery(env, submissionId, 'sent', String((email as { id?: unknown })?.id || '')).catch(() => undefined);
     return json({
       ok: true,
       message: `Thank you. Your inquiry has been sent to ${siteInfo.name}.`,
@@ -436,7 +394,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error || 'Unknown email delivery error.');
-    const configurationError = /Missing RESEND_API_KEY|Missing CONTACT_FROM_EMAIL/i.test(message);
+    await markPublicFormDelivery(env, submissionId, 'failed', message).catch(() => undefined);
+    const configurationError = /Missing RESEND_API_KEY|Missing CONTACT_FROM_EMAIL|Missing CONTACT_TO_EMAIL/i.test(message);
     return json(
       {
         ok: false,

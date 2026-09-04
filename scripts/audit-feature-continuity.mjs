@@ -23,12 +23,12 @@ const contracts = [
   {
     area: 'Cloudflare bindings',
     file: 'wrangler.toml',
-    markers: ['account_id = "473b41497c5031874c630ecb9bc45ced"', 'main = "./src/worker.ts"', 'keep_vars = true', 'directory = "./dist"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'ANALYTICS_IP_MODE', 'nodejs_compat'],
+    markers: ['account_id = "473b41497c5031874c630ecb9bc45ced"', 'main = "./src/worker.ts"', 'keep_vars = true', 'directory = "./dist"', 'binding = "ASSETS"', 'html_handling = "none"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'binding = "CONTENT_BUCKET"', 'binding = "MANAGER_DB"', 'ANALYTICS_IP_MODE', 'nodejs_compat'],
   },
   {
     area: 'Private portal host gateway',
     file: 'src/worker.ts',
-    markers: ['getScopedRuntimeSecret', 'admin-portal-session', 'KEYSTATIC_SECRET', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', '__Host-goldenone-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'capturePublicPageView', 'context.waitUntil'],
+    markers: ['getScopedRuntimeSecret', 'admin-portal-session', 'KEYSTATIC_SECRET', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest', 'capturePublicPageView', 'context.waitUntil'],
   },
   {
     area: 'Private portal configuration boundary',
@@ -81,6 +81,31 @@ const contracts = [
     markers: ['productManagerField', 'productOrderField', 'r2ImageUrlField', "path: 'src/content/products/*'", 'offeringType', 'modelStrategy'],
   },
   {
+    area: 'Owner-controlled catalog downloads',
+    file: 'keystatic.config.ts',
+    markers: ['catalogDownloads', "path: 'src/data/catalog-downloads'", '启用前台受控下载（总开关）', '此列表是服务端白名单'],
+  },
+  {
+    area: 'Shared public form CAPTCHA',
+    file: 'src/lib/form-captcha.ts',
+    markers: ['getFormCaptchaSecret', 'createFormCaptcha', 'validateFormCaptcha', 'businessweb-${purpose}-local-secret'],
+  },
+  {
+    area: 'Public lead persistence',
+    file: 'src/lib/public-form-submissions.ts',
+    markers: ['public_form_submissions', 'createPublicFormSubmission', 'markPublicFormDelivery', 'source_page', 'attachment_name'],
+  },
+  {
+    area: 'Contact lead delivery',
+    file: 'src/pages/api/contact.ts',
+    markers: ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'validateFormCaptcha'],
+  },
+  {
+    area: 'Controlled download delivery',
+    file: 'src/pages/api/download.ts',
+    markers: ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'documentId', 'validateFormCaptcha'],
+  },
+  {
     area: 'Manager D1 service layer',
     file: 'src/lib/manager/d1.ts',
     markers: ['ensureManagerSchema', 'MANAGER_DB', 'ManagerProductDraftPayload', 'createDraftId'],
@@ -108,7 +133,12 @@ const contracts = [
   {
     area: 'Manager public interface',
     file: 'src/pages/manager/index.astro',
-    markers: ["/api/manager/status", "/api/manager/products", "/api/manager/r2/assets", '/api/manager/ai/translation-locales', 'portalApiUrl', 'managerAnalyticsEnabled', 'offeringType', 'modelStrategy'],
+    markers: ["/api/manager/status", "/api/manager/products", "/api/manager/r2/assets", '/api/manager/ai/translation-locales', 'portalApiUrl', 'managerAnalyticsEnabled', 'managerReviewSystemEnabled', 'offeringType', 'modelStrategy'],
+  },
+  {
+    area: 'Manager analytics brand parity',
+    file: 'src/pages/manager/analytics.astro',
+    markers: ['industryProfile', 'managerOwner', '<strong>{managerOwner}</strong>'],
   },
   {
     area: 'Manager API routes',
@@ -203,7 +233,32 @@ const contracts = [
   {
     area: 'Cloudflare Worker publishing workflow',
     file: '.github/workflows/site-publish.yml',
-    markers: ['push:', 'paths-ignore:', 'Generate Cloudflare bindings', 'npm run types:cloudflare', 'npm run build', 'npm run deploy:worker', 'CLOUDFLARE_API_TOKEN'],
+    markers: ['push:', 'paths-ignore:', 'src/data/catalog-downloads.json', 'Generate Cloudflare bindings', 'npm run types:cloudflare', 'npm run build', 'npm run deploy:worker', 'CLOUDFLARE_API_TOKEN'],
+  },
+  {
+    area: 'Authorized old-site migration workflow',
+    file: 'docs/OLD-SITE-MIGRATION.md',
+    markers: ['oldsite:crawl', 'oldsite:prepare', 'oldsite:audit', 'r2-upload', 'upload-manifest'],
+  },
+  {
+    area: 'Authorized old-site capture runtime',
+    file: 'scripts/crawl-authorized-oldsite.mjs',
+    markers: ["from 'undici'", 'ProxyAgent', '--authorized', 'route-map.json', 'assets-manifest.json'],
+  },
+  {
+    area: 'Manifest-driven R2 package',
+    file: 'scripts/prepare-oldsite-r2.mjs',
+    markers: ['r2-upload-manifest.json', 'upload.ps1', 'r2ObjectKey', 'seoKeyBasis'],
+  },
+  {
+    area: 'Old-site runtime dependency',
+    file: 'package.json',
+    markers: ['oldsite:crawl', 'oldsite:prepare', 'oldsite:audit', 'preview:deploy', 'undici'],
+  },
+  {
+    area: 'Preview branch deployment gate',
+    file: 'scripts/run-preview-deploy.mjs',
+    markers: ['WORKERS_CI_BRANCH', 'main', '-preview', 'run-wrangler-deploy-with-retry.mjs'],
   },
   {
     area: 'Wrangler variables available during Astro builds',
@@ -249,6 +304,12 @@ const requiredFiles = [
   'src/pages/api/deploy/site.ts',
   'src/pages/api/manager/deploy/site.ts',
   'src/pages/api/contact.ts',
+  'src/pages/api/download.ts',
+  'src/lib/form-captcha.ts',
+  'src/lib/public-form-submissions.ts',
+  'src/components/CatalogDownloadGate.astro',
+  'src/data/catalog-downloads.json',
+  'src/data/catalogDownloads.ts',
   'src/pages/api/products/manager.ts',
   'src/keystatic/r2-image-pool-field.tsx',
   'src/keystatic/ai-translator-field.tsx',
@@ -258,6 +319,10 @@ const requiredFiles = [
   'scripts/apply-manager-blog-draft.mjs',
   'scripts/apply-manager-review-draft.mjs',
   'scripts/audit-product-seo.mjs',
+  'scripts/crawl-authorized-oldsite.mjs',
+  'scripts/prepare-oldsite-r2.mjs',
+  'scripts/audit-oldsite-routes.mjs',
+  'scripts/run-preview-deploy.mjs',
   'scripts/check-admin-portal-rewrite.mjs',
   'scripts/run-astro.mjs',
   'scripts/run-deploy.mjs',
@@ -272,6 +337,15 @@ const requiredFiles = [
   'worker-configuration.d.ts',
   'src/styles/home-tailwind.css',
   'src/data/customer-reviews.json',
+  'src/data/articleBodyTranslations/ja.ts',
+  'src/data/articleBodyTranslations/ms.ts',
+  'src/data/articleBodyTranslations/nl.ts',
+  'src/data/articleBodyTranslations/el.ts',
+  'src/data/articleBodyTranslations/th.ts',
+  'docs/AI-INDUSTRY-BUILD-PROMPT.md',
+  'docs/ASTROWIND-INTEGRATION.md',
+  'docs/OLD-SITE-MIGRATION.md',
+  'docs/PUBLIC-VISUAL-FOUNDATION.md',
   '.github/workflows/manager-apply-review-draft.yml',
   'public/template-icon.svg',
   'public/favicon-32x32.png',
@@ -304,6 +378,29 @@ function auditProject(root, label) {
   const managerUi = readText(resolve(root, 'src/pages/manager/index.astro'));
   for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
     if (managerUi.includes(forbidden)) addError(`${label}: Manager must not store or request a browser bearer token: ${forbidden}`);
+  }
+  if (!managerUi.includes('{managerReviewSystemEnabled ? <button class="tab" data-tab="reviews"')) {
+    addError(`${label}: Manager review navigation must follow the owner-controlled review-system switch.`);
+  }
+  const managerAnalytics = readText(resolve(root, 'src/pages/manager/analytics.astro'));
+  if (managerAnalytics.includes('<strong>Golden One</strong>') || !managerAnalytics.includes('<strong>{managerOwner}</strong>')) {
+    addError(`${label}: Manager analytics must use the same content-owner brand as the main Manager screen.`);
+  }
+
+  const keystaticConfig = readText(resolve(root, 'keystatic.config.ts'));
+  if (/path:\s*['"][^'"]+\.json['"]\s*,\s*format:\s*['"]json['"]/.test(keystaticConfig)) {
+    addError(`${label}: Keystatic JSON singleton paths must omit the .json extension.`);
+  }
+  for (const dataRoot of ['src/data', 'src/keystatic']) {
+    const scanDuplicateJson = directory => {
+      for (const name of readdirSync(directory)) {
+        const fullPath = resolve(directory, name);
+        const stats = statSync(fullPath);
+        if (stats.isDirectory()) scanDuplicateJson(fullPath);
+        else if (name.endsWith('.json.json')) addError(`${label}: unexpected duplicate JSON extension: ${relative(root, fullPath).split(sep).join('/')}`);
+      }
+    };
+    scanDuplicateJson(resolve(root, dataRoot));
   }
   if (existsSync(resolve(root, 'src/data/site-language-settings.json.json'))) {
     addError(`${label}: unexpected duplicate language settings file exists: src/data/site-language-settings.json.json`);
@@ -370,7 +467,7 @@ function auditProject(root, label) {
     addError(`${label}: README.md is missing.`);
   } else {
     const text = readText(readme);
-    for (const marker of ['check:template', 'industry:brief', 'R2', 'D1', 'AI', 'Astro 6', 'Cloudflare Workers', 'Tailwind']) {
+    for (const marker of ['check:template', 'industry:brief', 'R2', 'D1', 'AI', 'Astro 6', 'Cloudflare Workers', 'Tailwind', 'CAPTCHA', 'catalog-downloads.json', '## 八、预览功能']) {
       if (!text.includes(marker)) addError(`${label}: README.md is missing deployment guidance for ${marker}.`);
     }
     const requiredHeadings = [
@@ -381,17 +478,18 @@ function auditProject(root, label) {
       '## 五、项目重要位置',
       '## 六、两阶段 Codex 建站流程',
       '## 七、避坑指南',
+      '## 八、预览功能',
     ];
     let previousHeading = -1;
     for (const heading of requiredHeadings) {
       const index = text.indexOf(heading);
       if (index < 0 || index <= previousHeading) {
-        addError(`${label}: README.md must preserve the owner-locked seven-chapter order; missing or misplaced ${heading}.`);
+        addError(`${label}: README.md must preserve the owner-locked eight-chapter order; missing or misplaced ${heading}.`);
       }
       previousHeading = index;
     }
-    if ((text.match(/<details>/g) || []).length < 4 || (text.match(/<\/details>/g) || []).length < 4) {
-      addError(`${label}: README.md must keep the Keystatic, Manager, two-stage Codex, and troubleshooting sections collapsed.`);
+    if ((text.match(/<details>/g) || []).length < 5 || (text.match(/<\/details>/g) || []).length < 5) {
+      addError(`${label}: README.md must keep the Keystatic, Manager, two-stage Codex, troubleshooting, and preview sections collapsed.`);
     }
   }
 

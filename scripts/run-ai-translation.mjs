@@ -13,7 +13,7 @@ const BLOG_TRANSLATION_DIR = path.join(CONTENT_ROOT, 'blogTranslations');
 const RESULT_DIR = path.join(ROOT, '.github', 'ai-translation-results');
 const GOOGLE_MODEL_FALLBACK = 'gemini-3.5-flash';
 const MAX_RETRYABLE_TRANSLATION_ATTEMPTS = 3;
-const locales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz'];
+const locales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'];
 const languageSettings = JSON.parse(await readFile(path.join(ROOT, 'src', 'data', 'site-language-settings.json'), 'utf8'));
 const nonEnglishLocales = locales.filter(
   locale => locale !== 'en' && languageSettings.enabledLocales?.[locale] === true
@@ -34,6 +34,11 @@ const localeMeta = {
   fil: { label: 'Filipino', htmlLang: 'fil', dir: 'ltr' },
   ko: { label: 'Korean', htmlLang: 'ko', dir: 'ltr' },
   uz: { label: 'Uzbek', htmlLang: 'uz', dir: 'ltr' },
+  ja: { label: 'Japanese', htmlLang: 'ja', dir: 'ltr' },
+  ms: { label: 'Malay', htmlLang: 'ms', dir: 'ltr' },
+  nl: { label: 'Dutch', htmlLang: 'nl', dir: 'ltr' },
+  el: { label: 'Greek', htmlLang: 'el', dir: 'ltr' },
+  th: { label: 'Thai', htmlLang: 'th', dir: 'ltr' },
 };
 
 const industryGlossary = `

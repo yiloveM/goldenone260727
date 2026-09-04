@@ -5,7 +5,7 @@ import process from 'node:process';
 const root = process.cwd();
 const profilePath = path.join(root, 'src', 'data', 'industry-profile.json');
 const languageSettingsPath = path.join(root, 'src', 'data', 'site-language-settings.json');
-const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz']);
+const supportedLocales = new Set(['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th']);
 const targetLocaleCodes = [...supportedLocales].filter(locale => locale !== 'en');
 const allowedModes = new Set(['industrial-series', 'discrete-products', 'services', 'solutions', 'hybrid']);
 

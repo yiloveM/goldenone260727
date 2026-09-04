@@ -1,4 +1,4 @@
-export const articleBodyLocales = ['zh', 'ar', 'hi', 'es', 'pt', 'fr', 'ru', 'ko', 'fil', 'tr', 'de', 'uz', 'bn', 'ur'] as const;
+export const articleBodyLocales = ['zh', 'ar', 'hi', 'es', 'pt', 'fr', 'ru', 'ko', 'fil', 'tr', 'de', 'uz', 'bn', 'ur', 'ja', 'ms', 'nl', 'el', 'th'] as const;
 export type ArticleBodyLocale = (typeof articleBodyLocales)[number];
 export type ArticleBodyTranslationMap = Record<string, string>;
 
@@ -17,6 +17,11 @@ const loaders: Record<ArticleBodyLocale, () => Promise<ArticleBodyTranslationMap
   uz: () => import('./uz').then(module => module.uzArticleBodyTranslations as ArticleBodyTranslationMap),
   bn: () => import('./bn').then(module => module.bnArticleBodyTranslations as ArticleBodyTranslationMap),
   ur: () => import('./ur').then(module => module.urArticleBodyTranslations as ArticleBodyTranslationMap),
+  ja: () => import('./ja').then(module => module.jaArticleBodyTranslations as ArticleBodyTranslationMap),
+  ms: () => import('./ms').then(module => module.msArticleBodyTranslations as ArticleBodyTranslationMap),
+  nl: () => import('./nl').then(module => module.nlArticleBodyTranslations as ArticleBodyTranslationMap),
+  el: () => import('./el').then(module => module.elArticleBodyTranslations as ArticleBodyTranslationMap),
+  th: () => import('./th').then(module => module.thArticleBodyTranslations as ArticleBodyTranslationMap),
 };
 
 const cache = new Map<ArticleBodyLocale, Promise<ArticleBodyTranslationMap>>();
