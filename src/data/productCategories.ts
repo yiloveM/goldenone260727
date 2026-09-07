@@ -1,6 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { siteImages } from './backgroundImages';
 import { industryProfile } from './industry-profile';
+import productMediaCatalog from './product-media-catalog.json';
 
 type ProductEntry = CollectionEntry<'products'>;
 
@@ -41,12 +42,36 @@ const categoryImages = [
   '/images/metal-gifts/hero-collection-v2.webp',
 ];
 
+const representativeSeries: Record<string, string> = {
+  'Lapel Pin & Badge': 'soft-enamel-pin',
+  Medal: 'sports-medal',
+  'Challenge Coin': '2d-challenge-coin',
+  'Key Chain': 'leather-keychain',
+  'Golf Accessories & Tools': 'divot-tool',
+  'Belt Buckle': 'belt-buckle',
+  'Metal & Wooden Plaque': 'metal-wooden-plaque',
+  'Fridge Magnets': 'fridge-magnet',
+  'More Metal Crafts': 'bottle-opener',
+  'Promotion Gift': 'pending',
+};
+
+const mediaById = new Map(productMediaCatalog.media.map(item => [item.id, item.publicUrl]));
+const realCategoryImage = (categoryName: string, fallback: string) => {
+  const seriesId = representativeSeries[categoryName];
+  const catalogCategory = productMediaCatalog.categories.find(category =>
+    category.series.some(series => series.id === seriesId)
+  );
+  const series = catalogCategory?.series.find(item => item.id === seriesId);
+  const mediaId = series?.mediaIds[0] || catalogCategory?.sharedMediaIds[0];
+  return (mediaId && mediaById.get(mediaId)) || fallback;
+};
+
 export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfile.productArchitecture.categoryPlans.map((category, index) => ({
   name: category.name,
   displayName: category.name,
   slug: slugifyCategory(category.name),
   description: category.description,
-  image: categoryImages[index % categoryImages.length],
+  image: realCategoryImage(category.name, categoryImages[index % categoryImages.length]),
   imageAlt: `${category.name} category`,
   accent: index === 0 ? 'Core offering' : index === 1 ? 'Project capability' : 'Lifecycle support',
   highlights: category.highlights,

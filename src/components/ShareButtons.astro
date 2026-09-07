@@ -16,7 +16,7 @@ const {
   url,
   title,
   description = '',
-  image = brandAssets.heroRippleDesktop,
+  image = brandAssets.heroCenter,
   label = 'Share',
   className = '',
 } = Astro.props;
@@ -34,55 +34,66 @@ const encodedImage = encodeURIComponent(shareImage);
 const shareLinks = [
   {
     name: 'Facebook',
-    icon: '/icons/facebook.svg',
+    className: 'a2a_button_facebook',
     href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
   },
   {
     name: 'X',
-    icon: '/icons/x.svg',
+    className: 'a2a_button_x',
     href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
   },
   {
     name: 'Pinterest',
-    icon: '/icons/pinterest.svg',
+    className: 'a2a_button_pinterest',
     href: `https://www.pinterest.com/pin/create/button/?url=${encodedUrl}&media=${encodedImage}&description=${encodedText}`,
   },
   {
+    name: 'LinkedIn',
+    className: 'a2a_button_linkedin',
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+  },
+  {
     name: 'WhatsApp',
-    icon: '/icons/whatsapp.svg',
+    className: 'a2a_button_whatsapp',
     href: `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`,
   },
   {
-    name: 'Telegram',
-    icon: '/icons/telegram.svg',
-    href: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
-  },
-  {
-    name: 'LINE',
-    icon: '/icons/line.svg',
-    href: `https://social-plugins.line.me/lineit/share?url=${encodedUrl}&text=${encodedText}`,
-  },
-  {
     name: 'Email',
-    icon: '/icons/email.svg',
+    className: 'a2a_button_email',
     href: `mailto:?subject=${encodedTitle}&body=${encodedText}%0A${encodedUrl}`,
   },
 ];
+const addToAnyFallback = `https://www.addtoany.com/share?linkurl=${encodedUrl}&linkname=${encodedTitle}`;
 ---
 <div class:list={['product-share', 'share-buttons', className]} aria-label={`${common.share}: ${title}`}>
   <span>{label}</span>
-  <div class="social-button-row">
+  <div class="a2a_kit a2a_kit_size_32 a2a_default_style addtoany-button-row" data-a2a-url={shareUrl} data-a2a-title={shareText}>
     {shareLinks.map(link => (
       <a
-        class="social-button"
+        class={link.className}
         href={link.href}
         target={link.href.startsWith('http') ? '_blank' : undefined}
         rel={link.href.startsWith('http') ? 'noopener' : undefined}
         title={`${common.shareOn} ${link.name}`}
         aria-label={`${common.share}: ${title} / ${link.name}`}
-      >
-        <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="18" height="18" /></span>
-      </a>
+      ></a>
     ))}
+    <a class="a2a_dd" href={addToAnyFallback} target="_blank" rel="noopener" title={common.share} aria-label={`${common.share}: ${title}`}></a>
   </div>
 </div>
+<script is:inline>
+  (() => {
+    const scriptId = 'addtoany-page-script';
+    const existing = document.getElementById(scriptId);
+    if (existing) {
+      const addToAny = Reflect.get(window, 'a2a');
+      if (addToAny && typeof addToAny.init_all === 'function') addToAny.init_all();
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://static.addtoany.com/menu/page.js';
+    script.async = true;
+    document.head.appendChild(script);
+  })();
+</script>

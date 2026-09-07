@@ -303,7 +303,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
               <small>{localizedIndustry}</small>
             </span>
           </a>
-          <p dir={localeInfo.dir}>{pageDescription}</p>
+          <p class="footer-brand-summary" dir={localeInfo.dir}>{siteInfo.description}</p>
           <div class="footer-socials" aria-label={`${siteInfo.name} social media`}>
             {socialLinks.map(link => (
               <a class="social-button" href={link.href} target="_blank" rel="noopener" aria-label={`${dictionary.common.visitOn} ${link.name}: ${siteInfo.name}`}>
@@ -341,8 +341,8 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         </div>
       </div>
       <div class="container footer-bottom">
-        <span>Copyright {new Date().getFullYear()} {siteInfo.name}. {dictionary.footer.copyright}</span>
-        <span>{dictionary.footer.clearPools}</span>
+        <span class="footer-copyright">Copyright {new Date().getFullYear()} {siteInfo.name}. {dictionary.footer.copyright}</span>
+        <span class="footer-positioning">{dictionary.footer.clearPools}</span>
       </div>
     </footer>
     <script is:inline>

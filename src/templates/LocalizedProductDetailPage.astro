@@ -76,7 +76,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
 <BaseLayout title={localized.title} description={productDescription} image={productImage} type="product" structuredData={productStructuredDataItem} locale={locale}>
   <main>
     <section class="section container product-hero" style={`--product-hero-image: url('${productImage}');`}>
-      <div class="glass-panel product-hero-grid">
+      <div class="product-hero-shell product-hero-grid">
         <div class="product-hero-copy" dir="ltr">
           <span class="eyebrow">{productCategoryName} / {localized.series}</span>
           <h1>{localized.title}</h1>

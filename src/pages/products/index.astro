@@ -49,7 +49,7 @@ const catalogStructuredData = [
       shareLabel="Share catalog"
     />
     <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
-      <div class="glass-panel catalog-custom-panel">
+      <div class="surface-panel catalog-custom-panel">
         <div class="catalog-banner-strip" aria-label="Catalog summary">
           <span tabindex="0"><strong>{sortedProducts.length}</strong> published items</span>
           <span tabindex="0"><strong>{productCategories.length}</strong> active categories</span>
@@ -102,7 +102,7 @@ const catalogStructuredData = [
       {sortedProducts.length > 0 ? (
         <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} />)}</div>
       ) : (
-        <div class="glass-panel detail-panel">
+        <div class="surface-panel detail-panel">
           <span class="eyebrow">In preparation</span>
           <h2>Verified product information is being prepared.</h2>
           <p class="prose">Contact the team with the object, artwork, quantity, destination, and timing available for your project.</p>

@@ -45,7 +45,7 @@ const articleBody = blogTranslationDraft ? '' : staticArticleBody || generatedLo
 
 <BaseLayout title={localized.title} description={localized.description} image={post.data.image} type="article" structuredData={postStructuredData} locale={locale}>
   <main class="section container">
-    <article class="glass-panel" style="overflow:hidden;">
+    <article class="surface-panel article-shell" style="overflow:hidden;">
       {post.data.image && <img src={post.data.image} alt={localized.title} fetchpriority="high" decoding="async" width="1200" height="760" style="width:100%; height:min(46vw,430px); object-fit:cover;" />}
       <div style="padding:32px;" dir="ltr">
         <span class="eyebrow">{localized.category} / <bdi dir="ltr">{post.data.publishDate.toLocaleDateString(localeMeta[locale].htmlLang)}</bdi></span>

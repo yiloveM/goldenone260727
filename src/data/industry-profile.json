@@ -63,8 +63,15 @@
       "plating and finishes",
       "custom packaging"
     ],
-    "searchIntentSummary": "Phase-one taxonomy only. Current SERP, competitor, and keyword-to-page research remains pending until verified company and product content is available.",
-    "competitorReferences": []
+    "searchIntentSummary": "Current product-page research shows commercial buyers respond best to a direct sequence: product purpose, visible or tactile result, verified construction choices, selection guidance, then artwork and quotation inputs. Golden One pages use this structure without importing competitor claims, prices, minimums, lead times, or unsupported manufacturing facts.",
+    "competitorReferences": [
+      "https://lapelpinsplus.com/pins/soft-enamel/",
+      "https://montereycompany.com/custom-enamel-pins/",
+      "https://embleholics.com/manufacturing-options/",
+      "https://www.medalorigin.com/custom-medals/medal-ribbons/",
+      "https://gairun.com/products/keychains-bottle-openers/leather-metal-keychains/"
+    ],
+    "lastResearchDate": "2026-09-08"
   },
   "productArchitecture": {
     "offeringType": "discrete-products",
@@ -184,16 +191,16 @@
     ]
   },
   "visual": {
-    "archetype": "collectible-object editorial gallery",
-    "accentColor": "#2457c5",
-    "accentColorStrong": "#183b91",
-    "accentColorSoft": "#e7edff",
-    "heroDirection": "Use luminous, sharply detailed compositions of pins, coins, medals, keychains, ribbons, hardware, and finish samples. Let the objects and color lead the page, keep headline space clear, and avoid generic offices or industrial equipment styling.",
+    "archetype": "image-led custom metal gift storefront",
+    "accentColor": "#00aaa6",
+    "accentColorStrong": "#007d7a",
+    "accentColorSoft": "#dff7f5",
+    "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Keep supporting pages solid, product-led, and free of the mother template's water and glass treatment.",
     "imageRules": "Show the object at an aspirational scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Treat every temporary image as a replaceable visual reference, never as proof of company work."
   },
   "governance": {
     "factsVerified": false,
-    "lastUpdated": "2026-07-30",
-    "notes": "Phase-one industry architecture completed. Golden One is the confirmed public brand and Golden One (Jiangmen) Gifts Co., Limited is the confirmed legal company name. The sales email, phone, WhatsApp, and Jiangmen address were supplied by the company on 2026-07-31. Target markets, product claims, certifications, production facts, prices, lead times, and real product imagery remain unverified and must be completed through Keystatic. Complete current SEO/GEO research only after verified content is present."
+    "lastUpdated": "2026-09-08",
+    "notes": "Golden One is the confirmed public brand and Golden One (Jiangmen) Gifts Co., Limited is the confirmed legal company name. The sales email, phone, WhatsApp, and Jiangmen address were supplied by the company on 2026-07-31. On 2026-09-08, owner-supplied product taxonomy, product media, and construction choices were mapped for product-page preparation; page imagery remains a product reference rather than proof of a specific completed order. Certifications, production capacity, prices, minimums, lead times, customer claims, and target-market claims remain unverified and must not be presented as facts."
   }
 }

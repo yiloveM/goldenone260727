@@ -74,7 +74,7 @@ const contactStructuredData = [
             sendInquiry: pages.contact.sendInquiry,
           }}
         />
-        {hasDirectContact && <aside class="glass-panel contact-card contact-direct-card" dir="ltr">
+        {hasDirectContact && <aside class="surface-panel contact-card contact-direct-card" dir="ltr">
           <h2>{pages.contact.direct}</h2>
           <p class="prose" style="margin-top:14px;">
             {siteInfo.email && <>{emailLabel}: <a href={`mailto:${siteInfo.email}`}><bdi dir="ltr">{siteInfo.email}</bdi></a><br /></>}
@@ -92,7 +92,7 @@ const contactStructuredData = [
         <h2>{pages.contact.mapTitle}</h2>
         <p class="prose"><bdi dir="ltr">{mapAddress}</bdi></p>
       </div>
-      <div class="glass-panel map-panel">
+      <div class="surface-panel map-panel">
         <iframe title={ui[locale].common.businessLocationMap} src={mapSrc} loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         <div class="contact-map-bar" dir="ltr">
           <div><span>{translateTechnicalText('Business office', locale)}</span><strong>{mapAddress}</strong></div>

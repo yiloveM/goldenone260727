@@ -13,13 +13,15 @@ interface Props {
 }
 
 const { detailImages = [], title } = Astro.props;
-const featureImages = detailImages.filter(item => item.image).slice(0, 6);
+const featureImages = detailImages.filter(item => item.image);
+const initialImages = featureImages.slice(0, 12);
+const additionalImages = featureImages.slice(12);
 const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 ---
 {featureImages.length > 0 && (
   <section class="detail-panel product-feature-images" aria-label={`${title}: ${common.featureImages}`}>
     <div class="product-feature-image-grid">
-      {featureImages.map(item => (
+      {initialImages.map(item => (
         <figure class="product-feature-image">
           <PublicImage src={item.image} alt={item.title || title} loading="lazy" decoding="async" width="1400" height="900" />
           {(item.title || item.caption) && (
@@ -31,5 +33,23 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
         </figure>
       ))}
     </div>
+    {additionalImages.length > 0 && (
+      <details class="product-gallery-more">
+        <summary>View {additionalImages.length} more reference images</summary>
+        <div class="product-feature-image-grid">
+          {additionalImages.map(item => (
+            <figure class="product-feature-image">
+              <PublicImage src={item.image} alt={item.title || title} loading="lazy" decoding="async" width="1400" height="900" />
+              {(item.title || item.caption) && (
+                <figcaption>
+                  {item.title && <strong>{item.title}</strong>}
+                  {item.caption && <span>{item.caption}</span>}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      </details>
+    )}
   </section>
 )}

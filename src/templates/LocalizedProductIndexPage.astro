@@ -69,7 +69,7 @@ const catalogStructuredData = [
       dir="ltr"
     />
     <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
-      <div class="glass-panel catalog-custom-panel">
+      <div class="surface-panel catalog-custom-panel">
         <div class="catalog-banner-strip" aria-label={ui[locale].common.catalogSummary}>
           <span tabindex="0"><strong>{sortedProducts.length}</strong> {pages.products.summaryProducts}</span>
           <span tabindex="0"><strong>{productCategories.length}</strong> {pages.products.summaryCategories}</span>
@@ -117,7 +117,7 @@ const catalogStructuredData = [
       {sortedProducts.length > 0 ? (
         <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} locale={locale} />)}</div>
       ) : (
-        <div class="glass-panel detail-panel" dir="ltr">
+        <div class="surface-panel detail-panel" dir="ltr">
           <span class="eyebrow">{translateTechnicalText('In preparation', locale)}</span>
           <h2>{locale === 'es' ? 'Se está preparando información de producto verificada.' : translateTechnicalText('Verified product information is being prepared.', locale)}</h2>
           <p class="prose">{locale === 'es' ? 'Contacta con el equipo indicando el objeto, diseño, cantidad, destino y plazo disponibles.' : translateTechnicalText('Contact the team with the object, artwork, quantity, destination, and timing available.', locale)}</p>

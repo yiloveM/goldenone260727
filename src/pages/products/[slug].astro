@@ -45,7 +45,7 @@ const isRedundantSpecTableTitle = (title: string) =>
 <BaseLayout title={product.data.title} description={productDescription} image={productImage} type="product" structuredData={productStructuredDataItem}>
   <main>
     <section class="section container product-hero" style={`--product-hero-image: url('${productImage}');`}>
-      <div class="glass-panel product-hero-grid">
+      <div class="product-hero-shell product-hero-grid">
         <div class="product-hero-copy">
           <span class="eyebrow">{productCategoryName} / {product.data.series}</span>
           <h1>{product.data.title}</h1>
@@ -66,9 +66,9 @@ const isRedundantSpecTableTitle = (title: string) =>
             <a class="btn secondary product-hero-explore" href="/products">Explore all offerings</a>
           </div>
           <div class="product-meta-strip">
-            <span>Content-ready</span>
-            <span>Sales support</span>
-            <span>Project specification support</span>
+            <span>Artwork-led</span>
+            <span>Configurable finish</span>
+            <span>Quotation-ready brief</span>
             {reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
               <span>{product.data.aggregateRatingValue}/5 from {product.data.aggregateRatingCount} customer ratings</span>
             )}
@@ -97,7 +97,7 @@ const isRedundantSpecTableTitle = (title: string) =>
           <div class="product-sticky-meta">
             <span>{product.data.series}</span>
             <strong>{productCategoryName}</strong>
-            <p>Specification support for buyers, managers and commercial project teams.</p>
+            <p>Compare artwork, material, finish, hardware and presentation before requesting a quotation.</p>
             <div class="product-sticky-actions">
               <a href="/contact">Request quote</a>
               <a href={`/products/category/${product.data.category.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}/`}>View category</a>
