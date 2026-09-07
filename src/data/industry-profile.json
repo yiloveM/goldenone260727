@@ -13,7 +13,9 @@
     "factoryAddress": "Unit C, 8th Floor, Tian Yuan Building, No. 1, Guang De Li, Pengjiang District, Jiangmen City, Guangdong Province, China",
     "socialProfiles": [
       "https://www.facebook.com/goldenonechina",
-      "https://goldenone.en.alibaba.com/"
+      "https://goldenone.en.alibaba.com/",
+      "https://www.pinterest.com/enquiry1200/",
+      "https://instagram.com/kissa_juloli/"
     ]
   },
   "market": {
@@ -62,8 +64,7 @@
       "custom packaging"
     ],
     "searchIntentSummary": "Phase-one taxonomy only. Current SERP, competitor, and keyword-to-page research remains pending until verified company and product content is available.",
-    "competitorReferences": [],
-    "lastResearchDate": ""
+    "competitorReferences": []
   },
   "productArchitecture": {
     "offeringType": "discrete-products",
@@ -192,7 +193,6 @@
   },
   "governance": {
     "factsVerified": false,
-    "contentOwner": "",
     "lastUpdated": "2026-07-30",
     "notes": "Phase-one industry architecture completed. Golden One is the confirmed public brand and Golden One (Jiangmen) Gifts Co., Limited is the confirmed legal company name. The sales email, phone, WhatsApp, and Jiangmen address were supplied by the company on 2026-07-31. Target markets, product claims, certifications, production facts, prices, lead times, and real product imagery remain unverified and must be completed through Keystatic. Complete current SEO/GEO research only after verified content is present."
   }
