@@ -1,0 +1,118 @@
+name: Preview Golden One Site
+run-name: Preview ${{ github.ref_name }} / ${{ github.sha }}
+
+# Preview has a separate Worker and deployment owner. It never deploys the
+# production Worker, attaches a custom domain, or enables Cloudflare Builds.
+on:
+  push:
+    branches:
+      - 'preview/**'
+  workflow_dispatch:
+    inputs:
+      previewAlias:
+        description: Optional stable alias for a non-current preview branch
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: goldenone-site-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    if: github.repository == 'yiloveM/goldenone260727' && github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out the selected preview commit
+        uses: actions/checkout@v7
+
+      - name: Check preview initialization
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if grep -Eq '^(account_id|database_id)[[:space:]]*=[[:space:]]*"replace-with-' wrangler.toml; then
+            echo "::error::Configure the Golden One Cloudflare resource IDs before preview deployment."
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is required."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare authentication
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/run-wrangler.mjs whoami
+
+      - name: Generate Cloudflare bindings
+        run: npm run types:cloudflare
+
+      - name: Verify preview and application contracts
+        run: |
+          npm run check:preview
+          npm run check
+          npm run check:visual
+          npm run check:class-names
+          npm run check:template
+
+      - name: Build the preview artifact
+        run: npm run build
+
+      - name: Resolve preview target
+        id: target
+        shell: bash
+        env:
+          REQUESTED_ALIAS: ${{ inputs.previewAlias }}
+        run: |
+          mode="alias"
+          if [ "$GITHUB_REF_NAME" = "preview/current" ]; then
+            mode="current"
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "alias=$REQUESTED_ALIAS" >> "$GITHUB_OUTPUT"
+
+      - name: Publish isolated preview
+        id: preview
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PREVIEW_DEPLOYMENT_MODE: ${{ steps.target.outputs.mode }}
+          PREVIEW_ALIAS: ${{ steps.target.outputs.alias }}
+        run: |
+          set -o pipefail
+          log="$RUNNER_TEMP/goldenone-preview.log"
+          npm run preview:deploy -- --branch "$GITHUB_REF_NAME" 2>&1 | tee "$log"
+          preview_url="$(grep -Eo 'https://[a-z0-9.-]+\.workers\.dev' "$log" | tail -n 1 || true)"
+          echo "url=$preview_url" >> "$GITHUB_OUTPUT"
+
+      - name: Report preview
+        shell: bash
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+        run: |
+          {
+            echo "### Golden One branch preview"
+            echo "- Branch: $GITHUB_REF_NAME"
+            echo "- Production traffic changed: **No**"
+            echo "- Runtime writes and analytics: **Blocked**"
+            if [ -n "$PREVIEW_URL" ]; then
+              echo "- Preview URL: [$PREVIEW_URL]($PREVIEW_URL)"
+            else
+              echo "- Preview URL: open the preview Worker deployment details."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

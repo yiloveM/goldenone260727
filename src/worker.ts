@@ -23,13 +23,19 @@ const PORTAL_COOKIE = '__Host-businessweb-portal';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const portalBrand = String(industryProfile.brand?.name || 'Golden One').trim() || 'Golden One';
-const portalOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
+const portalOwner = String(
+  (industryProfile.governance as { contentOwner?: string } | undefined)?.contentOwner || 'Ethan.B.Rain'
+).trim() || 'Ethan.B.Rain';
 const PRIVATE_HEADERS = {
   'cache-control': 'private, no-store, max-age=0',
   'permissions-policy': 'camera=(), geolocation=(), microphone=()',
   'referrer-policy': 'no-referrer',
   'x-content-type-options': 'nosniff',
   'x-frame-options': 'DENY',
+  'x-robots-tag': 'noindex, nofollow, noarchive, nosnippet',
+};
+const PREVIEW_HEADERS = {
+  'cache-control': 'private, no-store, max-age=0',
   'x-robots-tag': 'noindex, nofollow, noarchive, nosnippet',
 };
 
@@ -43,6 +49,23 @@ const isDirectPortalApiPath = (pathname: string) => pathname.startsWith('/api/')
 const isKeystaticOAuthCallback = (pathname: string) => pathname === '/api/keystatic/github/oauth/callback';
 const isLoopbackHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 const isDownloadApiPath = (pathname: string) => pathname === '/api/download' || pathname === '/api/download/';
+const isPreviewRuntime = (env: WorkerEnv) => getEnvString(env, 'DEPLOYMENT_CONTEXT').toLowerCase() === 'preview';
+
+const securePreviewResponse = (response: Response) => {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(PREVIEW_HEADERS)) headers.set(name, value);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
+
+const previewMutationBlocked = () =>
+  new Response('This preview is read-only. Submit forms on the production site.', {
+    status: 403,
+    headers: { ...PREVIEW_HEADERS, 'content-type': 'text/plain; charset=utf-8' },
+  });
 
 const notFound = () =>
   new Response('Not found.', {
@@ -385,31 +408,39 @@ export default {
   async fetch(request: Request, env: WorkerEnv, context: WorkerContext) {
     const url = new URL(request.url);
     const hostname = url.hostname.toLowerCase();
+    const previewRuntime = isPreviewRuntime(env);
     const keystaticHost = getAdminPortalHost(env, 'keystatic');
     const managerHost = getAdminPortalHost(env, 'manager');
     const portals = getAdminPortalConfigSet(env);
 
-    if (hostname === keystaticHost) {
+    if (!previewRuntime && hostname === keystaticHost) {
       return portals ? handlePortalRequest(request, env, context, portals.keystatic) : unavailable();
     }
-    if (hostname === managerHost) {
+    if (!previewRuntime && hostname === managerHost) {
       return portals ? handlePortalRequest(request, env, context, portals.manager) : unavailable();
     }
 
-    if (!isLoopbackHost(hostname) && isProtectedPublicPath(url.pathname)) return notFound();
+    if (previewRuntime && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return previewMutationBlocked();
+
+    if ((previewRuntime || !isLoopbackHost(hostname)) && isProtectedPublicPath(url.pathname)) {
+      const response = notFound();
+      return previewRuntime ? securePreviewResponse(response) : response;
+    }
     const response = isDownloadApiPath(url.pathname)
       ? await handleDownloadRequest(request, env)
       : (await fetchPublicAsset(request, env)) ||
         (await fetchAstro(requestForInternalPath(request, url), env, context));
-    context.waitUntil(
-      capturePublicPageView(request, response, env).catch(error => {
-        console.error({
-          event: 'public_analytics_capture_failed',
-          error: error instanceof Error ? error.message : String(error),
-          path: url.pathname,
-        });
-      })
-    );
-    return response;
+    if (!previewRuntime) {
+      context.waitUntil(
+        capturePublicPageView(request, response, env).catch(error => {
+          console.error({
+            event: 'public_analytics_capture_failed',
+            error: error instanceof Error ? error.message : String(error),
+            path: url.pathname,
+          });
+        })
+      );
+    }
+    return previewRuntime ? securePreviewResponse(response) : response;
   },
 };

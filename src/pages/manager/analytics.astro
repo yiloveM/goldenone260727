@@ -3,7 +3,9 @@ import AnalyticsDashboard from '../../components/admin/AnalyticsDashboard';
 import industryProfile from '../../data/industry-profile.json';
 
 export const prerender = true;
-const managerOwner = String(industryProfile.governance?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
+const managerOwner = String(
+  (industryProfile.governance as { contentOwner?: string } | undefined)?.contentOwner || 'Ethan.B.Rain'
+).trim() || 'Ethan.B.Rain';
 ---
 
 <!doctype html>

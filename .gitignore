@@ -12,5 +12,6 @@ dist/
 .wrangler-dry-run/
 # Authorized old-site captures and generated migration packages stay local.
 /oldsite/
+/don't push/
 /.sandbox/
 .DS_Store

@@ -6,6 +6,8 @@ compatibility_flags = ["nodejs_compat"]
 # Preserve non-secret variables managed in the Cloudflare dashboard. Worker
 # Secrets are preserved by Wrangler deployments independently of this setting.
 keep_vars = true
+# Enable stable version aliases for customer-review branches.
+preview_urls = true
 
 [assets]
 directory = "./dist"

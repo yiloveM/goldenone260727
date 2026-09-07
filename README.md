@@ -829,40 +829,42 @@ Codex 必须先调查最新搜索规范和真实 SERP，再完成关键词到页
 
 - 预览只用于客户查看非 `main` 分支的公共页面、响应式和浏览器功能。
 - 生产仍由 `.github/workflows/site-publish.yml` 独占，生产 Worker `goldenone`、生产域名、资源 ID 和 `main` 发布规则不变。
-- 预览使用独立 `goldenone-preview`。它可以复用当前 R2、D1、分析和公开运行变量，但不绑定生产自定义域名。
+- 预览由 `.github/workflows/site-preview.yml` 部署到独立 `goldenone-preview`；Cloudflare Git 和 Workers Builds 必须保持断开。
+- 预览复用现有只读媒体和公开配置，但后台入口与受保护 API 返回 `404`，写请求返回 `403`，不记录访问分析，并对全部响应增加 `noindex` 与 `no-store`。
 
 ### 分支不存在时
 
-远端预览分支不存在时，不创建、不构建、不部署预览 Worker，也不连接 Cloudflare Git。`npm run preview:deploy` 会在部署前检查远端分支并拒绝 `main`。
+远端预览分支不存在时不部署。`npm run preview:deploy` 会先检查远端分支，并始终拒绝 `main`。
 
-### 分支存在后首次创建
+### 固定预览地址
 
-1. 创建并推送站长批准的非 `main` 预览分支。
-2. 在该分支运行：
+1. 从已验证的 `main` 创建或更新 `preview/current`。
+2. 推送到远端：
 
 ```powershell
-npm run preview:deploy -- --branch "<preview-branch>" --worker "goldenone-preview"
+git push origin preview/current
 ```
 
-3. 确认命令检测到远端分支、构建成功并部署到独立 Worker。
-4. 用 `workers.dev` 预览地址检查全部公开页面和所需功能；不要添加生产自定义域名。
+3. GitHub -> `yiloveM/goldenone260727` -> **Actions** -> **Preview Golden One Site**，等待全部步骤通过。
+4. 工作流会更新 `goldenone-preview` 的固定 `workers.dev` 地址；从 Action Summary 打开该地址给客户验收。
 
-### 连接 Cloudflare Git
+### 并行方案地址
 
-1. 只在远端预览分支已存在且需要持续客户预览时，进入 Cloudflare -> **Workers & Pages -> goldenone-preview -> Settings -> Build -> Connect**。
-2. 连接 `yiloveM/goldenone260727`，Root directory 填 `/`。
-3. Build command 填 `npm run build`。
-4. Deploy command 填 `npm run preview:deploy -- --branch "$WORKERS_CI_BRANCH" --worker "goldenone-preview"`。
-5. Production branch 只选择该预览分支，不选择 `main`。
-6. 关闭 **Builds for non-production branches**，确保其它分支和 `main` 不触发该 Worker。
-7. `goldenone` 生产 Worker 的 Cloudflare Git 继续保持断开；`main` 仍只由 GitHub Actions 发布。
+1. 每个方案使用 `preview/<方案名>`，例如 `preview/dark-catalog`。
+2. 推送后，工作流使用 Wrangler Preview Alias 生成该分支的稳定地址，不覆盖 `preview/current`。
+3. 需要重命名地址时，在 GitHub **Actions -> Preview Golden One Site -> Run workflow** 中选择该分支并填写 `previewAlias`。
 
-Cloudflare 控制台会把所选分支称为 `goldenone-preview` 的 production branch，但它仍是流量、名称和职责独立的预览 Worker，不是 Golden One 正式生产环境。分支控制参考 [Cloudflare Workers Builds branches](https://developers.cloudflare.com/workers/ci-cd/builds/build-branches/)。
+本地手动排障只使用远端已存在的预览分支：
+
+```powershell
+$env:PREVIEW_DEPLOYMENT_MODE = 'current' # 其它 preview/* 分支改为 alias
+npm run preview:deploy -- --branch "preview/current"
+```
 
 ### 验收与停止
 
-1. 验证预览 URL、R2 图片、语言、表单、后台隔离和浏览器交互，不把预览结果当作生产流量数据结论。
-2. 合并或删除预览分支不会改变 `main` 的唯一生产发布链路。
-3. 不再需要预览时，断开 `goldenone-preview` 的 Git 连接；是否删除独立 Worker 由站长决定。
+1. 公开页面与 R2 图片应可读；`POST` 表单应返回 `403`；`/manager/`、`/keystatic/` 和受保护 API 应返回 `404`；响应头应包含 `X-Robots-Tag: noindex`。
+2. 合并或删除预览分支不会改变生产 `main`。客户确认后，仍需把选定代码按正常评审合并到 `main` 才会上线。
+3. 不再需要预览时可删除对应分支；是否删除独立 `goldenone-preview` Worker 由站长决定。
 
 </details>
