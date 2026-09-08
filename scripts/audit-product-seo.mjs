@@ -41,7 +41,15 @@ const structuralChecks = [
   [/inProductGroupWithID:\s*groupId/.test(seoSource), 'src/data/seo.ts', 'Every model Product must identify its parent product group'],
   [/isVariantOf:\s*\{\s*'@id'/.test(seoSource), 'src/data/seo.ts', 'Every model Product must link back to its ProductGroup'],
   [/additionalProperty:\s*propertyValues/.test(seoSource), 'src/data/seo.ts', 'Every model Product must expose model parameters as PropertyValue data'],
-  [/\.get\(['"]model['"]\)/.test(productPageSource) && /data-model/.test(productPageSource), 'src/pages/products/[slug].astro', 'Variant URLs must select and reveal matching model rows'],
+  [
+    /data-model/.test(productPageSource)
+      && (
+        /\.get\(['"]model['"]\)/.test(productPageSource)
+        || (/ProductTableScrollerScript/.test(productPageSource) && /\.get\(['"]model['"]\)/.test(localizedTableScriptSource))
+      ),
+    'src/pages/products/[slug].astro',
+    'Variant URLs must select and reveal matching model rows',
+  ],
   [/\.get\(['"]model['"]\)/.test(localizedTableScriptSource) && /data-model/.test(localizedTableScriptSource), 'src/components/ProductTableScrollerScript.astro', 'Localized variant URLs must select and reveal matching model rows'],
 ];
 

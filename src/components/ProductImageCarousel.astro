@@ -1,6 +1,7 @@
 ---
 import PublicImage from './public/PublicImage.astro';
 import { getLocaleFromPathname, ui } from '../data/i18n';
+
 interface Props {
   images?: string[];
   title: string;
@@ -9,43 +10,74 @@ interface Props {
 }
 
 const { images = [], title, variant = 'stage', priority = false } = Astro.props;
-const carouselImages = images.filter(Boolean).slice(0, 8);
+const carouselImages = Array.from(new Set(images.filter(Boolean))).slice(0, 12);
 const hasControls = carouselImages.length > 1;
 const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
 ---
+
 <div
   class={`product-image-carousel product-image-carousel--${variant}${hasControls ? ' has-multiple-images' : ''}`}
   data-product-image-carousel
   data-autoplay={hasControls ? 'true' : 'false'}
+  role="region"
+  aria-label={`${title} product gallery`}
 >
   <div class="product-image-carousel__viewport">
     {carouselImages.map((image, index) => (
       <PublicImage
         class={`product-image-carousel__image${index === 0 ? ' is-active' : ''}`}
         src={image}
-        alt={`${title} ${index + 1}`}
+        alt={`${title} - view ${index + 1} of ${carouselImages.length}`}
         fetchpriority={priority && index === 0 ? 'high' : 'auto'}
         loading={priority && index === 0 ? 'eager' : 'lazy'}
         decoding="async"
-        width="1100"
-        height="860"
+        width="1200"
+        height="1000"
         data-carousel-image
         aria-hidden={index === 0 ? 'false' : 'true'}
       />
     ))}
+
+    {hasControls && (
+      <>
+        <button class="product-image-carousel__nav product-image-carousel__nav--prev" type="button" aria-label={common.previousProductImage} data-carousel-prev>
+          <span aria-hidden="true">&lsaquo;</span>
+        </button>
+        <button class="product-image-carousel__nav product-image-carousel__nav--next" type="button" aria-label={common.nextProductImage} data-carousel-next>
+          <span aria-hidden="true">&rsaquo;</span>
+        </button>
+        <p class="product-image-carousel__counter" aria-live="polite">
+          <span data-carousel-current>1</span>
+          <span aria-hidden="true"> / </span>
+          <span>{carouselImages.length}</span>
+        </p>
+      </>
+    )}
   </div>
+
   {hasControls && (
-    <>
-      <button class="product-image-carousel__nav product-image-carousel__nav--prev" type="button" aria-label={common.previousProductImage} data-carousel-prev>
-        <span aria-hidden="true">&lsaquo;</span>
-      </button>
-      <button class="product-image-carousel__nav product-image-carousel__nav--next" type="button" aria-label={common.nextProductImage} data-carousel-next>
-        <span aria-hidden="true">&rsaquo;</span>
-      </button>
-      <div class="product-image-carousel__dots" aria-hidden="true">
-        {carouselImages.map((_, index) => <span class={index === 0 ? 'is-active' : ''} data-carousel-dot />)}
-      </div>
-    </>
+    <div class="product-image-carousel__thumbnails" role="group" aria-label={`${title} image choices`}>
+      {carouselImages.map((image, index) => (
+        <button
+          class:list={['product-image-carousel__thumbnail', { 'is-active': index === 0 }]}
+          type="button"
+          data-carousel-thumbnail
+          data-carousel-index={index}
+          aria-label={`Show ${title} image ${index + 1}`}
+          aria-pressed={index === 0 ? 'true' : 'false'}
+        >
+          <PublicImage
+            src={image}
+            alt=""
+            loading={index < 5 ? 'eager' : 'lazy'}
+            decoding="async"
+            width="144"
+            height="120"
+            aria-hidden="true"
+          />
+        </button>
+      ))}
+    </div>
   )}
 </div>
 
@@ -55,22 +87,33 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
       document.querySelectorAll('[data-product-image-carousel]').forEach(root => {
         if (!(root instanceof HTMLElement) || root.dataset.carouselReady === 'true') return;
         root.dataset.carouselReady = 'true';
+
         const images = Array.from(root.querySelectorAll('[data-carousel-image]'));
-        const dots = Array.from(root.querySelectorAll('[data-carousel-dot]'));
+        const thumbnails = Array.from(root.querySelectorAll('[data-carousel-thumbnail]'));
+        const current = root.querySelector('[data-carousel-current]');
         if (images.length <= 1) return;
 
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         let activeIndex = 0;
         let timer = 0;
+        let isVisible = true;
 
-        const show = (index: number) => {
+        const show = (index: number, revealThumbnail = false) => {
           activeIndex = (index + images.length) % images.length;
           images.forEach((image, imageIndex) => {
             const isActive = imageIndex === activeIndex;
             image.classList.toggle('is-active', isActive);
             image.setAttribute('aria-hidden', isActive ? 'false' : 'true');
           });
-          dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === activeIndex));
+          thumbnails.forEach((thumbnail, thumbnailIndex) => {
+            const isActive = thumbnailIndex === activeIndex;
+            thumbnail.classList.toggle('is-active', isActive);
+            thumbnail.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          });
+          if (current) current.textContent = String(activeIndex + 1);
+          if (revealThumbnail) {
+            thumbnails[activeIndex]?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'nearest', inline: 'nearest' });
+          }
         };
 
         const stop = () => {
@@ -78,32 +121,49 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
           timer = 0;
         };
         const start = () => {
-          if (prefersReducedMotion || timer || root.dataset.autoplay !== 'true') return;
-          timer = window.setInterval(() => show(activeIndex + 1), 4200);
+          if (prefersReducedMotion || !isVisible || timer || root.dataset.autoplay !== 'true') return;
+          timer = window.setInterval(() => show(activeIndex + 1), 5000);
         };
         const restart = () => {
           stop();
           start();
         };
+        const select = (index: number) => {
+          show(index, true);
+          restart();
+        };
 
-        root.querySelector('[data-carousel-prev]')?.addEventListener('click', () => {
-          show(activeIndex - 1);
-          restart();
-        });
-        root.querySelector('[data-carousel-next]')?.addEventListener('click', () => {
-          show(activeIndex + 1);
-          restart();
+        root.querySelector('[data-carousel-prev]')?.addEventListener('click', () => select(activeIndex - 1));
+        root.querySelector('[data-carousel-next]')?.addEventListener('click', () => select(activeIndex + 1));
+        thumbnails.forEach((thumbnail, index) => thumbnail.addEventListener('click', () => select(index)));
+        root.addEventListener('keydown', event => {
+          if (!(event instanceof KeyboardEvent) || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+          event.preventDefault();
+          select(activeIndex + (event.key === 'ArrowRight' ? 1 : -1));
         });
         root.addEventListener('mouseenter', stop);
         root.addEventListener('mouseleave', start);
         root.addEventListener('focusin', stop);
-        root.addEventListener('focusout', start);
+        root.addEventListener('focusout', () => window.setTimeout(() => {
+          if (!root.contains(document.activeElement)) start();
+        }, 0));
         root.addEventListener('touchstart', stop, { passive: true });
         root.addEventListener('touchend', start, { passive: true });
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) stop();
           else start();
         });
+
+        if ('IntersectionObserver' in window) {
+          const observer = new IntersectionObserver(entries => {
+            isVisible = entries.some(entry => entry.isIntersecting);
+            if (isVisible) start();
+            else stop();
+          }, { threshold: 0.2 });
+          observer.observe(root);
+        }
+
+        show(0);
         start();
       });
     };

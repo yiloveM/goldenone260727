@@ -55,7 +55,12 @@ const representativeSeries: Record<string, string> = {
   'Promotion Gift': 'pending',
 };
 
-const mediaById = new Map(productMediaCatalog.media.map(item => [item.id, item.publicUrl]));
+type ProductCatalogMedia = (typeof productMediaCatalog.media)[number] & {
+  display?: { publicUrl?: string };
+};
+const mediaById = new Map(
+  (productMediaCatalog.media as ProductCatalogMedia[]).map(item => [item.id, item.display?.publicUrl || item.publicUrl])
+);
 const realCategoryImage = (categoryName: string, fallback: string) => {
   const seriesId = representativeSeries[categoryName];
   const catalogCategory = productMediaCatalog.categories.find(category =>

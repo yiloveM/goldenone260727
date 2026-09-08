@@ -16,6 +16,14 @@ const supported = new Map([
 ]);
 const cacheControl = 'public, max-age=31536000, immutable';
 
+let previousMediaById = new Map();
+try {
+  const previousCatalog = JSON.parse((await readFile(catalogPath, 'utf8')).replace(/^\uFEFF/, ''));
+  previousMediaById = new Map((previousCatalog.media || []).map(media => [media.id, media]));
+} catch (error) {
+  if (error?.code !== 'ENOENT') throw error;
+}
+
 const categories = [
   {
     id: 'lapel-pin-badge',
@@ -400,6 +408,10 @@ for (const [dedupeKey, group] of dedupeGroups) {
     roles,
     sourceFiles: group.map(record => record.sourceFile),
   };
+  const previous = previousMediaById.get(id);
+  if (previous?.sha256 === canonical.sha256 && previous.display?.publicUrl) {
+    object.display = previous.display;
+  }
   objects.push(object);
   for (const record of group) recordToObject.set(record, object);
 }
@@ -440,6 +452,7 @@ const catalog = {
     exactDuplicateReferences: records.length - objects.length,
     imageObjects: objects.filter(object => object.contentType.startsWith('image/')).length,
     pdfObjects: objects.filter(object => object.contentType === 'application/pdf').length,
+    backgroundRemovedImageObjects: objects.filter(object => object.display?.variant === 'background-removed').length,
   },
   categories: catalogCategories,
   standaloneMedia: objects.filter(object => !object.categoryId || object.categoryId === 'certifications').map(object => object.id),

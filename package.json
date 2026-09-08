@@ -28,6 +28,8 @@
     "check:preview": "node scripts/audit-preview-deployment.mjs",
     "media:prepare:goldenone": "node scripts/prepare-goldenone-product-media.mjs",
     "media:upload:goldenone": "node scripts/upload-goldenone-r2-media.mjs",
+    "media:apply:goldenone:cutouts": "node scripts/apply-goldenone-cutout-mapping.mjs",
+    "media:upload:goldenone:cutouts": "node scripts/upload-goldenone-r2-media.mjs --manifest \"don't push/sitedata/r2-upload/goldenone-cutouts/cutout-processing-manifest.json\"",
     "check:seo": "node scripts/audit-product-seo.mjs",
     "check:rich-results": "node scripts/audit-product-seo.mjs --rich-results",
     "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",

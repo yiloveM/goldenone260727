@@ -13,6 +13,20 @@ Generated from the owner-provided `产品资料` worksheet and `don't push/sited
 
 The tracked machine-readable catalog is `src/data/product-media-catalog.json`. It keeps the product taxonomy, owner-supplied factual notes, series-to-media links, stable R2 object keys, and current public URLs. The private CSV and upload manifest remain under `don't push/sitedata/r2-upload/goldenone`.
 
+## Background-removed product media
+
+Public product-object photos and individual edge/plating option images use transparent WebP derivatives. Original R2 objects remain unchanged for rollback; do not delete them before the transparent set and product pages have been verified. Certificates, dimensions, packaging, logo-method, ribbon, hardware and comparison graphics retain their full background because removal could erase labels or measurement lines.
+
+The tracked catalog stores each derivative under the source media object's `display` mapping. The ignored processing/upload package is `don't push/sitedata/r2-upload/goldenone-cutouts`. After processing completes:
+
+```powershell
+npm run media:apply:goldenone:cutouts
+npm run media:upload:goldenone:cutouts -- --dry-run
+npm run media:upload:goldenone:cutouts
+```
+
+The cutout uploader accepts the generated manifest, uses immutable content-hashed `cutout-v1` keys, records resumable upload state beside the manifest, and does not overwrite or delete original media.
+
 ## R2 Upload
 
 From the repository root:

@@ -4,10 +4,6 @@ import path from 'node:path';
 import process from 'node:process';
 
 const root = process.cwd();
-const packageRoot = path.resolve(root, "don't push", 'sitedata', 'r2-upload', 'goldenone');
-const manifestPath = path.join(packageRoot, 'r2-upload-manifest.json');
-const statePath = path.join(packageRoot, '.upload-state.json');
-const sourceRoot = path.resolve(packageRoot, '..', '..');
 const wranglerEntry = path.resolve(root, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
 const args = process.argv.slice(2);
 const has = flag => args.includes(flag);
@@ -20,7 +16,12 @@ const dryRun = has('--dry-run');
 const forceAll = has('--force-all');
 const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
+const defaultManifestPath = path.resolve(root, "don't push", 'sitedata', 'r2-upload', 'goldenone', 'r2-upload-manifest.json');
+const manifestPath = path.resolve(root, option('--manifest', defaultManifestPath));
+const packageRoot = path.dirname(manifestPath);
+const statePath = path.join(packageRoot, '.upload-state.json');
 const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+const sourceRoot = path.resolve(packageRoot, String(manifest.sourceRoot || '.'));
 const bucket = option('--bucket', String(manifest.bucket || '').trim());
 if (!bucket) throw new Error('R2 bucket is missing from the upload manifest.');
 
@@ -71,7 +72,9 @@ let cursor = 0;
 let completedThisRun = 0;
 const failures = [];
 const uploadOne = async ({ entry, index }) => {
-  const source = path.resolve(sourceRoot, ...String(entry.sourceFile).split('/'));
+  const sourceReference = String(entry.localFile || entry.sourceFile || '').trim();
+  if (!sourceReference) throw new Error(`Manifest object is missing localFile/sourceFile: ${entry.r2ObjectKey}`);
+  const source = path.resolve(sourceRoot, ...sourceReference.split('/'));
   const target = `${bucket}/${entry.r2ObjectKey}`;
   const wranglerArgs = [
     'r2', 'object', 'put', target,

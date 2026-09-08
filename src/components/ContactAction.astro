@@ -23,6 +23,10 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
     data-error-label={copy.sendError}
   >
     <button class="contact-action-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label={copy.contactUs} data-contact-action-trigger>
+      <svg class="contact-action-trigger__open" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 5.5h14v10H9l-4 3v-13Z" />
+        <path d="M8.5 9h7M8.5 12h5" />
+      </svg>
       <span class="contact-action-trigger__label">{copy.contactUs}</span>
       <svg class="contact-action-trigger__close" viewBox="0 0 24 24" aria-hidden="true">
         <path d="m6 6 12 12M18 6 6 18" />
