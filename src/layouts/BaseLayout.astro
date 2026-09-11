@@ -202,7 +202,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
       <div class="site-header-main">
         <nav class="container nav" aria-label={dictionary.nav.mainNavigation}>
           <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name}: ${dictionary.nav.home}`}>
-            <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="154" height="60" decoding="async" />
+            <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="830" height="712" decoding="async" />
           </a>
           <form class="site-search" action={localizePath('/products/', pageLocale)} method="get" role="search" data-site-search data-category-search={JSON.stringify(categorySearchEntries)}>
             <label class="sr-only" for="site-product-search">{productSearchLabel}</label>
@@ -303,7 +303,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
       <div class="container footer-shell">
         <div class="footer-brand-card">
           <a class="footer-brand-lockup" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name}: ${dictionary.nav.home}`}>
-            <img src={brandAssets.icon} alt="" loading="lazy" decoding="async" width="46" height="46" />
+            <img class="footer-brand-logo" src={brandAssets.logo} alt={`${siteInfo.name} logo`} loading="lazy" decoding="async" width="830" height="712" />
             <span>
               <strong>{siteInfo.name}</strong>
               <small>{localizedIndustry}</small>
@@ -312,9 +312,8 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
           <p class="footer-brand-summary" dir={localeInfo.dir}>{siteInfo.description}</p>
           <div class="footer-socials" aria-label={`${siteInfo.name} social media`}>
             {socialLinks.map(link => (
-              <a class="social-button" href={link.href} target="_blank" rel="noopener" aria-label={`${dictionary.common.visitOn} ${link.name}: ${siteInfo.name}`}>
-                <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="18" height="18" /></span>
-                <small>{link.name}</small>
+              <a class="social-button" href={link.href} target="_blank" rel="noopener" title={link.name} aria-label={`${dictionary.common.visitOn} ${link.name}: ${siteInfo.name}`}>
+                <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="20" height="20" /></span>
               </a>
             ))}
           </div>

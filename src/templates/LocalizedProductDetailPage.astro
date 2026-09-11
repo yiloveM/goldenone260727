@@ -143,6 +143,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
         <a href="#product-overview">{pages.product.overviewEyebrow}</a>
         <a href="#product-specifications">{pages.product.specsEyebrow}</a>
         {productDetailImages.length > 0 && <a href="#product-gallery">{common.featureImages}</a>}
+        {localized.applications.length > 0 && <a href="#product-applications">{pages.product.applicationsTitle}</a>}
         {localized.faqs.length > 0 && <a href="#product-faq">{pages.product.faqEyebrow}</a>}
       </div>
     </nav>
@@ -163,14 +164,6 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
           ))}
         </ul>
 
-        {localized.applications.length > 0 && (
-          <div class="product-application-section" dir="ltr">
-            <h3>{pages.product.applicationsTitle}</h3>
-            <ul class="application-list">
-              {localized.applications.map(item => <li>{item}</li>)}
-            </ul>
-          </div>
-        )}
       </div>
     </section>
 
@@ -245,8 +238,22 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
 
     <ProductMediaGallery detailImages={productDetailImages} title={localized.title} />
 
+    {localized.applications.length > 0 && (
+      <section id="product-applications" class="product-content-band product-content-band--alternate product-application-band">
+        <div class="container product-application-section" dir="ltr">
+          <header class="product-section-heading">
+            <span class="eyebrow">{pages.product.applicationsTitle}</span>
+            <h2>{locale === 'es' ? 'Dónde se utiliza este producto.' : translateTechnicalText('Where this product is used.', locale)}</h2>
+          </header>
+          <ul class="application-list" aria-label={`${localized.title}: ${pages.product.applicationsTitle}`}>
+            {localized.applications.map(item => <li>{item}</li>)}
+          </ul>
+        </div>
+      </section>
+    )}
+
     {localized.faqs.length > 0 && (
-      <section id="product-faq" class="product-content-band product-content-band--alternate">
+      <section id="product-faq" class="product-content-band">
         <div class="container product-faq-section">
           <header class="product-section-heading" dir="ltr">
             <span class="eyebrow">{pages.product.faqEyebrow}</span>

@@ -4179,16 +4179,90 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
     max-height: 390px;
   }
 }
-/* Golden One semantic product media stories. */
-.site-header .logo-image,
-.site-header .logo:hover .logo-image,
-.site-header .logo:focus-visible .logo-image {
+/* Golden One header, footer, and unified product-reference presentation. */
+.site-header .logo {
+  width: min(150px, 100%);
+  height: 98px;
+  overflow: hidden;
+  justify-content: center;
+}
+
+.site-header .logo-image {
+  width: 144px;
+  height: 96px;
+  object-fit: contain;
+  transform: scale(1.18);
+  transform-origin: center;
   filter: none !important;
 }
 
+.site-header .logo:hover .logo-image,
+.site-header .logo:focus-visible .logo-image {
+  transform: scale(1.23);
+  filter: none !important;
+}
+
+.footer-brand-lockup {
+  gap: 14px;
+  align-items: center;
+}
+
+.footer-brand-logo {
+  width: 88px;
+  height: 88px;
+  flex: 0 0 88px;
+  object-fit: contain;
+  transform: scale(1.12);
+  filter: none;
+}
+
+.footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer-socials .social-button {
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(17, 69, 64, .58);
+}
+
+.footer-socials .social-button span {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 0;
+  background: transparent;
+}
+
+.footer-socials .social-button span img {
+  width: 20px;
+  height: 20px;
+}
+
+.footer-socials .social-button:hover,
+.footer-socials .social-button:focus-visible {
+  border-color: rgba(255, 255, 255, .7);
+  color: #fff;
+  background: var(--go-footer-deep);
+  transform: translateY(-2px);
+}
+
 .product-content-band--media {
-  padding-block: 0;
-  overflow: hidden;
+  padding-block: clamp(58px, 7vw, 90px);
+  overflow: visible;
   background: #fff;
 }
 
@@ -4196,63 +4270,122 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
   padding-block: 0;
 }
 
-.product-media-story {
-  padding-block: clamp(54px, 7vw, 92px);
-}
-
-.product-media-story + .product-media-story {
-  border-top: 1px solid #dfe8e5;
-}
-
-.product-media-story--alternate {
-  background: #f4f7f6;
-  box-shadow: 0 0 0 100vmax #f4f7f6;
-  clip-path: inset(0 -100vmax);
-}
-
-.product-media-story__heading {
+.product-reference-gallery__heading {
   max-width: 760px;
   margin-bottom: 30px;
 }
 
-.product-media-story__heading p {
-  max-width: 68ch;
-  margin: 12px 0 0;
-  color: #536863;
-  font-size: 1rem;
-  line-height: 1.75;
+.product-detail-page .product-reference-gallery .product-feature-image-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2.2vw, 28px);
+  align-items: start;
 }
 
-.product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.product-detail-page .product-reference-gallery .product-feature-image {
+  display: grid;
+  grid-template-rows: auto auto;
+  overflow: hidden;
+  border: 1px solid #d8e4e1;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(24, 72, 65, .07);
 }
 
-.product-media-story:not(.product-media-story--examples) .product-feature-image {
-  grid-template-rows: minmax(190px, 1fr) auto;
+.product-detail-page .product-reference-gallery .product-feature-image img {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 4 / 3;
+  padding: clamp(12px, 1.5vw, 20px);
+  object-fit: contain;
+  background: #f6f9f8;
 }
 
-.product-media-story:not(.product-media-story--examples) .product-feature-image img {
-  max-height: 280px;
+.product-detail-page .product-reference-gallery .product-feature-image figcaption {
+  min-height: 112px;
+  padding: 15px 17px 18px;
+  border-top: 1px solid #e1e9e7;
+  background: #fff;
 }
 
-.product-media-story .product-feature-image figcaption {
-  min-height: 58px;
+.product-detail-page .product-reference-gallery .product-feature-image figcaption strong,
+.product-detail-page .product-reference-gallery .product-feature-image figcaption span {
+  display: block;
+}
+
+.product-detail-page .product-reference-gallery .product-feature-image figcaption strong {
+  color: var(--go-ink);
+  font-size: .94rem;
+  line-height: 1.4;
+}
+
+.product-detail-page .product-reference-gallery .product-feature-image figcaption span {
+  margin-top: 6px;
+  color: #5c6f6b;
+  font-size: .84rem;
+  line-height: 1.55;
+}
+
+.product-application-band .product-application-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.product-application-band .application-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.product-application-band .application-list li {
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid #d7e5e1;
+  border-radius: 5px;
+  color: #36534c;
+  background: #fff;
+  font-weight: 700;
 }
 
 @media (max-width: 1040px) {
-  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 780px) {
-  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+  .product-detail-page .product-reference-gallery .product-feature-image-grid,
+  .product-application-band .application-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 520px) {
-  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+@media (max-width: 780px) {
+  .site-header .logo {
+    width: 88px;
+    height: 64px;
+    justify-content: flex-start;
+  }
+
+  .site-header .logo-image {
+    width: 82px;
+    height: 64px;
+    transform: scale(1.16);
+  }
+
+  .site-header .logo:hover .logo-image,
+  .site-header .logo:focus-visible .logo-image {
+    transform: scale(1.2);
+  }
+
+  .footer-brand-logo {
+    width: 76px;
+    height: 76px;
+    flex-basis: 76px;
+  }
+
+  .product-detail-page .product-reference-gallery .product-feature-image-grid,
+  .product-application-band .application-list {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .product-detail-page .product-reference-gallery .product-feature-image figcaption {
+    min-height: 0;
   }
 }

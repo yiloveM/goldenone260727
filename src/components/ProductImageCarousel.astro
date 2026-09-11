@@ -122,7 +122,7 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
         };
         const start = () => {
           if (prefersReducedMotion || !isVisible || timer || root.dataset.autoplay !== 'true') return;
-          timer = window.setInterval(() => show(activeIndex + 1), 5000);
+          timer = window.setInterval(() => show(activeIndex + 1), 3200);
         };
         const restart = () => {
           stop();

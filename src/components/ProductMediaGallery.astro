@@ -13,41 +13,51 @@ interface Props {
   title: string;
 }
 
-type GroupKey = 'examples' | 'customization' | 'finishes' | 'dimensions' | 'edges' | 'attachments' | 'packaging' | 'construction' | 'references';
+type FeatureKind = 'examples' | 'customization' | 'finishes' | 'dimensions' | 'edges' | 'attachments' | 'packaging' | 'construction' | 'references';
 
 const { detailImages = [], title } = Astro.props;
 const locale = getLocaleFromPathname(Astro.url.pathname);
 const spanish = locale === 'es';
 const common = ui[locale].common;
-const featureImages = detailImages.filter(item => item.image);
+const featureImages = Array.from(
+  new Map(detailImages.filter(item => item.image).map(item => [item.image, item])).values()
+);
 
-const copy: Record<GroupKey, { eyebrow: string; title: string; description: string; item: string }> = spanish
+const copy = spanish
   ? {
-      examples: { eyebrow: 'Ejemplos reales', title: 'Formas de interpretar este producto', description: 'Compara siluetas, proporciones y detalles antes de decidir qué enfoque encaja mejor con tu diseño.', item: 'Ejemplo de producto' },
-      customization: { eyebrow: 'Diseño y personalización', title: 'Cómo trasladar el logotipo al objeto', description: 'Estas referencias ayudan a decidir qué información debe resolverse en metal, color, impresión o presentación.', item: 'Referencia de personalización' },
-      finishes: { eyebrow: 'Acabados y baños', title: 'Elige el carácter de la superficie', description: 'El brillo, el tono del metal y el contraste de las zonas hundidas cambian la lectura del mismo diseño.', item: 'Opción de acabado' },
-      dimensions: { eyebrow: 'Tamaño y proporción', title: 'Comprueba la escala antes de aprobar el diseño', description: 'La medida final debe dejar espacio suficiente para el texto, el relieve y los elementos funcionales.', item: 'Referencia de tamaño' },
-      edges: { eyebrow: 'Opciones de canto', title: 'El canto también forma parte del diseño', description: 'Compara perfiles lisos, texturados o grabados y confirma la opción elegida en la prueba final.', item: 'Opción de canto' },
-      attachments: { eyebrow: 'Cierres y accesorios', title: 'Selecciona el herraje según el uso', description: 'El cierre, la cinta, la anilla o la cadena deben responder al modo en que se llevará o entregará la pieza.', item: 'Opción de accesorio' },
-      packaging: { eyebrow: 'Presentación', title: 'Prepara la pieza para entrega o exposición', description: 'La presentación puede ser sencilla para distribución o más cuidada para regalo, colección y reconocimiento.', item: 'Opción de presentación' },
-      construction: { eyebrow: 'Construcción', title: 'Revisa la forma y el montaje', description: 'Estas imágenes muestran decisiones estructurales que conviene resolver antes de cerrar la especificación.', item: 'Referencia de construcción' },
-      references: { eyebrow: 'Referencias adicionales', title: 'Más detalles para comparar', description: 'Utiliza estas imágenes para señalar el resultado que buscas al enviar tu consulta.', item: 'Referencia' },
+      eyebrow: 'Detalles del producto',
+      title: 'Opciones visuales y referencias del producto',
+      fallback: 'Referencia del producto',
+      notes: {
+        examples: 'Ejemplo real para comparar forma, relieve, color y proporción.',
+        customization: 'Referencia para decidir cómo aplicar el logotipo, el color o la presentación.',
+        finishes: 'Compara el tono del metal, el brillo y la textura antes de aprobar el diseño.',
+        dimensions: 'Utiliza esta guía para comprobar el tamaño y la proporción del diseño final.',
+        edges: 'Compara el perfil y el acabado del canto antes de confirmar la especificación.',
+        attachments: 'Selecciona el cierre o accesorio según el uso previsto de la pieza.',
+        packaging: 'Compara opciones de presentación para entrega, regalo o exposición.',
+        construction: 'Referencia de forma, estructura y montaje para revisar el diseño.',
+        references: 'Referencia visual para indicar el resultado deseado en la consulta.',
+      },
     }
   : {
-      examples: { eyebrow: 'Product examples', title: 'Ways to interpret this format', description: 'Compare silhouettes, proportions, and surface detail before deciding which approach best suits the artwork.', item: 'Product example' },
-      customization: { eyebrow: 'Artwork and customization', title: 'Translating the logo into the object', description: 'Use these references to decide what belongs in metal, color, print, hardware, or presentation.', item: 'Customization reference' },
-      finishes: { eyebrow: 'Finishes and plating', title: 'Choose the character of the surface', description: 'Metal tone, reflectivity, and recessed contrast can change how the same artwork reads.', item: 'Finish option' },
-      dimensions: { eyebrow: 'Size and proportion', title: 'Check the scale before approving artwork', description: 'The final dimensions need enough room for lettering, relief, color, and any functional parts.', item: 'Size reference' },
-      edges: { eyebrow: 'Edge options', title: 'Treat the edge as part of the design', description: 'Compare plain, textured, and engraved profiles, then identify the selected edge in the final proof.', item: 'Edge option' },
-      attachments: { eyebrow: 'Attachments and hardware', title: 'Match the fitting to the way the piece is used', description: 'Choose the backing, ribbon, ring, chain, or clasp around how the item will be worn, handled, or presented.', item: 'Hardware option' },
-      packaging: { eyebrow: 'Presentation', title: 'Prepare the piece for delivery or display', description: 'Presentation can stay simple for distribution or become part of the experience for gifts, collections, and awards.', item: 'Presentation option' },
-      construction: { eyebrow: 'Construction', title: 'Review form and assembly', description: 'These references show structural choices worth resolving before the specification is finalized.', item: 'Construction reference' },
-      references: { eyebrow: 'Additional references', title: 'More details to compare', description: 'Point to the closest example when explaining the result you want in your inquiry.', item: 'Reference' },
+      eyebrow: 'Product details',
+      title: 'Visual options and product references',
+      fallback: 'Product reference',
+      notes: {
+        examples: 'A real product example for comparing shape, relief, color, and proportion.',
+        customization: 'Use this reference to decide how the logo, color, or presentation should be applied.',
+        finishes: 'Compare metal tone, reflectivity, and texture before approving the artwork.',
+        dimensions: 'Use this guide to check the size and proportion of the finished design.',
+        edges: 'Compare the edge profile and treatment before confirming the specification.',
+        attachments: 'Choose the backing or attachment around how the finished piece will be used.',
+        packaging: 'Compare presentation choices for delivery, gifting, or display.',
+        construction: 'A form, structure, or assembly reference for reviewing the design.',
+        references: 'A visual reference for showing the intended result in your inquiry.',
+      },
     };
 
-const groupOrder: GroupKey[] = ['examples', 'customization', 'finishes', 'dimensions', 'edges', 'attachments', 'construction', 'packaging', 'references'];
-
-const classifyImage = (item: DetailImage): GroupKey => {
+const classifyImage = (item: DetailImage): FeatureKind => {
   const value = `${item.image} ${item.title || ''} ${item.caption || ''}`.toLowerCase();
   if (/\/(?:gallery|product-images?)\//.test(value) && !value.includes('/_shared/')) return 'examples';
   if (/plating|finish|polished|sandblasted/.test(value)) return 'finishes';
@@ -59,10 +69,6 @@ const classifyImage = (item: DetailImage): GroupKey => {
   if (/customization|logo-method|artwork/.test(value)) return 'customization';
   return 'references';
 };
-
-const groupedImages = groupOrder
-  .map(key => ({ key, ...copy[key], images: featureImages.filter(item => classifyImage(item) === key) }))
-  .filter(group => group.images.length > 0);
 
 const assetLabel = (item: DetailImage, fallback: string) => {
   const current = String(item.title || '').trim();
@@ -79,51 +85,42 @@ const assetLabel = (item: DetailImage, fallback: string) => {
     return fallback;
   }
 };
+
+const captionFor = (item: DetailImage, kind: FeatureKind) => {
+  const caption = String(item.caption || '').trim();
+  if (caption && !/(?:product reference supplied|reference supplied for|supplied for .* review)/i.test(caption)) return caption;
+  return copy.notes[kind];
+};
+
+const cards = featureImages.map((item, index) => {
+  const kind = classifyImage(item);
+  return {
+    ...item,
+    kind,
+    label: assetLabel(item, `${copy.fallback} ${index + 1}`),
+    description: captionFor(item, kind),
+  };
+});
 ---
 
-{groupedImages.length > 0 && (
+{cards.length > 0 && (
   <section id="product-gallery" class="product-content-band product-content-band--media" aria-label={`${title}: ${common.featureImages}`}>
     <div class="container product-reference-gallery">
-      {groupedImages.map((group, groupIndex) => {
-        const initialImages = group.images.slice(0, group.key === 'examples' ? 9 : 12);
-        const additionalImages = group.images.slice(initialImages.length);
-        return (
-          <section class:list={['product-media-story', `product-media-story--${group.key}`, { 'product-media-story--alternate': groupIndex % 2 === 1 }]}>
-            <header class="product-section-heading product-media-story__heading">
-              <span class="eyebrow">{group.eyebrow}</span>
-              <h2>{group.title}</h2>
-              <p>{group.description}</p>
-            </header>
-            <div class="product-feature-image-grid">
-              {initialImages.map((item, index) => {
-                const label = assetLabel(item, `${group.item} ${index + 1}`);
-                return (
-                  <figure class="product-feature-image">
-                    <PublicImage src={item.image} alt={`${title}: ${label}`} loading="lazy" decoding="async" width="1400" height="1050" />
-                    <figcaption><strong>{label}</strong></figcaption>
-                  </figure>
-                );
-              })}
-            </div>
-            {additionalImages.length > 0 && (
-              <details class="product-gallery-more">
-                <summary>{spanish ? `Ver ${additionalImages.length} referencias más` : `View ${additionalImages.length} more references`}</summary>
-                <div class="product-feature-image-grid">
-                  {additionalImages.map((item, index) => {
-                    const label = assetLabel(item, `${group.item} ${initialImages.length + index + 1}`);
-                    return (
-                      <figure class="product-feature-image">
-                        <PublicImage src={item.image} alt={`${title}: ${label}`} loading="lazy" decoding="async" width="1400" height="1050" />
-                        <figcaption><strong>{label}</strong></figcaption>
-                      </figure>
-                    );
-                  })}
-                </div>
-              </details>
-            )}
-          </section>
-        );
-      })}
+      <header class="product-section-heading product-reference-gallery__heading">
+        <span class="eyebrow">{copy.eyebrow}</span>
+        <h2>{copy.title}</h2>
+      </header>
+      <div class="product-feature-image-grid">
+        {cards.map(item => (
+          <figure class="product-feature-image" data-feature-kind={item.kind}>
+            <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+            <figcaption>
+              <strong>{item.label}</strong>
+              <span>{item.description}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
     </div>
   </section>
 )}
