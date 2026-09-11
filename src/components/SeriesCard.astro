@@ -20,9 +20,11 @@ const translationDraft = locale === 'en'
   : findPublishedProductTranslation(await getCollection('productTranslations'), slug, locale);
 const localized = applyProductTranslationDraft(baseLocalized, translationDraft);
 const categoryName = locale === 'en' ? (getCategoryMeta(product.data.category).displayName || getCategoryMeta(product.data.category).name) : localized.categoryName;
-const tags = locale === 'en'
-  ? baseLocalized.tags
-  : [localized.categoryName, localized.series, ...localized.highlights].filter(Boolean).slice(0, 4);
+const tags = Array.from(new Set([
+  localized.series,
+  categoryName,
+  ...localized.highlights,
+].filter(Boolean))).slice(0, 4);
 const image = product.data.image || brandAssets.heroCenter;
 ---
 <article class="series-card shadow-sm rounded-2xl border border-transparent hover:border-cyan-400 hover:shadow-cyan-500/20">

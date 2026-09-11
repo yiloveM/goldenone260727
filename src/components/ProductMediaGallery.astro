@@ -19,6 +19,14 @@ const { detailImages = [], title } = Astro.props;
 const locale = getLocaleFromPathname(Astro.url.pathname);
 const spanish = locale === 'es';
 const common = ui[locale].common;
+const productTerm = title
+  .replace(/^Custom\s+/i, '')
+  .replace(/^Personalizad(?:o|a|os|as)\s+/i, '')
+  .trim()
+  .toLocaleLowerCase(spanish ? 'es' : 'en')
+  .replace(/\b([23])d\b/g, '$1D')
+  .replace(/\bpvc\b/g, 'PVC')
+  .replace(/\bopp\b/g, 'OPP');
 const featureImages = Array.from(
   new Map(detailImages.filter(item => item.image).map(item => [item.image, item])).values()
 );
@@ -26,45 +34,49 @@ const featureImages = Array.from(
 const copy = spanish
   ? {
       eyebrow: 'Detalles del producto',
-      title: 'Opciones visuales y referencias del producto',
+      title: `Opciones visuales y referencias de ${productTerm}`,
+      packagingEyebrow: 'Embalaje y presentación',
+      packagingTitle: `Opciones de embalaje para ${productTerm}`,
       fallback: 'Referencia del producto',
       notes: {
-        examples: 'Ejemplo real para comparar forma, relieve, color y proporción.',
-        customization: 'Referencia para decidir cómo aplicar el logotipo, el color o la presentación.',
-        finishes: 'Compara el tono del metal, el brillo y la textura antes de aprobar el diseño.',
-        dimensions: 'Utiliza esta guía para comprobar el tamaño y la proporción del diseño final.',
-        edges: 'Compara el perfil y el acabado del canto antes de confirmar la especificación.',
-        attachments: 'Selecciona el cierre o accesorio según el uso previsto de la pieza.',
-        packaging: 'Compara opciones de presentación para entrega, regalo o exposición.',
-        construction: 'Referencia de forma, estructura y montaje para revisar el diseño.',
-        references: 'Referencia visual para indicar el resultado deseado en la consulta.',
+        examples: `Ejemplo real de ${productTerm} para comparar forma, relieve, color y proporción.`,
+        customization: `Referencia de ${productTerm} para decidir la aplicación del logotipo, el color o la presentación.`,
+        finishes: `Compara el tono del metal, el brillo y la textura antes de aprobar el diseño de ${productTerm}.`,
+        dimensions: `Utiliza esta guía para comprobar el tamaño y la proporción final de ${productTerm}.`,
+        edges: `Compara el perfil y el acabado del canto antes de confirmar la especificación de ${productTerm}.`,
+        attachments: `Selecciona el cierre o accesorio según el uso previsto de ${productTerm}.`,
+        packaging: `Compara el embalaje de ${productTerm} para entrega, regalo o exposición.`,
+        construction: `Referencia de forma, estructura y montaje para revisar el diseño de ${productTerm}.`,
+        references: `Referencia visual de ${productTerm} para indicar el resultado deseado en tu consulta.`,
       },
     }
   : {
       eyebrow: 'Product details',
-      title: 'Visual options and product references',
+      title: `Visual options and references for ${productTerm}`,
+      packagingEyebrow: 'Packaging and presentation',
+      packagingTitle: `Packaging options for ${productTerm}`,
       fallback: 'Product reference',
       notes: {
-        examples: 'A real product example for comparing shape, relief, color, and proportion.',
-        customization: 'Use this reference to decide how the logo, color, or presentation should be applied.',
-        finishes: 'Compare metal tone, reflectivity, and texture before approving the artwork.',
-        dimensions: 'Use this guide to check the size and proportion of the finished design.',
-        edges: 'Compare the edge profile and treatment before confirming the specification.',
-        attachments: 'Choose the backing or attachment around how the finished piece will be used.',
-        packaging: 'Compare presentation choices for delivery, gifting, or display.',
-        construction: 'A form, structure, or assembly reference for reviewing the design.',
-        references: 'A visual reference for showing the intended result in your inquiry.',
+        examples: `A real ${productTerm} example for comparing shape, relief, color, and proportion.`,
+        customization: `Use this ${productTerm} reference to decide how the logo, color, or presentation should be applied.`,
+        finishes: `Compare metal tone, reflectivity, and texture before approving the artwork for ${productTerm}.`,
+        dimensions: `Use this guide to check the finished size and proportion of ${productTerm}.`,
+        edges: `Compare edge profiles and treatments before confirming the specification for ${productTerm}.`,
+        attachments: `Choose the backing or attachment around the intended use of ${productTerm}.`,
+        packaging: `Compare packaging for ${productTerm} across delivery, gifting, and display needs.`,
+        construction: `A form, structure, or assembly reference for reviewing the design of ${productTerm}.`,
+        references: `A visual ${productTerm} reference for showing the intended result in your inquiry.`,
       },
     };
 
 const classifyImage = (item: DetailImage): FeatureKind => {
   const value = `${item.image} ${item.title || ''} ${item.caption || ''}`.toLowerCase();
   if (/\/(?:gallery|product-images?)\//.test(value) && !value.includes('/_shared/')) return 'examples';
+  if (/pack(?:ag(?:e|ing)|ing)|presentation|gift[\s-]?box|velvet[\s-]?pouch|opp[\s-]?bag/.test(value)) return 'packaging';
   if (/plating|finish|polished|sandblasted/.test(value)) return 'finishes';
   if (/edge-option|\/edges?\//.test(value)) return 'edges';
   if (/hardware|backing|clutch|ribbon|attachment/.test(value)) return 'attachments';
   if (/size-guide|dimension|comparison-guide/.test(value)) return 'dimensions';
-  if (/packaging|presentation/.test(value)) return 'packaging';
   if (/construction|assembly/.test(value)) return 'construction';
   if (/customization|logo-method|artwork/.test(value)) return 'customization';
   return 'references';
@@ -101,26 +113,51 @@ const cards = featureImages.map((item, index) => {
     description: captionFor(item, kind),
   };
 });
+const referenceCards = cards.filter(item => item.kind !== 'packaging');
+const packagingCards = cards.filter(item => item.kind === 'packaging');
 ---
 
 {cards.length > 0 && (
   <section id="product-gallery" class="product-content-band product-content-band--media" aria-label={`${title}: ${common.featureImages}`}>
     <div class="container product-reference-gallery">
-      <header class="product-section-heading product-reference-gallery__heading">
-        <span class="eyebrow">{copy.eyebrow}</span>
-        <h2>{copy.title}</h2>
-      </header>
-      <div class="product-feature-image-grid">
-        {cards.map(item => (
-          <figure class="product-feature-image" data-feature-kind={item.kind}>
-            <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
-            <figcaption>
-              <strong>{item.label}</strong>
-              <span>{item.description}</span>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+      {referenceCards.length > 0 && (
+        <div class="product-reference-gallery__main">
+          <header class="product-section-heading product-reference-gallery__heading">
+            <span class="eyebrow">{copy.eyebrow}</span>
+            <h2>{copy.title}</h2>
+          </header>
+          <div class="product-feature-image-grid" data-product-reference-grid>
+            {referenceCards.map(item => (
+              <figure class="product-feature-image" data-feature-kind={item.kind}>
+                <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                <figcaption>
+                  <strong>{item.label}</strong>
+                  <span>{item.description}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
+      {packagingCards.length > 0 && (
+        <section class="product-packaging-gallery" aria-label={copy.packagingTitle}>
+          <header class="product-section-heading product-reference-gallery__heading product-packaging-gallery__heading">
+            <span class="eyebrow">{copy.packagingEyebrow}</span>
+            <h2>{copy.packagingTitle}</h2>
+          </header>
+          <div class="product-packaging-grid" data-product-packaging-grid>
+            {packagingCards.map(item => (
+              <figure class="product-feature-image product-packaging-card" data-feature-kind={item.kind}>
+                <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                <figcaption>
+                  <strong>{item.label}</strong>
+                  <span>{item.description}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   </section>
 )}

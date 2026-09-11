@@ -152,7 +152,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
       <div class="container">
         <header class="product-section-heading" dir="ltr">
           <span class="eyebrow">{pages.product.highlightsEyebrow}</span>
-          <h2>{pages.product.highlightsTitle}</h2>
+          <h2>{locale === 'es' ? `${localized.title}: atributos principales.` : `${localized.title}: ${pages.product.highlightsTitle}`}</h2>
         </header>
 
         <ul class="product-highlights" aria-label={`${localized.title}: ${common.highlights}`} dir="ltr">
@@ -171,7 +171,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
       <div class="container product-specification-section">
         <header class="product-section-heading" dir="ltr">
           <span class="eyebrow">{pages.product.specsEyebrow}</span>
-          <h2>{pages.product.specsTitle}</h2>
+          <h2>{locale === 'es' ? `${localized.title}: especificaciones y opciones disponibles.` : `${localized.title}: ${pages.product.specsTitle}`}</h2>
         </header>
 
         <div class="table-hint-row">
@@ -185,7 +185,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
 
         {localized.specTables.length > 0 && (
           <div class="product-model-tables" dir="ltr">
-            <h3>{pages.product.modelEyebrow}</h3>
+            <h3>{locale === 'es' ? `Especificaciones por modelo de ${localized.title}` : `${localized.title}: ${pages.product.modelEyebrow}`}</h3>
             <div class="spec-table-stack">
               {localized.specTables.map((table, tableIndex) => {
                 const sourceTitle = product.data.specTables[tableIndex]?.title || table.title;
@@ -243,7 +243,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
         <div class="container product-application-section" dir="ltr">
           <header class="product-section-heading">
             <span class="eyebrow">{pages.product.applicationsTitle}</span>
-            <h2>{locale === 'es' ? 'Dónde se utiliza este producto.' : translateTechnicalText('Where this product is used.', locale)}</h2>
+            <h2>{locale === 'es' ? `Aplicaciones habituales de ${localized.title}.` : `${localized.title}: ${translateTechnicalText('Typical applications.', locale)}`}</h2>
           </header>
           <ul class="application-list" aria-label={`${localized.title}: ${pages.product.applicationsTitle}`}>
             {localized.applications.map(item => <li>{item}</li>)}
@@ -257,7 +257,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
         <div class="container product-faq-section">
           <header class="product-section-heading" dir="ltr">
             <span class="eyebrow">{pages.product.faqEyebrow}</span>
-            <h2>{pages.product.faqTitle}</h2>
+            <h2>{locale === 'es' ? `Preguntas frecuentes sobre ${localized.title}.` : `${localized.title}: ${pages.product.faqTitle}`}</h2>
           </header>
           <div class="faq-accordion-list" dir="ltr">
             {localized.faqs.map(item => (

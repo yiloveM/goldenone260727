@@ -124,7 +124,7 @@ const tableHint = 'Drag / scroll to view full table';
       <div class="container">
         <header class="product-section-heading">
           <span class="eyebrow">Selection overview</span>
-          <h2>What defines this product.</h2>
+          <h2>{product.data.title}: key design features.</h2>
         </header>
 
         <ul class="product-highlights" aria-label={`${product.data.title} highlights`}>
@@ -143,7 +143,7 @@ const tableHint = 'Drag / scroll to view full table';
       <div class="container product-specification-section">
         <header class="product-section-heading">
           <span class="eyebrow">Product configuration</span>
-          <h2>General specifications and available options.</h2>
+          <h2>Specifications and options for {product.data.title}.</h2>
         </header>
 
         <div class="table-hint-row">
@@ -157,7 +157,7 @@ const tableHint = 'Drag / scroll to view full table';
 
         {product.data.specTables.length > 0 && (
           <div class="product-model-tables">
-            <h3>Model specifications</h3>
+            <h3>{product.data.title} model specifications</h3>
             <div class="spec-table-stack">
               {product.data.specTables.map(table => (
                 <div class="table-wrap" data-spec-table>
@@ -206,7 +206,7 @@ const tableHint = 'Drag / scroll to view full table';
         <div class="container product-application-section">
           <header class="product-section-heading">
             <span class="eyebrow">Applications</span>
-            <h2>Where this product is used.</h2>
+            <h2>Where {product.data.title} is used.</h2>
           </header>
           <ul class="application-list" aria-label={`${product.data.title} applications`}>
             {product.data.applications.map(item => <li>{item}</li>)}
@@ -220,7 +220,7 @@ const tableHint = 'Drag / scroll to view full table';
         <div class="container product-faq-section">
           <header class="product-section-heading">
             <span class="eyebrow">FAQ</span>
-            <h2>Common questions.</h2>
+            <h2>Questions about {product.data.title}.</h2>
           </header>
           <div class="faq-accordion-list">
             {product.data.faqs.map(item => (

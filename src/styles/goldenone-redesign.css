@@ -4211,7 +4211,10 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
   width: 88px;
   height: 88px;
   flex: 0 0 88px;
+  border: 0;
   object-fit: contain;
+  background: transparent;
+  box-shadow: none;
   transform: scale(1.12);
   filter: none;
 }
@@ -4388,4 +4391,37 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
   .product-detail-page .product-reference-gallery .product-feature-image figcaption {
     min-height: 0;
   }
+}
+
+/* Final product gallery controls and packaging presentation. */
+.product-image-carousel__thumbnails[data-carousel-thumbnails] {
+  cursor: grab;
+  user-select: none;
+}
+
+.product-image-carousel__thumbnails[data-carousel-thumbnails].is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+.product-packaging-gallery {
+  margin-top: clamp(52px, 7vw, 84px);
+  padding-top: clamp(42px, 5vw, 64px);
+  border-top: 1px solid #dbe7e4;
+}
+
+.product-packaging-gallery__heading {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.product-reference-gallery .product-packaging-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(18px, 2.2vw, 28px);
+}
+
+.product-detail-page .product-packaging-card {
+  width: min(100%, 410px);
 }

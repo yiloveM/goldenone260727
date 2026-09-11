@@ -15,7 +15,11 @@ const slug = product.id.replace(/\.mdoc$/, '');
 const category = getCategoryMeta(product.data.category);
 const localized = localizedProduct(product, locale);
 const categoryName = locale === 'en' ? (category.displayName || category.name) : localized.categoryName;
-const tags = localized.tags;
+const tags = Array.from(new Set([
+  localized.series,
+  categoryName,
+  ...localized.highlights,
+].filter(Boolean))).slice(0, 4);
 ---
 <article class="card">
   <a href={productPath(slug, locale)}>
