@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SeriesCard from '../components/SeriesCard.astro';
 import ShareButtons from '../components/ShareButtons.astro';
@@ -8,6 +9,7 @@ import { localizedProduct, localizedProductUrl, translateTechnicalText, ui } fro
 import { type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface LocalizedCategory {
   accent: string;
@@ -30,6 +32,11 @@ interface Props {
 const { locale, category } = Astro.props;
 const seoDescription = category.description;
 const categoryName = category.displayName || category.name;
+const productTranslationDrafts = await getCollection('productTranslations');
+const translatedProduct = (product: ProductEntry) => applyProductTranslationDraft(
+  localizedProduct(product, locale),
+  findPublishedProductTranslation(productTranslationDrafts, product.id.replace(/\.mdoc$/, ''), locale)
+);
 const categoryStructuredData = [
   collectionStructuredData(
     {
@@ -39,7 +46,7 @@ const categoryStructuredData = [
       image: category.image,
       keywords: [categoryName, ...category.highlights],
       items: category.products.map(product => ({
-        name: localizedProduct(product, locale).title,
+        name: translatedProduct(product).title,
         url: localizedProductUrl(product, locale),
         image: product.data.image,
       })),
@@ -87,7 +94,7 @@ const categoryStructuredData = [
       <div class="section-heading" dir="ltr">
         <span class="eyebrow">{category.count} {translateTechnicalText('product series', locale)}</span>
         <h2>{categoryName}</h2>
-        <p class="prose">{translateTechnicalText('Compare published items by design, application, model range and project fit.', locale)}</p>
+        <p class="prose">{translateTechnicalText('Compare products by design, intended use, available options, and fit for your project.', locale)}</p>
       </div>
       <div class="card-grid series-card-grid">
         {category.products.map(product => <SeriesCard product={product} locale={locale} />)}

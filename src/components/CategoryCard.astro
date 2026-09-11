@@ -1,9 +1,11 @@
 ---
+import { getCollection } from 'astro:content';
 import type { ProductCategory } from '../data/productCategories';
 import { type Locale, localizedProduct, translateProductCategory, ui } from '../data/i18n';
 import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 import PublicImage from './public/PublicImage.astro';
 import { keywordTag } from '../lib/keyword-tags';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface Props {
   category: ProductCategory;
@@ -14,6 +16,11 @@ interface Props {
 const { category: inputCategory, priority = false, locale = 'en' } = Astro.props;
 const category = translateProductCategory(inputCategory, locale);
 const sampleProducts = category.products.slice(0, 3);
+const productTranslationDrafts = locale === 'en' ? [] : await getCollection('productTranslations');
+const translatedSeries = (product: ProductCategory['products'][number]) => applyProductTranslationDraft(
+  localizedProduct(product, locale),
+  findPublishedProductTranslation(productTranslationDrafts, product.id.replace(/\.mdoc$/, ''), locale)
+);
 const categoryName = category.displayName || category.name;
 const categoryAccentImage = getR2WebpDeliveryUrl(category.image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || category.image;
 const viewLabel = `${ui[locale].nav.viewAll} ${categoryName}`;
@@ -42,7 +49,7 @@ const productsLabel = `${categoryName}: ${ui[locale].nav.categoryProducts}`;
       </div>
       {sampleProducts.length > 0 && (
         <div class="category-card-products" aria-label={productsLabel}>
-          {sampleProducts.map(product => <span>{keywordTag(localizedProduct(product, locale).series)}</span>)}
+          {sampleProducts.map(product => <span>{keywordTag(translatedSeries(product).series)}</span>)}
         </div>
       )}
     </div>

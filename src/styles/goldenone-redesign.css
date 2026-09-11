@@ -4179,3 +4179,80 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
     max-height: 390px;
   }
 }
+/* Golden One semantic product media stories. */
+.site-header .logo-image,
+.site-header .logo:hover .logo-image,
+.site-header .logo:focus-visible .logo-image {
+  filter: none !important;
+}
+
+.product-content-band--media {
+  padding-block: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.product-reference-gallery {
+  padding-block: 0;
+}
+
+.product-media-story {
+  padding-block: clamp(54px, 7vw, 92px);
+}
+
+.product-media-story + .product-media-story {
+  border-top: 1px solid #dfe8e5;
+}
+
+.product-media-story--alternate {
+  background: #f4f7f6;
+  box-shadow: 0 0 0 100vmax #f4f7f6;
+  clip-path: inset(0 -100vmax);
+}
+
+.product-media-story__heading {
+  max-width: 760px;
+  margin-bottom: 30px;
+}
+
+.product-media-story__heading p {
+  max-width: 68ch;
+  margin: 12px 0 0;
+  color: #536863;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.product-media-story:not(.product-media-story--examples) .product-feature-image {
+  grid-template-rows: minmax(190px, 1fr) auto;
+}
+
+.product-media-story:not(.product-media-story--examples) .product-feature-image img {
+  max-height: 280px;
+}
+
+.product-media-story .product-feature-image figcaption {
+  min-height: 58px;
+}
+
+@media (max-width: 1040px) {
+  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .product-media-story:not(.product-media-story--examples) .product-feature-image-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

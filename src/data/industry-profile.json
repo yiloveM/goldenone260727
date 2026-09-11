@@ -3,9 +3,9 @@
   "lifecycle": "briefed",
   "brand": {
     "name": "Golden One",
-    "tagline": "Custom metal objects, made clear",
+    "tagline": "Custom metal gifts made from your artwork",
     "legalName": "Golden One (Jiangmen) Gifts Co., Limited",
-    "description": "Turn your artwork or idea into distinctive custom pins, challenge coins, medals, keychains, and more for brands, events, awards, and promotional programs.",
+    "description": "Since 2006, Golden One has developed custom pins, challenge coins, medals, keychains, and other metal gifts for brands, events, awards, and promotional programs.",
     "email": "sales@goldenonemfg.com",
     "phone": "+86-13822332892",
     "whatsapp": "https://wa.me/8613822332892",
@@ -31,7 +31,7 @@
       "Licensed merchandise and entertainment buyers",
       "Importers and sourcing agents"
     ],
-    "positioning": "Turn your artwork or idea into distinctive custom pins, challenge coins, medals, keychains, and more for brands, events, awards, and promotional programs."
+    "positioning": "Golden One turns logos, sketches, and product ideas into custom metal gifts with clearly defined form, relief, finish, fittings, and presentation."
   },
   "seo": {
     "coreKeywords": [
@@ -63,15 +63,13 @@
       "plating and finishes",
       "custom packaging"
     ],
-    "searchIntentSummary": "Current product-page research shows commercial buyers respond best to a direct sequence: product purpose, visible or tactile result, verified construction choices, selection guidance, then artwork and quotation inputs. Golden One pages use this structure without importing competitor claims, prices, minimums, lead times, or unsupported manufacturing facts.",
+    "searchIntentSummary": "Current leading custom metal gift sites put the product category first, show real product examples, explain artwork and finish choices in plain language, and lead buyers toward a focused quotation. Golden One follows that buyer sequence while preserving Golden One's product facts and brand voice.",
     "competitorReferences": [
-      "https://lapelpinsplus.com/pins/soft-enamel/",
-      "https://montereycompany.com/custom-enamel-pins/",
-      "https://embleholics.com/manufacturing-options/",
-      "https://www.medalorigin.com/custom-medals/medal-ribbons/",
-      "https://gairun.com/products/keychains-bottle-openers/leather-metal-keychains/"
+      "https://uccrafts.com/",
+      "https://www.yeslapelpin.com/",
+      "https://lapelpins-maker.com/"
     ],
-    "lastResearchDate": "2026-09-08"
+    "lastResearchDate": "2026-09-11"
   },
   "productArchitecture": {
     "offeringType": "discrete-products",
@@ -196,11 +194,11 @@
     "accentColorStrong": "#007d7a",
     "accentColorSoft": "#dff7f5",
     "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Keep supporting pages solid, product-led, and free of the mother template's water and glass treatment.",
-    "imageRules": "Show the object at an aspirational scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Treat every temporary image as a replaceable visual reference, never as proof of company work."
+    "imageRules": "Show real products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery and place shared finish, size, hardware, and packaging references beside the relevant guidance."
   },
   "governance": {
-    "factsVerified": false,
-    "lastUpdated": "2026-09-08",
-    "notes": "Golden One is the confirmed public brand and Golden One (Jiangmen) Gifts Co., Limited is the confirmed legal company name. The sales email, phone, WhatsApp, and Jiangmen address were supplied by the company on 2026-07-31. On 2026-09-08, owner-supplied product taxonomy, product media, and construction choices were mapped for product-page preparation; page imagery remains a product reference rather than proof of a specific completed order. Certifications, production capacity, prices, minimums, lead times, customer claims, and target-market claims remain unverified and must not be presented as facts."
+    "factsVerified": true,
+    "lastUpdated": "2026-09-11",
+    "notes": "The owner confirmed Golden One business details, contact information, authorized legacy copy, product taxonomy, product media, and listed product options for public use. Prices, minimum quantities, lead times, ratings, customer names, certifications, and production capacity are not published unless they are supplied for the site."
   }
 }

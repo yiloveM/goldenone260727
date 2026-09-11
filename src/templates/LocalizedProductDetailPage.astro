@@ -236,7 +236,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
             <div class="localized-product-overview">
               <span class="eyebrow">{pages.product.overviewEyebrow}</span>
               <p>{localized.description}</p>
-              <p>{translateTechnicalText('This series helps buyers and project teams compare models, confirm application fit and prepare quotations with clear technical data.', locale)}</p>
+              <p>{locale === 'es' ? 'Compara el diseño, el uso y las opciones disponibles antes de preparar tu solicitud de cotización.' : translateTechnicalText('Compare the design, intended use, and available options before preparing your quotation request.', locale)}</p>
             </div>
           )}
         </article>

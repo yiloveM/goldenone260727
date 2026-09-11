@@ -51,9 +51,9 @@ const catalogStructuredData = [
     <section class="container catalog-custom-section" aria-labelledby="catalog-custom-title">
       <div class="surface-panel catalog-custom-panel">
         <div class="catalog-banner-strip" aria-label="Catalog summary">
-          <span tabindex="0"><strong>{sortedProducts.length}</strong> published items</span>
-          <span tabindex="0"><strong>{productCategories.length}</strong> active categories</span>
-          <span tabindex="0"><strong>Ready</strong> for buyer evaluation</span>
+          <span tabindex="0"><strong>{sortedProducts.length}</strong> products available</span>
+          <span tabindex="0"><strong>{productCategories.length}</strong> product categories</span>
+          <span tabindex="0"><strong>Ready</strong> to explore</span>
         </div>
         <div class="catalog-custom-layout">
           <div class="catalog-custom-copy">
@@ -68,9 +68,9 @@ const catalogStructuredData = [
           <div class="catalog-custom-cards">
             {[
               ['Format', 'Choose the pin, coin, medal, or keychain construction that best carries the design.'],
-              ['Artwork', 'Compare enamel, print, 2D relief, and sculpted 3D directions for the visual idea.'],
+              ['Artwork', 'Compare enamel, print, 2D relief, and sculpted 3D treatments for the artwork.'],
               ['Finish', 'Review plating color, surface character, edge treatment, and color application.'],
-              ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging direction.'],
+              ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging.'],
             ].map(item => (
               <article class="proof-card" tabindex="0" aria-label={item[0]}>
                 <strong>{item[0]}</strong>
@@ -96,15 +96,15 @@ const catalogStructuredData = [
     <section class="section container" id="product-series" style="padding-top:0;">
       <div class="section-heading">
         <span class="eyebrow">{pages.products.seriesEyebrow}</span>
-        <h2>{sortedProducts.length ? pages.products.seriesTitle : 'Verified product families will be published here'}</h2>
-        <p class="prose">{sortedProducts.length ? pages.products.description : 'The catalog remains intentionally empty until Golden One adds verified product information and imagery.'}</p>
+        <h2>{sortedProducts.length ? pages.products.seriesTitle : 'Product collections will appear here'}</h2>
+        <p class="prose">{sortedProducts.length ? pages.products.description : 'Golden One product information and imagery will appear here.'}</p>
       </div>
       {sortedProducts.length > 0 ? (
         <div class="card-grid series-card-grid">{sortedProducts.map(product => <SeriesCard product={product} />)}</div>
       ) : (
         <div class="surface-panel detail-panel">
           <span class="eyebrow">In preparation</span>
-          <h2>Verified product information is being prepared.</h2>
+          <h2>Product information is being prepared.</h2>
           <p class="prose">Contact the team with the object, artwork, quantity, destination, and timing available for your project.</p>
         </div>
       )}

@@ -69,8 +69,8 @@ const tableHint = 'Drag / scroll to view full table';
 
             <div class="product-meta-strip">
               <span>Custom artwork</span>
-              <span>Configurable finish</span>
-              <span>Quote-ready options</span>
+              <span>Finish and fitting options</span>
+              <span>International project support</span>
               {reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0 && (
                 <span>{product.data.aggregateRatingValue}/5 from {product.data.aggregateRatingCount} customer ratings</span>
               )}
@@ -123,7 +123,7 @@ const tableHint = 'Drag / scroll to view full table';
       <div class="container">
         <header class="product-section-heading">
           <span class="eyebrow">Selection overview</span>
-          <h2>Key details for artwork, finish and application planning.</h2>
+          <h2>What defines this product.</h2>
         </header>
 
         <ul class="product-highlights" aria-label={`${product.data.title} highlights`}>
@@ -150,7 +150,7 @@ const tableHint = 'Drag / scroll to view full table';
       <div class="container product-specification-section">
         <header class="product-section-heading">
           <span class="eyebrow">Product configuration</span>
-          <h2>Specifications and available model choices.</h2>
+          <h2>General specifications and available options.</h2>
         </header>
 
         <div class="table-hint-row">
@@ -234,7 +234,7 @@ const tableHint = 'Drag / scroll to view full table';
         <div class="section-heading">
           <span class="eyebrow">Related items</span>
           <h2>Compare more {productCategoryName.toLowerCase()} options</h2>
-          <p class="prose">Continue exploring the same range for model data, fit and quotation planning.</p>
+          <p class="prose">Compare more products in the same category and find the right format for your project.</p>
         </div>
         <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} />)}</div>
       </section>

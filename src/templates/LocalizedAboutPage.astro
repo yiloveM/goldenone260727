@@ -34,10 +34,10 @@ const aboutStructuredData = [
 const localizedFactoryGallery = factoryGallery.map(item => ({ ...item, title: translateTechnicalText(item.title, locale) }));
 const aboutCards = locale === 'es'
   ? [
-      ['Diseño', 'Empieza con la idea visual, el uso previsto y la forma que debe representarla.'],
-      ['Objeto', 'Define silueta, dimensiones, espesor, relieve, anverso, reverso y canto.'],
-      ['Acabado', 'Compara esmalte, baño, pulido, efecto antiguo, color y textura.'],
-      ['Presentación', 'Completa el proyecto con cierre, cinta, herrajes, cuero y embalaje.'],
+      ['Apoyo de diseño', 'Empieza con un logotipo, boceto, fotografía u objeto de referencia y define cómo se utilizará la pieza.'],
+      ['Moldes y conformado', 'El diseño aprobado se convierte en metal mediante moldes, utillaje, estampación y fundición.'],
+      ['Trabajo de superficie', 'El pulido, el esmaltado, la impresión y el baño definen el color, el contraste, la textura y el acabado final.'],
+      ['Montaje y embalaje', 'Los cierres, cintas, piezas de cuero y embalajes completan el producto, con controles desde la materia prima hasta el empaquetado final.'],
     ]
   : [
       ['Artwork', 'Start with the visual idea, intended use, and the form that should carry it.'],

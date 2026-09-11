@@ -28,11 +28,11 @@ export const visualTokens = {
 
 export const publicSiteCopy = {
   heroEyebrow: 'Pins / Coins / Medals / Keychains',
-  heroTitle: 'Custom metal gifts, shaped around your brief.',
+  heroTitle: 'Custom metal gifts made from your artwork.',
   heroDescription: clean(industryProfile.brand.description) || clean(industryProfile.market.positioning),
-  positioning: clean(industryProfile.market.positioning) || 'A trusted specialist partner for international B2B buyers.',
-  catalogDescription: 'Compare product formats, materials, finishes, attachments, ribbons, and packaging before preparing a quotation request.',
-  insightDescription: `Practical guidance for planning artwork, finishes, attachments, packaging, and purchasing requirements for ${industryName.toLowerCase()}.`,
+  positioning: clean(industryProfile.market.positioning) || 'Custom metal gift support for international buyers.',
+  catalogDescription: 'Explore pins, coins, medals, keychains, and other custom pieces, then compare materials, finishes, fittings, ribbons, and presentation.',
+  insightDescription: `Practical guidance for choosing artwork, finishes, fittings, packaging, and purchasing details for ${industryName.toLowerCase()}.`,
 };
 
 export const profileKeywords = (extra: string[] = []) =>

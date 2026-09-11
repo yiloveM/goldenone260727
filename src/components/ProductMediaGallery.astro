@@ -13,51 +13,117 @@ interface Props {
   title: string;
 }
 
+type GroupKey = 'examples' | 'customization' | 'finishes' | 'dimensions' | 'edges' | 'attachments' | 'packaging' | 'construction' | 'references';
+
 const { detailImages = [], title } = Astro.props;
+const locale = getLocaleFromPathname(Astro.url.pathname);
+const spanish = locale === 'es';
+const common = ui[locale].common;
 const featureImages = detailImages.filter(item => item.image);
-const initialImages = featureImages.slice(0, 12);
-const additionalImages = featureImages.slice(12);
-const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
+
+const copy: Record<GroupKey, { eyebrow: string; title: string; description: string; item: string }> = spanish
+  ? {
+      examples: { eyebrow: 'Ejemplos reales', title: 'Formas de interpretar este producto', description: 'Compara siluetas, proporciones y detalles antes de decidir qué enfoque encaja mejor con tu diseño.', item: 'Ejemplo de producto' },
+      customization: { eyebrow: 'Diseño y personalización', title: 'Cómo trasladar el logotipo al objeto', description: 'Estas referencias ayudan a decidir qué información debe resolverse en metal, color, impresión o presentación.', item: 'Referencia de personalización' },
+      finishes: { eyebrow: 'Acabados y baños', title: 'Elige el carácter de la superficie', description: 'El brillo, el tono del metal y el contraste de las zonas hundidas cambian la lectura del mismo diseño.', item: 'Opción de acabado' },
+      dimensions: { eyebrow: 'Tamaño y proporción', title: 'Comprueba la escala antes de aprobar el diseño', description: 'La medida final debe dejar espacio suficiente para el texto, el relieve y los elementos funcionales.', item: 'Referencia de tamaño' },
+      edges: { eyebrow: 'Opciones de canto', title: 'El canto también forma parte del diseño', description: 'Compara perfiles lisos, texturados o grabados y confirma la opción elegida en la prueba final.', item: 'Opción de canto' },
+      attachments: { eyebrow: 'Cierres y accesorios', title: 'Selecciona el herraje según el uso', description: 'El cierre, la cinta, la anilla o la cadena deben responder al modo en que se llevará o entregará la pieza.', item: 'Opción de accesorio' },
+      packaging: { eyebrow: 'Presentación', title: 'Prepara la pieza para entrega o exposición', description: 'La presentación puede ser sencilla para distribución o más cuidada para regalo, colección y reconocimiento.', item: 'Opción de presentación' },
+      construction: { eyebrow: 'Construcción', title: 'Revisa la forma y el montaje', description: 'Estas imágenes muestran decisiones estructurales que conviene resolver antes de cerrar la especificación.', item: 'Referencia de construcción' },
+      references: { eyebrow: 'Referencias adicionales', title: 'Más detalles para comparar', description: 'Utiliza estas imágenes para señalar el resultado que buscas al enviar tu consulta.', item: 'Referencia' },
+    }
+  : {
+      examples: { eyebrow: 'Product examples', title: 'Ways to interpret this format', description: 'Compare silhouettes, proportions, and surface detail before deciding which approach best suits the artwork.', item: 'Product example' },
+      customization: { eyebrow: 'Artwork and customization', title: 'Translating the logo into the object', description: 'Use these references to decide what belongs in metal, color, print, hardware, or presentation.', item: 'Customization reference' },
+      finishes: { eyebrow: 'Finishes and plating', title: 'Choose the character of the surface', description: 'Metal tone, reflectivity, and recessed contrast can change how the same artwork reads.', item: 'Finish option' },
+      dimensions: { eyebrow: 'Size and proportion', title: 'Check the scale before approving artwork', description: 'The final dimensions need enough room for lettering, relief, color, and any functional parts.', item: 'Size reference' },
+      edges: { eyebrow: 'Edge options', title: 'Treat the edge as part of the design', description: 'Compare plain, textured, and engraved profiles, then identify the selected edge in the final proof.', item: 'Edge option' },
+      attachments: { eyebrow: 'Attachments and hardware', title: 'Match the fitting to the way the piece is used', description: 'Choose the backing, ribbon, ring, chain, or clasp around how the item will be worn, handled, or presented.', item: 'Hardware option' },
+      packaging: { eyebrow: 'Presentation', title: 'Prepare the piece for delivery or display', description: 'Presentation can stay simple for distribution or become part of the experience for gifts, collections, and awards.', item: 'Presentation option' },
+      construction: { eyebrow: 'Construction', title: 'Review form and assembly', description: 'These references show structural choices worth resolving before the specification is finalized.', item: 'Construction reference' },
+      references: { eyebrow: 'Additional references', title: 'More details to compare', description: 'Point to the closest example when explaining the result you want in your inquiry.', item: 'Reference' },
+    };
+
+const groupOrder: GroupKey[] = ['examples', 'customization', 'finishes', 'dimensions', 'edges', 'attachments', 'construction', 'packaging', 'references'];
+
+const classifyImage = (item: DetailImage): GroupKey => {
+  const value = `${item.image} ${item.title || ''} ${item.caption || ''}`.toLowerCase();
+  if (/\/(?:gallery|product-images?)\//.test(value) && !value.includes('/_shared/')) return 'examples';
+  if (/plating|finish|polished|sandblasted/.test(value)) return 'finishes';
+  if (/edge-option|\/edges?\//.test(value)) return 'edges';
+  if (/hardware|backing|clutch|ribbon|attachment/.test(value)) return 'attachments';
+  if (/size-guide|dimension|comparison-guide/.test(value)) return 'dimensions';
+  if (/packaging|presentation/.test(value)) return 'packaging';
+  if (/construction|assembly/.test(value)) return 'construction';
+  if (/customization|logo-method|artwork/.test(value)) return 'customization';
+  return 'references';
+};
+
+const groupedImages = groupOrder
+  .map(key => ({ key, ...copy[key], images: featureImages.filter(item => classifyImage(item) === key) }))
+  .filter(group => group.images.length > 0);
+
+const assetLabel = (item: DetailImage, fallback: string) => {
+  const current = String(item.title || '').trim();
+  if (current && !/(?:product reference|option|guide|reference)\s+\d+$/i.test(current)) return current;
+  try {
+    const filename = decodeURIComponent(new URL(item.image).pathname.split('/').pop() || '')
+      .replace(/\.[a-z0-9]+$/i, '')
+      .replace(/-[a-f0-9]{10}$/i, '')
+      .replace(/[-_]+/g, ' ')
+      .trim();
+    if (!filename || filename === 'asset') return fallback;
+    return filename.replace(/\b\w/g, letter => letter.toUpperCase()).replace(/\b(2d|3d)\b/gi, value => value.toUpperCase());
+  } catch {
+    return fallback;
+  }
+};
 ---
 
-{featureImages.length > 0 && (
+{groupedImages.length > 0 && (
   <section id="product-gallery" class="product-content-band product-content-band--media" aria-label={`${title}: ${common.featureImages}`}>
     <div class="container product-reference-gallery">
-      <header class="product-section-heading">
-        <span class="eyebrow">{common.featureImages}</span>
-        <h2>{title}</h2>
-      </header>
-      <div class="product-feature-image-grid">
-        {initialImages.map(item => (
-          <figure class="product-feature-image">
-            <PublicImage src={item.image} alt={item.title || title} loading="lazy" decoding="async" width="1400" height="1050" />
-            {(item.title || item.caption) && (
-              <figcaption>
-                {item.title && <strong>{item.title}</strong>}
-                {item.caption && <span>{item.caption}</span>}
-              </figcaption>
+      {groupedImages.map((group, groupIndex) => {
+        const initialImages = group.images.slice(0, group.key === 'examples' ? 9 : 12);
+        const additionalImages = group.images.slice(initialImages.length);
+        return (
+          <section class:list={['product-media-story', `product-media-story--${group.key}`, { 'product-media-story--alternate': groupIndex % 2 === 1 }]}>
+            <header class="product-section-heading product-media-story__heading">
+              <span class="eyebrow">{group.eyebrow}</span>
+              <h2>{group.title}</h2>
+              <p>{group.description}</p>
+            </header>
+            <div class="product-feature-image-grid">
+              {initialImages.map((item, index) => {
+                const label = assetLabel(item, `${group.item} ${index + 1}`);
+                return (
+                  <figure class="product-feature-image">
+                    <PublicImage src={item.image} alt={`${title}: ${label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                    <figcaption><strong>{label}</strong></figcaption>
+                  </figure>
+                );
+              })}
+            </div>
+            {additionalImages.length > 0 && (
+              <details class="product-gallery-more">
+                <summary>{spanish ? `Ver ${additionalImages.length} referencias más` : `View ${additionalImages.length} more references`}</summary>
+                <div class="product-feature-image-grid">
+                  {additionalImages.map((item, index) => {
+                    const label = assetLabel(item, `${group.item} ${initialImages.length + index + 1}`);
+                    return (
+                      <figure class="product-feature-image">
+                        <PublicImage src={item.image} alt={`${title}: ${label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                        <figcaption><strong>{label}</strong></figcaption>
+                      </figure>
+                    );
+                  })}
+                </div>
+              </details>
             )}
-          </figure>
-        ))}
-      </div>
-      {additionalImages.length > 0 && (
-        <details class="product-gallery-more">
-          <summary>View {additionalImages.length} more reference images</summary>
-          <div class="product-feature-image-grid">
-            {additionalImages.map(item => (
-              <figure class="product-feature-image">
-                <PublicImage src={item.image} alt={item.title || title} loading="lazy" decoding="async" width="1400" height="1050" />
-                {(item.title || item.caption) && (
-                  <figcaption>
-                    {item.title && <strong>{item.title}</strong>}
-                    {item.caption && <span>{item.caption}</span>}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
-          </div>
-        </details>
-      )}
+          </section>
+        );
+      })}
     </div>
   </section>
 )}

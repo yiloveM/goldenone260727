@@ -1,10 +1,11 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { brandAssets } from '../data/assets';
 import { getCategoryMeta } from '../data/productCategories';
 import { type Locale, localizedProduct, productPath, ui } from '../data/i18n';
 import PublicImage from './public/PublicImage.astro';
 import { keywordTag } from '../lib/keyword-tags';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface Props {
   product: CollectionEntry<'products'>;
@@ -13,9 +14,15 @@ interface Props {
 
 const { product, locale = 'en' } = Astro.props;
 const slug = product.id.replace(/\.mdoc$/, '');
-const localized = localizedProduct(product, locale);
+const baseLocalized = localizedProduct(product, locale);
+const translationDraft = locale === 'en'
+  ? undefined
+  : findPublishedProductTranslation(await getCollection('productTranslations'), slug, locale);
+const localized = applyProductTranslationDraft(baseLocalized, translationDraft);
 const categoryName = locale === 'en' ? (getCategoryMeta(product.data.category).displayName || getCategoryMeta(product.data.category).name) : localized.categoryName;
-const tags = localized.tags;
+const tags = locale === 'en'
+  ? baseLocalized.tags
+  : [localized.categoryName, localized.series, ...localized.highlights].filter(Boolean).slice(0, 4);
 const image = product.data.image || brandAssets.heroCenter;
 ---
 <article class="series-card shadow-sm rounded-2xl border border-transparent hover:border-cyan-400 hover:shadow-cyan-500/20">

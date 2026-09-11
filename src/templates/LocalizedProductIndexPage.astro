@@ -8,7 +8,8 @@ import { pageImages } from '../data/site';
 import { buildProductCategories, isProductPublished, sortProductsByPriority } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { localizedProduct, localizedProductUrl, translateProductCategories, translateTechnicalText, ui } from '../data/i18n';
-import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+import { getLocalizedPageCopy, type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface Props {
   locale: NonEnglishLocale;
@@ -18,6 +19,11 @@ const { locale } = Astro.props;
 const pages = getLocalizedPageCopy(locale);
 const products = (await getCollection('products')).filter(isProductPublished);
 const sortedProducts = sortProductsByPriority(products);
+const productTranslationDrafts = await getCollection('productTranslations');
+const translatedProduct = (product: ProductEntry) => applyProductTranslationDraft(
+  localizedProduct(product, locale),
+  findPublishedProductTranslation(productTranslationDrafts, product.id.replace(/\.mdoc$/, ''), locale)
+);
 const productCategories = translateProductCategories(buildProductCategories(products), locale);
 const catalogDescription = pages.products.description;
 const catalogCards = locale === 'es'
@@ -31,7 +37,7 @@ const catalogCards = locale === 'es'
       ['Format', 'Choose the pin, coin, medal, or keychain construction that best carries the design.'],
       ['Artwork', 'Compare enamel, print, 2D relief, and sculpted 3D directions for the visual idea.'],
       ['Finish', 'Review plating color, surface character, edge treatment, and color application.'],
-      ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging direction.'],
+      ['Presentation', 'Complete the object with a backing, ribbon, ring, leather element, or packaging.'],
     ];
 const catalogStructuredData = [
   organizationStructuredData(Astro.site),
@@ -44,7 +50,7 @@ const catalogStructuredData = [
       image: pageImages.productsCatalog,
       keywords: [pages.products.title, pages.products.categoryTitle, ...productCategories.flatMap(category => [category.displayName || category.name, ...category.highlights])],
       items: sortedProducts.map(product => ({
-        name: localizedProduct(product, locale).title,
+        name: translatedProduct(product).title,
         url: localizedProductUrl(product, locale),
         image: product.data.image,
       })),
@@ -119,7 +125,7 @@ const catalogStructuredData = [
       ) : (
         <div class="surface-panel detail-panel" dir="ltr">
           <span class="eyebrow">{translateTechnicalText('In preparation', locale)}</span>
-          <h2>{locale === 'es' ? 'Se está preparando información de producto verificada.' : translateTechnicalText('Verified product information is being prepared.', locale)}</h2>
+          <h2>{locale === 'es' ? 'Estamos preparando la información de producto.' : translateTechnicalText('Product information is being prepared.', locale)}</h2>
           <p class="prose">{locale === 'es' ? 'Contacta con el equipo indicando el objeto, diseño, cantidad, destino y plazo disponibles.' : translateTechnicalText('Contact the team with the object, artwork, quantity, destination, and timing available.', locale)}</p>
         </div>
       )}

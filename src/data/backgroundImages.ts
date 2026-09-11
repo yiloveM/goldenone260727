@@ -2,7 +2,7 @@ const local = (name: string) => `/images/metal-gifts/${name}.webp`;
 
 export const siteImages = {
   brand: {
-    logo: '/template-logo.svg',
+    logo: '/r2/brand/goldenone-logo-c1e2f260b0.png',
     icon: '/template-icon.svg',
   },
   homeHero: {

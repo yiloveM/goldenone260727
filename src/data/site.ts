@@ -70,7 +70,7 @@ export const brandShowcase = [
   },
   {
     title: 'Belt Buckle',
-    label: 'Shape, relief, plating, texture, color, and fastening direction',
+    label: 'Shape, relief, plating, texture, color, and fastening',
     image: '/images/metal-gifts/challenge-coins.webp',
     keywords: ['custom belt buckles', 'metal buckles', 'promotional buckles'],
   },
@@ -88,7 +88,7 @@ export const brandShowcase = [
   },
   {
     title: 'More Metal Crafts',
-    label: 'Flexible custom formats for distinctive project requirements',
+    label: 'Custom metal formats for specific brand, event, and gift requirements',
     image: '/images/metal-gifts/hero-metal-gifts.webp',
     keywords: ['custom metal crafts', 'metal gift supplier', 'OEM metal gifts'],
   },
@@ -113,7 +113,7 @@ export const faqs = [
   {
     question: `What does ${siteInfo.name} offer?`,
     answer:
-      'The public catalog is structured for custom lapel pins, challenge coins, sports medals, and keychains. Published product pages will show only the formats and options confirmed by the company.',
+      'Golden One develops custom lapel pins, challenge coins, medals, keychains, and related metal gifts from buyer artwork and project requirements.',
   },
   {
     question: 'What should a buyer include in a custom quotation request?',
@@ -123,11 +123,11 @@ export const faqs = [
   {
     question: 'Can buyers compare finish and construction options before ordering?',
     answer:
-      'Use the category and product pages to compare published materials, enamel or relief styles, plating, hardware, and packaging. Confirm the final specification in the approved artwork and quotation.',
+      'Use the category and product pages to compare materials, enamel or relief styles, plating, hardware, and packaging. The final combination is confirmed in the approved artwork and quotation.',
   },
   {
     question: 'Are prices, minimum quantities, and lead times shown online?',
     answer:
-      'These values should be published only when they are current and verified. Until then, request a project-specific quotation with quantity, specification, packaging, destination, and timing details.',
+      'Prices, quantities, and timing depend on the chosen product and specification. Send the quantity, packaging, destination, and target date for a project quotation.',
   },
 ];

@@ -25,6 +25,7 @@ import {
   translateProductCategories,
   ui,
 } from '../data/i18n';
+import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface Props {
   title?: string;
@@ -86,6 +87,11 @@ const structuredDataItems = [...coreStructuredDataItems, ...providedStructuredDa
   return [...items, item];
 }, []);
 const navCategories = translateProductCategories(buildProductCategories((await getCollection('products')).filter(isProductPublished)), pageLocale);
+const productTranslationDrafts = pageLocale === 'en' ? [] : await getCollection('productTranslations');
+const translatedNavigationProduct = (product: Parameters<typeof localizedProduct>[0]) => applyProductTranslationDraft(
+  localizedProduct(product, pageLocale),
+  findPublishedProductTranslation(productTranslationDrafts, product.id.replace(/\.mdoc$/, ''), pageLocale)
+);
 const alternates = alternateUrls(Astro.url.pathname, siteBase);
 const languageOptions = locales.map(locale => ({
   locale,
@@ -228,7 +234,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
                                 <a class="mega-subcategory-link" href={fridgeMagnetsCategory.href}>{navigationCategoryLabel(fridgeMagnetsCategory)}</a>
                               )}
                               {category.products.map(product => {
-                                const item = localizedProduct(product, pageLocale);
+                                const item = translatedNavigationProduct(product);
                                 return <a href={localizePath(`/products/${product.id.replace(/\.mdoc$/, '')}/`, pageLocale)}>{item.title}</a>;
                               })}
                               <a class="mega-view-all" href={category.href}>{dictionary.nav.viewAll} {navigationCategoryLabel(category)}</a>
