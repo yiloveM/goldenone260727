@@ -143,7 +143,6 @@ const dragHint = locale === 'es'
 
         root.querySelector('[data-carousel-prev]')?.addEventListener('click', () => select(activeIndex - 1));
         root.querySelector('[data-carousel-next]')?.addEventListener('click', () => select(activeIndex + 1));
-        thumbnails.forEach((thumbnail, index) => thumbnail.addEventListener('click', () => select(index)));
         if (thumbnailTrack instanceof HTMLElement) {
           let pointerId: number | null = null;
           let startX = 0;
@@ -160,13 +159,15 @@ const dragHint = locale === 'es'
             didDrag = false;
             suppressClick = false;
             stop();
-            thumbnailTrack.setPointerCapture?.(event.pointerId);
           });
           thumbnailTrack.addEventListener('pointermove', event => {
             if (pointerId !== event.pointerId) return;
             const distance = event.clientX - startX;
             if (!didDrag && Math.abs(distance) < 6) return;
-            didDrag = true;
+            if (!didDrag) {
+              didDrag = true;
+              thumbnailTrack.setPointerCapture?.(event.pointerId);
+            }
             suppressClick = true;
             event.preventDefault();
             thumbnailTrack.classList.add('is-dragging');
@@ -182,11 +183,18 @@ const dragHint = locale === 'es'
           thumbnailTrack.addEventListener('pointerup', finishThumbnailDrag);
           thumbnailTrack.addEventListener('pointercancel', finishThumbnailDrag);
           thumbnailTrack.addEventListener('click', event => {
-            if (!suppressClick) return;
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            suppressClick = false;
-          }, true);
+            if (suppressClick) {
+              event.preventDefault();
+              suppressClick = false;
+              return;
+            }
+            const target = event.target instanceof Element
+              ? event.target.closest('[data-carousel-thumbnail]')
+              : null;
+            if (!(target instanceof HTMLElement) || !thumbnailTrack.contains(target)) return;
+            const index = Number(target.dataset.carouselIndex);
+            if (Number.isInteger(index)) select(index);
+          });
         }
         root.addEventListener('keydown', event => {
           if (!(event instanceof KeyboardEvent) || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;

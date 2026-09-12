@@ -145,7 +145,11 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
 ---
 
 {cards.length > 0 && (
-  <section id="product-gallery" class="product-content-band product-content-band--media" aria-label={`${title}: ${common.featureImages}`}>
+  <section
+    id="product-gallery"
+    class:list={['product-content-band', 'product-content-band--media', { 'product-content-band--options-only': productCards.length === 0 }]}
+    aria-label={`${title}: ${common.featureImages}`}
+  >
     <div class="container product-reference-gallery">
       {productCards.length > 0 && (
         <div class="product-reference-gallery__main">
@@ -159,7 +163,6 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
                 <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
                 <figcaption>
                   <strong>{item.label}</strong>
-                  <span>{item.description}</span>
                 </figcaption>
               </figure>
             ))}
@@ -173,7 +176,14 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
             <h2>{copy.optionsTitle}</h2>
             <p>{copy.optionsDescription}</p>
           </header>
-          <div class="product-feature-image-grid" data-product-option-grid>
+          <div
+            class:list={[
+              'product-feature-image-grid',
+              { 'product-feature-image-grid--single': optionCards.length === 1 },
+              { 'product-feature-image-grid--pair': optionCards.length === 2 },
+            ]}
+            data-product-option-grid
+          >
             {optionCards.map(item => (
               <figure class="product-feature-image" data-feature-kind={item.kind}>
                 <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />

@@ -89,7 +89,7 @@ const homeStructuredData = [
       </div>
       <div class="conversion-hero__shade" aria-hidden="true"></div>
       <div class="metal-shell conversion-hero__inner">
-        <div class="conversion-hero__copy">
+        <div class="conversion-hero__copy" data-hero-copy>
           <span class="conversion-hero__pill conversion-hero__pill--rating">
             <strong>{pages.home.storeRating}</strong>
             <span aria-label={pages.home.fiveStarLabel}>&#9733;&#9733;&#9733;&#9733;&#9733;</span>
@@ -215,15 +215,17 @@ const homeStructuredData = [
       const title = root.querySelector('[data-hero-title]');
       const description = root.querySelector('[data-hero-description]');
       const points = [...root.querySelectorAll('[data-hero-point]')];
-      const message = root.querySelector('[data-hero-message]');
+      const copy = root.querySelector('[data-hero-copy]');
       const previous = root.querySelector('[data-hero-previous]');
       const next = root.querySelector('[data-hero-next]');
       if (!slides.length || !images.length || !title || !description) return;
 
       let currentIndex = 0;
       let timer = 0;
+      let leaveTimer = 0;
+      let enterTimer = 0;
 
-      const render = nextIndex => {
+      const commit = nextIndex => {
         currentIndex = (nextIndex + slides.length) % slides.length;
         const slide = slides[currentIndex];
 
@@ -231,8 +233,27 @@ const homeStructuredData = [
         title.textContent = slide.title;
         description.textContent = slide.description;
         points.forEach((point, pointIndex) => { point.textContent = slide.points[pointIndex] || ''; });
-        message?.classList.remove('is-updating');
-        window.requestAnimationFrame(() => message?.classList.add('is-updating'));
+      };
+
+      const render = nextIndex => {
+        const normalizedIndex = (nextIndex + slides.length) % slides.length;
+        window.clearTimeout(leaveTimer);
+        window.clearTimeout(enterTimer);
+
+        if (reducedMotion || !(copy instanceof HTMLElement)) {
+          commit(normalizedIndex);
+          return;
+        }
+
+        copy.classList.remove('is-entering');
+        copy.classList.add('is-leaving');
+        leaveTimer = window.setTimeout(() => {
+          commit(normalizedIndex);
+          copy.classList.remove('is-leaving');
+          void copy.offsetWidth;
+          copy.classList.add('is-entering');
+          enterTimer = window.setTimeout(() => copy.classList.remove('is-entering'), 760);
+        }, 190);
       };
 
       const start = () => {
