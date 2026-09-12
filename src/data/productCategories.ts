@@ -11,6 +11,7 @@ export type ProductCategoryMeta = {
   slug: string;
   description: string;
   image: string;
+  backgroundImage: string;
   imageAlt: string;
   accent: string;
   highlights: string[];
@@ -29,7 +30,7 @@ export const slugifyCategory = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-const categoryImages = [
+const categoryBackgroundImages = [
   '/images/metal-gifts/lapel-pin-collection-v2.webp',
   '/images/metal-gifts/medal-collection-v2.webp',
   '/images/metal-gifts/challenge-coin-collection-v2.webp',
@@ -76,7 +77,8 @@ export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfi
   displayName: category.name,
   slug: slugifyCategory(category.name),
   description: category.description,
-  image: realCategoryImage(category.name, categoryImages[index % categoryImages.length]),
+  image: realCategoryImage(category.name, categoryBackgroundImages[index % categoryBackgroundImages.length]),
+  backgroundImage: categoryBackgroundImages[index % categoryBackgroundImages.length],
   imageAlt: `${category.name} category`,
   accent: index === 0 ? 'Core offering' : index === 1 ? 'Project capability' : 'Lifecycle support',
   highlights: category.highlights,
@@ -92,6 +94,7 @@ export const getCategoryMeta = (categoryName: string): ProductCategoryMeta => {
     slug,
     description: 'Business offering prepared for selection, comparison, and quotation workflows.',
     image: siteImages.productCategories.fallback,
+    backgroundImage: siteImages.productCategories.fallback,
     imageAlt: `${categoryName} category`,
     accent: 'Business offer',
     highlights: ['Selection ready', 'Specification support', 'Commercial workflow'],

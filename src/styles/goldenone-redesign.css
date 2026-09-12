@@ -583,23 +583,32 @@ a {
   overflow: hidden;
   border-bottom: 1px solid #d5e6e1;
   color: var(--go-ink);
-  background: linear-gradient(118deg, #eef8f5 0%, #fbfdfc 54%, #e4f1ed 100%);
+  background: #edf7f3;
+  isolation: isolate;
 }
 
 .category-hero-bg {
-  opacity: .11;
+  opacity: 1;
   background: var(--category-hero-image) center / cover no-repeat;
-  filter: saturate(.78) contrast(1.04);
+  filter: saturate(.86) contrast(1.03);
+  transform: scale(1.015);
 }
 
 .category-hero-bg::after {
-  background: linear-gradient(90deg, rgba(247, 251, 250, .98) 0%, rgba(247, 251, 250, .9) 48%, rgba(247, 251, 250, .5) 74%, rgba(247, 251, 250, .76) 100%);
+  background:
+    linear-gradient(90deg, rgba(242, 249, 247, .94) 0%, rgba(242, 249, 247, .84) 42%, rgba(242, 249, 247, .58) 70%, rgba(242, 249, 247, .5) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(226, 242, 237, .3));
 }
 
 .category-hero-inner {
   min-height: 560px;
-  grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
+  grid-template-columns: minmax(0, .94fr) minmax(390px, 1.06fr);
+  gap: clamp(44px, 5vw, 76px);
   padding-block: 72px;
+}
+
+.category-hero-copy {
+  max-width: 680px;
 }
 
 .category-hero-copy .eyebrow {
@@ -620,21 +629,44 @@ a {
 
 .category-hero-copy p {
   color: #526963;
+  font-size: 1.03rem;
 }
 
 .category-hero-tags span {
   color: var(--go-teal-deep);
   border-color: rgba(24, 125, 115, .2);
-  background: rgba(255, 255, 255, .68);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, .78);
+  backdrop-filter: blur(6px);
 }
 
 .category-hero-media {
+  min-height: clamp(430px, 38vw, 540px);
   overflow: hidden;
-  border: 5px solid rgba(255, 255, 255, .96);
+  border: 4px solid rgba(255, 255, 255, .94);
   border-radius: 8px;
-  background: rgba(255, 255, 255, .92);
-  box-shadow: 14px 14px 0 rgba(0, 125, 122, .14), 0 22px 54px rgba(30, 77, 70, .14);
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 14px 14px 0 rgba(0, 125, 122, .13), 0 22px 54px rgba(30, 77, 70, .16);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.category-hero-media img {
+  max-height: 560px;
+  padding: clamp(14px, 1.5vw, 22px);
+  transition: transform .32s cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .category-hero .category-hero-media:hover {
+    z-index: 2;
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow: 18px 18px 0 rgba(0, 125, 122, .17), 0 30px 68px rgba(26, 72, 66, .24);
+    transform: translateY(-7px) scale(1.06);
+  }
+
+  .category-hero .category-hero-media:hover img {
+    transform: scale(1.025);
+  }
 }
 
 .category-hero .share-buttons--banner {
@@ -1232,7 +1264,12 @@ select:focus {
   }
 
   .category-hero-media {
+    min-height: 320px;
     box-shadow: 8px 8px 0 rgba(0, 125, 122, .14), 0 16px 36px rgba(30, 77, 70, .12);
+  }
+
+  .category-hero-media img {
+    padding: 14px;
   }
 
   .product-hero {
@@ -4507,11 +4544,27 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
 }
 
 .product-reference-gallery__main .product-feature-image figcaption {
-  min-height: 62px;
+  width: 100%;
+  height: 46px;
+  min-height: 46px;
   display: flex;
   align-items: center;
-  padding: 13px 15px 15px;
+  padding: 9px 13px;
+  overflow: hidden;
   border-radius: 0 0 5px 5px;
+}
+
+.product-reference-gallery__main .product-feature-image figcaption strong {
+  width: 100%;
+  overflow: hidden;
+  font-size: .86rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-reference-gallery__main .product-feature-image figcaption span {
+  display: none !important;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -4570,7 +4623,14 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .category-hero .category-hero-media,
+  .category-hero .category-hero-media img,
   .product-reference-gallery__main .product-feature-image {
     transition: none;
+  }
+
+  .category-hero .category-hero-media:hover,
+  .category-hero .category-hero-media:hover img {
+    transform: none;
   }
 }

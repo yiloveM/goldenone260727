@@ -162,7 +162,7 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
               <figure class="product-feature-image" data-feature-kind={item.kind}>
                 <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
                 <figcaption>
-                  <strong>{item.label}</strong>
+                  <strong title={item.label}>{item.label}</strong>
                 </figcaption>
               </figure>
             ))}
