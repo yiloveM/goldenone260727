@@ -12,7 +12,11 @@ interface Props {
 const { images = [], title, variant = 'stage', priority = false } = Astro.props;
 const carouselImages = Array.from(new Set(images.filter(Boolean))).slice(0, 12);
 const hasControls = carouselImages.length > 1;
-const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
+const locale = getLocaleFromPathname(Astro.url.pathname);
+const common = ui[locale].common;
+const dragHint = locale === 'es'
+  ? 'Arrastra las miniaturas y selecciona una imagen para verla en grande.'
+  : 'Drag the thumbnails and select an image to view it larger.';
 ---
 
 <div
@@ -56,28 +60,31 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
   </div>
 
   {hasControls && (
-    <div class="product-image-carousel__thumbnails" role="group" aria-label={`${title} image choices`} data-carousel-thumbnails>
-      {carouselImages.map((image, index) => (
-        <button
-          class:list={['product-image-carousel__thumbnail', { 'is-active': index === 0 }]}
-          type="button"
-          data-carousel-thumbnail
-          data-carousel-index={index}
-          aria-label={`Show ${title} image ${index + 1}`}
-          aria-pressed={index === 0 ? 'true' : 'false'}
-        >
-          <PublicImage
-            src={image}
-            alt=""
-            loading={index < 5 ? 'eager' : 'lazy'}
-            decoding="async"
-            width="144"
-            height="120"
-            aria-hidden="true"
-          />
-        </button>
-      ))}
-    </div>
+    <>
+      <p class="product-image-carousel__drag-hint">{dragHint}</p>
+      <div class="product-image-carousel__thumbnails" role="group" aria-label={`${title} image choices`} data-carousel-thumbnails>
+        {carouselImages.map((image, index) => (
+          <button
+            class:list={['product-image-carousel__thumbnail', { 'is-active': index === 0 }]}
+            type="button"
+            data-carousel-thumbnail
+            data-carousel-index={index}
+            aria-label={`Show ${title} image ${index + 1}`}
+            aria-pressed={index === 0 ? 'true' : 'false'}
+          >
+            <PublicImage
+              src={image}
+              alt=""
+              loading={index < 5 ? 'eager' : 'lazy'}
+              decoding="async"
+              width="144"
+              height="120"
+              aria-hidden="true"
+            />
+          </button>
+        ))}
+      </div>
+    </>
   )}
 </div>
 
@@ -151,6 +158,7 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
             startX = event.clientX;
             startScrollLeft = thumbnailTrack.scrollLeft;
             didDrag = false;
+            suppressClick = false;
             stop();
             thumbnailTrack.setPointerCapture?.(event.pointerId);
           });
@@ -169,7 +177,6 @@ const common = ui[getLocaleFromPathname(Astro.url.pathname)].common;
             if (thumbnailTrack.hasPointerCapture?.(event.pointerId)) thumbnailTrack.releasePointerCapture?.(event.pointerId);
             pointerId = null;
             thumbnailTrack.classList.remove('is-dragging');
-            if (didDrag) window.setTimeout(() => { suppressClick = false; }, 180);
             start();
           };
           thumbnailTrack.addEventListener('pointerup', finishThumbnailDrag);

@@ -63,7 +63,7 @@
       "plating and finishes",
       "custom packaging"
     ],
-    "searchIntentSummary": "Current leading custom metal gift sites put the product category first, show real product examples, explain artwork and finish choices in plain language, and lead buyers toward a focused quotation. Golden One follows that buyer sequence while preserving Golden One's product facts and brand voice.",
+    "searchIntentSummary": "Current leading custom metal gift sites put the product category first, show product examples, explain artwork and finish choices in plain language, and lead buyers toward a focused quotation. Golden One follows that buyer sequence while preserving Golden One's product facts and brand voice.",
     "competitorReferences": [
       "https://uccrafts.com/",
       "https://www.yeslapelpin.com/",
@@ -78,90 +78,90 @@
         "name": "Lapel Pin & Badge",
         "description": "Custom lapel pins and badges organized by artwork style, finish, backing, and presentation.",
         "highlights": [
-          "Enamel and metal styles",
-          "Plating and finish choices",
-          "Clutch and backing options"
+            "Custom lapel pin and badge styles",
+            "Lapel pin plating and finishes",
+            "Pin clutch and backing options"
         ]
       },
       {
         "name": "Medal",
         "description": "Custom medal programs organized around construction, relief, ribbon, finish, and presentation.",
         "highlights": [
-          "Custom shapes and relief",
-          "Ribbon specifications",
-          "Event packaging"
+            "Custom medal shapes and relief",
+            "Custom medal ribbon options",
+            "Medal packaging for events"
         ]
       },
       {
         "name": "Challenge Coin",
         "description": "Custom challenge coins compared by dimensions, relief, edge, finish, color, and presentation.",
         "highlights": [
-          "2D and 3D relief",
-          "Edge and finish options",
-          "Front and reverse design"
+            "2D and 3D challenge coin relief",
+            "Challenge coin edges and finishes",
+            "Front and reverse coin designs"
         ]
       },
       {
         "name": "Key Chain",
         "description": "Metal, enamel, leather, PU, and promotional key chain formats for branded merchandise programs.",
         "highlights": [
-          "Metal and enamel formats",
-          "Leather and PU options",
-          "Rings, chains, and packaging"
+            "Custom metal and enamel keychains",
+            "Custom leather and PU keychains",
+            "Keychain rings, chains, and packaging"
         ]
       },
       {
         "name": "Golf Accessories & Tools",
         "description": "Custom golf accessories and practical tools organized for events, clubs, brands, and promotional programs.",
         "highlights": [
-          "Event and club formats",
-          "Custom metal details",
-          "Presentation options"
+            "Custom golf accessories for clubs and events",
+            "Custom golf tool metal details",
+            "Golf gift presentation options"
         ]
       },
       {
         "name": "Belt Buckle",
         "description": "Custom belt buckle directions compared by shape, relief, plating, color, and fastening format.",
         "highlights": [
-          "2D and 3D artwork",
-          "Plating and texture",
-          "Custom fastening formats"
+            "Custom belt buckle 2D and 3D artwork",
+            "Belt buckle plating and textures",
+            "Custom belt buckle fastening systems"
         ]
       },
       {
         "name": "Metal & Wooden Plaque",
         "description": "Metal and wooden plaque formats for recognition, presentation, display, and commemorative programs.",
         "highlights": [
-          "Metal and wood combinations",
-          "Display-ready formats",
-          "Presentation details"
+            "Custom metal and wooden plaques",
+            "Display-ready award plaques",
+            "Plaque presentation options"
         ]
       },
       {
         "name": "Fridge Magnets",
         "description": "Custom fridge magnet formats for destinations, brands, events, collections, and promotional gifts.",
         "highlights": [
-          "Custom shapes",
-          "Color and relief options",
-          "Retail presentation"
+            "Custom fridge magnet shapes",
+            "Fridge magnet color and relief options",
+            "Retail-ready fridge magnet presentation"
         ]
       },
       {
         "name": "More Metal Crafts",
         "description": "Additional custom metal craft formats for projects that do not fit a standard gift series.",
         "highlights": [
-          "Flexible custom formats",
-          "Material and finish choices",
-          "Project-led development"
+            "Custom metal craft formats",
+            "Metal craft materials and finishes",
+            "Bespoke metal craft development"
         ]
       },
       {
         "name": "Promotion Gift",
         "description": "Promotional gift directions for campaigns, events, merchandise programs, and branded distribution.",
         "highlights": [
-          "Campaign-ready formats",
-          "Brand customization",
-          "Packaging and distribution"
+            "Custom promotional gifts for campaigns",
+            "Branded promotional gift options",
+            "Promotional gift packaging and distribution"
         ]
       }
     ],
@@ -194,7 +194,7 @@
     "accentColorStrong": "#007d7a",
     "accentColorSoft": "#dff7f5",
     "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Keep supporting pages solid, product-led, and free of the mother template's water and glass treatment.",
-    "imageRules": "Show real products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery and place shared finish, size, hardware, and packaging references beside the relevant guidance."
+    "imageRules": "Show products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery and place shared finish, size, hardware, and packaging references beside the relevant guidance."
   },
   "governance": {
     "factsVerified": true,

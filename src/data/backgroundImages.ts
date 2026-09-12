@@ -4,7 +4,7 @@ export const siteImages = {
   brand: {
     logo: '/r2/brand/goldenone-logo-c1e2f260b0.png',
     footerLogo: '/images/brand/goldenone-logo-transparent.png',
-    icon: '/template-icon.svg',
+    icon: '/favicon-goldenone-32.png',
   },
   homeHero: {
     rippleDesktop: local('hero-collection-v2'),
