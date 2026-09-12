@@ -34,9 +34,10 @@ const featureImages = Array.from(
 const copy = spanish
   ? {
       galleryEyebrow: 'Galería del producto',
-      galleryTitle: `${title}: estilos y detalles de diseño`,
+      galleryTitle: 'Estilos y detalles del producto',
       optionsEyebrow: 'Opciones disponibles',
-      optionsTitle: `Opciones de personalización para ${productTerm}`,
+      optionsTitle: 'Opciones de personalización',
+      closePreview: 'Cerrar vista ampliada',
       optionsDescription: 'Compara los métodos de logotipo, medidas, acabados, accesorios y embalajes disponibles, y dinos cuáles se ajustan a tu proyecto.',
       labels: {
         examples: `Diseño de ${productTerm}`,
@@ -63,9 +64,10 @@ const copy = spanish
     }
   : {
       galleryEyebrow: 'Product gallery',
-      galleryTitle: `${title} styles and design details`,
+      galleryTitle: 'Product styles and design details',
       optionsEyebrow: 'Available options',
-      optionsTitle: `Customization options for ${productTerm}`,
+      optionsTitle: 'Customization options',
+      closePreview: 'Close enlarged image',
       optionsDescription: 'Compare the available logo methods, sizes, finishes, attachments, and packaging, then tell us which options suit your project.',
       labels: {
         examples: `${title} design`,
@@ -159,7 +161,7 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
           </header>
           <div class="product-feature-image-grid" data-product-reference-grid>
             {productCards.map(item => (
-              <figure class="product-feature-image" data-feature-kind={item.kind}>
+              <figure class="product-feature-image" data-feature-kind={item.kind} data-product-hover-card>
                 <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
                 <figcaption>
                   <strong title={item.label}>{item.label}</strong>
@@ -185,7 +187,7 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
             data-product-option-grid
           >
             {optionCards.map(item => (
-              <figure class="product-feature-image" data-feature-kind={item.kind}>
+              <figure class="product-feature-image" data-feature-kind={item.kind} data-product-hover-card>
                 <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
                 <figcaption>
                   <strong>{item.label}</strong>
@@ -197,5 +199,106 @@ const optionCards = cards.filter(item => item.kind !== 'examples');
         </section>
       )}
     </div>
+    <div class="product-image-hover-preview" data-product-hover-preview hidden aria-hidden="true">
+      <figure class="product-image-hover-preview__panel" data-product-hover-preview-panel>
+        <button class="product-image-hover-preview__close" type="button" data-product-hover-preview-close aria-label={copy.closePreview}>&#215;</button>
+        <img data-product-hover-preview-image alt="" />
+        <figcaption data-product-hover-preview-caption></figcaption>
+      </figure>
+    </div>
   </section>
 )}
+
+<script>
+  const setupProductHoverPreviews = () => {
+    document.querySelectorAll<HTMLElement>('[data-product-hover-preview]').forEach(preview => {
+      if (preview.dataset.ready === 'true') return;
+      preview.dataset.ready = 'true';
+
+      const gallery = preview.closest<HTMLElement>('#product-gallery');
+      const panel = preview.querySelector<HTMLElement>('[data-product-hover-preview-panel]');
+      const closeButton = preview.querySelector<HTMLButtonElement>('[data-product-hover-preview-close]');
+      const previewImage = preview.querySelector<HTMLImageElement>('[data-product-hover-preview-image]');
+      const previewCaption = preview.querySelector<HTMLElement>('[data-product-hover-preview-caption]');
+      if (!gallery || !panel || !closeButton || !previewImage || !previewCaption) return;
+
+      const canHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+      let openTimer = 0;
+      let closeTimer = 0;
+
+      const clearTimers = () => {
+        window.clearTimeout(openTimer);
+        window.clearTimeout(closeTimer);
+      };
+      const openPreview = (card: HTMLElement) => {
+        const image = card.querySelector<HTMLImageElement>('img');
+        const label = card.querySelector<HTMLElement>('figcaption strong');
+        if (!image) return;
+        clearTimers();
+        const cardRect = card.getBoundingClientRect();
+        const panelWidth = Math.min(760, window.innerWidth - 48);
+        const panelHeight = Math.min(window.innerHeight * 0.82, 760);
+        const edge = 24;
+        const centerX = Math.min(
+          window.innerWidth - panelWidth / 2 - edge,
+          Math.max(panelWidth / 2 + edge, cardRect.left + cardRect.width / 2)
+        );
+        const centerY = Math.min(
+          window.innerHeight - panelHeight / 2 - edge,
+          Math.max(panelHeight / 2 + edge, cardRect.top + cardRect.height / 2)
+        );
+        panel.style.setProperty('--preview-x', `${centerX}px`);
+        panel.style.setProperty('--preview-y', `${centerY}px`);
+        previewImage.src = image.currentSrc || image.src;
+        previewImage.alt = image.alt;
+        previewCaption.textContent = label?.textContent?.trim() || image.alt;
+        preview.hidden = false;
+        preview.setAttribute('aria-hidden', 'false');
+        window.requestAnimationFrame(() => preview.classList.add('is-visible'));
+      };
+      const closePreview = () => {
+        window.clearTimeout(openTimer);
+        preview.classList.remove('is-visible');
+        preview.setAttribute('aria-hidden', 'true');
+        closeTimer = window.setTimeout(() => {
+          if (!preview.classList.contains('is-visible')) preview.hidden = true;
+        }, 220);
+      };
+      const scheduleClose = () => {
+        window.clearTimeout(closeTimer);
+        closeTimer = window.setTimeout(closePreview, 180);
+      };
+
+      gallery.querySelectorAll<HTMLElement>('[data-product-hover-card]').forEach(card => {
+        card.addEventListener('pointerenter', event => {
+          if (!canHover.matches || (event.pointerType && event.pointerType !== 'mouse')) return;
+          clearTimers();
+          openTimer = window.setTimeout(() => openPreview(card), 1000);
+        });
+        card.addEventListener('pointerleave', () => {
+          if (canHover.matches) scheduleClose();
+        });
+        card.addEventListener('click', () => {
+          if (!canHover.matches) openPreview(card);
+        });
+      });
+
+      panel.addEventListener('pointerenter', () => window.clearTimeout(closeTimer));
+      panel.addEventListener('pointerleave', () => {
+        if (canHover.matches) closePreview();
+      });
+      closeButton.addEventListener('click', closePreview);
+      preview.addEventListener('click', event => {
+        if (event.target === preview) closePreview();
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closePreview();
+      });
+      window.addEventListener('scroll', closePreview, { passive: true });
+      window.addEventListener('resize', closePreview, { passive: true });
+    });
+  };
+
+  setupProductHoverPreviews();
+  document.addEventListener('astro:page-load', setupProductHoverPreviews);
+</script>
