@@ -4683,8 +4683,8 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
 
 .page-banner--category-aligned::after {
   background:
-    linear-gradient(90deg, rgba(242, 249, 247, .94) 0%, rgba(242, 249, 247, .84) 42%, rgba(242, 249, 247, .58) 70%, rgba(242, 249, 247, .5) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(226, 242, 237, .3));
+    linear-gradient(90deg, rgba(242, 249, 247, .88) 0%, rgba(242, 249, 247, .72) 42%, rgba(242, 249, 247, .38) 70%, rgba(242, 249, 247, .22) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(226, 242, 237, .18));
 }
 
 .page-banner--category-aligned .page-banner-copy {
@@ -4937,8 +4937,8 @@ html.has-back-to-top.has-inquiry-cart .contact-action-menu {
 
   .page-banner--category-aligned::after {
     background:
-      linear-gradient(90deg, rgba(242, 249, 247, .94) 0%, rgba(242, 249, 247, .84) 42%, rgba(242, 249, 247, .58) 70%, rgba(242, 249, 247, .5) 100%),
-      linear-gradient(180deg, rgba(255, 255, 255, .1), rgba(226, 242, 237, .3));
+      linear-gradient(180deg, rgba(242, 249, 247, .46) 0%, rgba(242, 249, 247, .7) 48%, rgba(242, 249, 247, .88) 100%),
+      linear-gradient(90deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04));
   }
 
   .product-reference-gallery__main .product-feature-image figcaption {
