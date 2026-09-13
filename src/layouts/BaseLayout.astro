@@ -205,6 +205,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
           <a class="logo" href={localizePath('/', pageLocale)} aria-label={`${siteInfo.name}: ${dictionary.nav.home}`}>
             <img class="logo-image" src={brandAssets.logo} alt={`${siteInfo.name} logo`} width="830" height="712" decoding="async" />
           </a>
+          <a class="mobile-quote" href={localizePath('/contact/', pageLocale)}>{dictionary.common.requestQuote}</a>
           <form class="site-search" action={localizePath('/products/', pageLocale)} method="get" role="search" data-site-search data-category-search={JSON.stringify(categorySearchEntries)}>
             <label class="sr-only" for="site-product-search">{productSearchLabel}</label>
             <input id="site-product-search" type="search" name="q" placeholder={`${productSearchLabel}...`} autocomplete="off" list="site-product-categories" data-site-search-input />

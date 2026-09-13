@@ -4,6 +4,10 @@
  * image-led hierarchy and keeping earlier component rules maintainable.
  */
 
+.mobile-quote {
+  display: none;
+}
+
 /* Supporting page banners */
 .page-banner--category-aligned {
   min-height: clamp(440px, 45vw, 580px);
@@ -643,6 +647,48 @@ main:not(.metal-home) > .page-banner + .section:not(.interior-section) .card h2 
 }
 
 @media (max-width: 780px) {
+  .site-header .nav {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+  }
+
+  .site-header .logo {
+    grid-column: 1;
+  }
+
+  .site-header .mobile-quote {
+    display: inline-flex;
+    grid-column: 2;
+    min-height: 38px;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    padding: 0 11px;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 4px;
+    color: #fff;
+    background: var(--go-orange);
+    box-shadow: 0 6px 14px rgba(40, 68, 60, .16);
+    font-size: .68rem;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-header .mobile-quote:hover,
+  .site-header .mobile-quote:focus-visible {
+    border-color: rgba(255, 255, 255, .42);
+    color: #fff;
+    background: var(--go-orange-dark);
+  }
+
+  .site-header .mobile-toggle {
+    grid-column: 3;
+    margin-left: 0;
+  }
+
   .page-banner--category-aligned,
   .page-banner--category-aligned .page-banner-inner {
     min-height: 500px;
@@ -747,6 +793,12 @@ main:not(.metal-home) > .page-banner + .section:not(.interior-section) .card h2 
 }
 
 @media (max-width: 520px) {
+  .site-header .mobile-quote {
+    max-width: 104px;
+    padding-inline: 9px;
+    font-size: .64rem;
+  }
+
   .page-banner--category-aligned,
   .page-banner--category-aligned .page-banner-inner {
     min-height: 520px;

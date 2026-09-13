@@ -71,15 +71,13 @@ const localizedPartners = visiblePartners.map((partner, index) => ({ ...partner,
     display: flex;
     width: max-content;
     animation: partner-band-scroll 34s linear infinite;
-  }
-
-  .partner-band__viewport:hover .partner-band__rail {
-    animation-play-state: paused;
-  }
-
-  .partner-band__rail.is-script-driven {
-    animation: none;
     will-change: transform;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .partner-band__viewport:hover .partner-band__rail {
+      animation-play-state: paused;
+    }
   }
 
   .partner-band__mark {
@@ -147,56 +145,3 @@ const localizedPartners = visiblePartners.map((partner, index) => ({ ...partner,
     .partner-band__mark { transition: none; }
   }
 </style>
-
-<script is:inline>
-  (() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    document.querySelectorAll('[data-partner-viewport]').forEach(viewport => {
-      const rail = viewport.querySelector('[data-partner-rail]');
-      if (!(rail instanceof HTMLElement)) return;
-
-      rail.classList.add('is-script-driven');
-      let offset = 0;
-      let lastFrame = 0;
-      let frame = 0;
-      let paused = false;
-      let resumeTimer = 0;
-
-      const loopWidth = () => rail.scrollWidth / 2;
-      const pause = () => { paused = true; };
-      const resume = () => {
-        paused = false;
-        lastFrame = 0;
-      };
-      const tick = timestamp => {
-        if (!lastFrame) lastFrame = timestamp;
-        const elapsed = Math.min(80, timestamp - lastFrame);
-        lastFrame = timestamp;
-        const width = loopWidth();
-        if (!paused && width > 0 && !document.hidden) {
-          offset = (offset + elapsed * .028) % width;
-          rail.style.transform = `translate3d(${-offset.toFixed(3)}px, 0, 0)`;
-        }
-        frame = window.requestAnimationFrame(tick);
-      };
-
-      viewport.addEventListener('pointerenter', event => {
-        if (event.pointerType !== 'touch') pause();
-      });
-      viewport.addEventListener('pointerleave', event => {
-        if (event.pointerType !== 'touch') resume();
-      });
-      viewport.addEventListener('focusin', pause);
-      viewport.addEventListener('focusout', resume);
-      viewport.addEventListener('touchstart', pause, { passive: true });
-      viewport.addEventListener('touchend', () => {
-        window.clearTimeout(resumeTimer);
-        resumeTimer = window.setTimeout(resume, 450);
-      }, { passive: true });
-      document.addEventListener('visibilitychange', () => document.hidden ? pause() : resume());
-      window.addEventListener('pagehide', () => window.cancelAnimationFrame(frame), { once: true });
-      frame = window.requestAnimationFrame(tick);
-    });
-  })();
-</script>
