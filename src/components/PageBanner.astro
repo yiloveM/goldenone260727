@@ -13,17 +13,29 @@ interface Props {
   share?: boolean;
   shareLabel?: string;
   dir?: 'ltr' | 'rtl';
+  titleLines?: readonly string[];
 }
 
-const { eyebrow, title, description, image, ctaHref, ctaLabel, variant, share = false, shareLabel = 'Share page', dir } = Astro.props;
+const { eyebrow, title, description, image, ctaHref, ctaLabel, variant, share = false, shareLabel = 'Share page', dir, titleLines } = Astro.props;
 const classes = ['page-banner', variant ? `page-banner--${variant}` : ''];
 const bannerImage = getR2WebpDeliveryUrl(image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || image;
+const resolvedTitleLines = titleLines?.map(line => line.trim()).filter(Boolean).slice(0, 2);
+const longestTitleLine = resolvedTitleLines?.reduce((longest, line) => Math.max(longest, line.length), 0) ?? 0;
+const titleLengthClass = longestTitleLine >= 27
+  ? 'page-banner-title--long'
+  : longestTitleLine >= 20
+    ? 'page-banner-title--medium'
+    : '';
 ---
 <section class:list={classes} style={`--page-banner-image: url('${bannerImage}');`}>
   <div class="container page-banner-inner">
     <div class="page-banner-copy" dir={dir}>
       <span class="eyebrow">{eyebrow}</span>
-      <h1>{title}</h1>
+      <h1 class:list={[resolvedTitleLines?.length ? 'page-banner-title--split' : '', titleLengthClass]}>
+        {resolvedTitleLines?.length
+          ? resolvedTitleLines.map(line => <span class="page-banner-title-line">{line}</span>)
+          : title}
+      </h1>
       <p>{description}</p>
       {ctaHref && ctaLabel && <a class="btn secondary" href={ctaHref}>{ctaLabel}</a>}
       {share && <ShareButtons title={title} description={description} image={image} label={shareLabel} className="share-buttons--banner" />}
