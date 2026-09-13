@@ -1,0 +1,63 @@
+<script is:inline>
+  (() => {
+    const revealSelector = [
+      '.section-heading',
+      '.media-carousel-heading',
+      '.category-card',
+      '.series-card',
+      'main .card',
+      '.proof-panel',
+      '.proof-card',
+      '.catalog-custom-panel',
+      '.product-detail-gallery',
+      '.product-detail-summary',
+      '.product-section-heading',
+      '.highlight-card',
+      '.product-feature-image',
+      '.faq-accordion',
+      '.map-panel',
+      '.article-shell',
+      '.contact-grid > *',
+      '.material-edit figure',
+      '.briefing-rhythm li',
+      '.format-card',
+      '.customer-review-card'
+    ].join(',');
+
+    const setupScrollReveal = () => {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const targets = [...document.querySelectorAll(revealSelector)]
+        .filter(element => !element.hasAttribute('data-scroll-reveal-ready'));
+      if (!targets.length) return;
+
+      targets.forEach((element, index) => {
+        element.setAttribute('data-scroll-reveal-ready', '');
+        element.setAttribute('data-scroll-reveal', '');
+        element.style.setProperty('--reveal-delay', `${Math.min(index % 4, 3) * 55}ms`);
+      });
+
+      if (reduceMotion || !('IntersectionObserver' in window)) {
+        targets.forEach(element => element.classList.add('is-revealed'));
+        return;
+      }
+
+      document.documentElement.classList.add('has-scroll-reveal');
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        });
+      }, { rootMargin: '0px 0px -9% 0px', threshold: 0.08 });
+
+      targets.forEach(element => observer.observe(element));
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupScrollReveal, { once: true });
+    } else {
+      setupScrollReveal();
+    }
+    document.addEventListener('astro:page-load', setupScrollReveal);
+  })();
+</script>

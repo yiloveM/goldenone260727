@@ -67,9 +67,11 @@
     "competitorReferences": [
       "https://uccrafts.com/",
       "https://www.yeslapelpin.com/",
-      "https://lapelpins-maker.com/"
+      "https://lapelpins-maker.com/",
+      "https://factorypin.com/",
+      "https://createpins.com/"
     ],
-    "lastResearchDate": "2026-09-11"
+    "lastResearchDate": "2026-09-13"
   },
   "productArchitecture": {
     "offeringType": "discrete-products",
@@ -189,12 +191,12 @@
     ]
   },
   "visual": {
-    "archetype": "image-led custom metal gift storefront",
+    "archetype": "image-led custom metal gift atelier storefront",
     "accentColor": "#00aaa6",
     "accentColorStrong": "#007d7a",
     "accentColorSoft": "#dff7f5",
-    "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Keep supporting pages solid, product-led, and free of the mother template's water and glass treatment.",
-    "imageRules": "Show products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery and place shared finish, size, hardware, and packaging references beside the relevant guidance."
+    "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Give supporting pages saturated product imagery with a directional deep-teal text field, concise naturally wrapping headings, and solid editorial sections that remain free of the mother template's water and glass treatment.",
+    "imageRules": "Show products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery, place shared finish, size, hardware, and packaging references beside the relevant guidance, and use restrained hover and reveal motion without obscuring product detail."
   },
   "governance": {
     "factsVerified": true,

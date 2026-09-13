@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import '../styles/global.css';
 import '../styles/goldenone-redesign.css';
+import '../styles/goldenone-visual-refinement.css';
 import { brandAssets } from '../data/assets';
 import { siteInfo, socialLinks } from '../data/site';
 import { industryProfile, visualTokens } from '../data/industry-profile';
@@ -11,6 +12,7 @@ import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 import InquiryCart from '../components/InquiryCart.astro';
 import BackToTop from '../components/BackToTop.astro';
 import ContactAction from '../components/ContactAction.astro';
+import ScrollReveal from '../components/ScrollReveal.astro';
 import {
   type Locale,
   alternateUrls,
@@ -349,6 +351,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         <span class="footer-positioning">{dictionary.footer.clearPools}</span>
       </div>
     </footer>
+    <ScrollReveal />
     <script is:inline>
       const mobileMenuQuery = window.matchMedia('(max-width: 780px)');
       const navLinks = document.querySelector('[data-nav-links]');
