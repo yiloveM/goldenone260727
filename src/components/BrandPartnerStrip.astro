@@ -14,7 +14,7 @@ const localizedPartners = visiblePartners.map((partner, index) => ({ ...partner,
       <h2 id="partner-band-title">{copy.title}</h2>
     </div>
     <div class="partner-band__viewport" role="region" aria-label={copy.regionLabel} data-partner-viewport>
-      <div class="partner-band__rail" role="list" data-partner-rail>
+      <div class="partner-band__rail" role="list" data-partner-rail style={`--partner-count: ${localizedPartners.length};`}>
         {[...localizedPartners, ...localizedPartners].map((partner, index) => {
           const duplicate = index >= localizedPartners.length;
           return (
@@ -141,7 +141,10 @@ const localizedPartners = visiblePartners.map((partner, index) => ({ ...partner,
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .partner-band__rail { animation: none; }
+    /* Advance one complete brand card at a time without continuous motion. */
+    .partner-band__rail {
+      animation: partner-band-scroll 18s steps(var(--partner-count), end) -1.5s infinite;
+    }
     .partner-band__mark { transition: none; }
   }
 </style>
