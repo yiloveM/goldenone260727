@@ -1,6 +1,6 @@
 ---
 import PublicImage from './public/PublicImage.astro';
-import { getLocaleFromPathname, ui } from '../data/i18n';
+import { getLocaleFromPathname, localizePath, ui } from '../data/i18n';
 
 interface DetailImage {
   image: string;
@@ -20,6 +20,8 @@ const { detailImages = [], title } = Astro.props;
 const locale = getLocaleFromPathname(Astro.url.pathname);
 const spanish = locale === 'es';
 const common = ui[locale].common;
+const contactHref = localizePath('/contact/', locale);
+const freeDesignHref = `${localizePath('/', locale)}#free-design`;
 const productTerm = title
   .replace(/^Custom\s+/i, '')
   .replace(/^Personalizad(?:o|a|os|as)\s+/i, '')
@@ -41,6 +43,31 @@ const copy = spanish
       closePreview: 'Cerrar vista ampliada',
       openPreview: 'Abrir vista ampliada',
       optionsDescription: 'Compara cada grupo por separado para elegir con claridad el acabado, la forma y los detalles adecuados para tu proyecto.',
+      process: {
+        eyebrow: 'Tu diseño a medida',
+        title: 'De tu idea a un diseño listo para producir',
+        description: 'Un recorrido claro para convertir un logotipo, una referencia o una breve explicación en un regalo metálico personalizado con especificaciones confirmadas.',
+        steps: [
+          {
+            icon: 'idea',
+            title: 'Comparte el punto de partida',
+            description: 'Envía un logotipo, boceto, imagen de referencia o explicación, junto con el uso previsto, la cantidad aproximada, el destino y la fecha objetivo.',
+          },
+          {
+            icon: 'review',
+            title: 'Define la configuración adecuada',
+            description: 'Revisamos la forma, las medidas, el material, el acabado, los accesorios, el embalaje y las opciones específicas del producto.',
+          },
+          {
+            icon: 'produce',
+            title: 'Aprueba antes de producir',
+            description: 'El diseño y las especificaciones finales se confirman mediante la revisión del arte y la cotización antes de iniciar la producción.',
+          },
+        ],
+        actionsLabel: 'Siguiente paso para tu proyecto personalizado',
+        contact: 'Contacta con nosotros',
+        startDesign: 'Empieza tu diseño gratuito',
+      },
       groups: {
         plating: {
           title: 'Opciones de baño y acabado',
@@ -90,6 +117,31 @@ const copy = spanish
       closePreview: 'Close enlarged image',
       openPreview: 'Open enlarged image',
       optionsDescription: 'Compare each group separately to choose the right finish, form, and supporting details for your project.',
+      process: {
+        eyebrow: 'Your custom design',
+        title: 'From your idea to a production-ready design',
+        description: 'A clear path for turning a logo, reference, or simple brief into a custom metal gift with confirmed specifications.',
+        steps: [
+          {
+            icon: 'idea',
+            title: 'Share the starting point',
+            description: 'Send a logo, sketch, reference image, or written brief together with the intended use, approximate quantity, destination, and target date.',
+          },
+          {
+            icon: 'review',
+            title: 'Shape the right specification',
+            description: 'We review form, dimensions, material, finish, attachments, packaging, and any product-specific choices.',
+          },
+          {
+            icon: 'produce',
+            title: 'Approve before production',
+            description: 'Artwork and final specifications are confirmed through review and quotation before production begins.',
+          },
+        ],
+        actionsLabel: 'Next step for your custom project',
+        contact: 'Contact us',
+        startDesign: 'Start your free design',
+      },
       groups: {
         plating: {
           title: 'Plating Options',
@@ -131,6 +183,12 @@ const copy = spanish
         references: `Additional design options for ${productTerm}.`,
       },
     };
+
+const processIconPaths: Record<string, string> = {
+  idea: 'M4 5h16v14H4zM7 15l3-3 3 2 3-4 2 3M8 9h.01',
+  review: 'M4 12l5 5L20 6M4 4h10M4 20h16',
+  produce: 'M3 8l9-5 9 5-9 5-9-5Zm3 3v6l6 4 6-4v-6',
+};
 
 const classifyImage = (item: DetailImage): FeatureKind => {
   const identity = `${item.image} ${item.title || ''}`.toLowerCase();
@@ -207,42 +265,105 @@ const optionGroupDefinitions = [
   },
 ];
 const optionGroups = optionGroupDefinitions
-  .map(group => ({ ...group, cards: optionCards.filter(item => optionGroupFor(item.kind) === group.key) }))
+  .map(group => {
+    const groupCards = optionCards.filter(item => optionGroupFor(item.kind) === group.key);
+    const carouselCards = groupCards.length > 1 ? [...groupCards, ...groupCards] : groupCards;
+    return {
+      ...group,
+      cards: groupCards,
+      carouselCards: carouselCards.map((item, index) => ({ item, isClone: index >= groupCards.length })),
+    };
+  })
   .filter(group => group.cards.length > 0);
+const productCarouselCards = (productCards.length > 1 ? [...productCards, ...productCards] : productCards)
+  .map((item, index) => ({ item, isClone: index >= productCards.length }));
 const optionCountLabel = (count: number) => spanish
   ? `${count} ${count === 1 ? 'opción' : 'opciones'}`
   : `${count} ${count === 1 ? 'option' : 'options'}`;
 ---
 
-{cards.length > 0 && (
-  <section
+<section
     id="product-gallery"
-    class:list={['product-content-band', 'product-content-band--media', { 'product-content-band--options-only': productCards.length === 0 }]}
+    class:list={[
+      'product-content-band',
+      'product-content-band--media',
+      { 'product-content-band--options-only': productCards.length === 0 && optionCards.length > 0 },
+      { 'product-content-band--no-media': cards.length === 0 },
+    ]}
     aria-label={`${title}: ${common.featureImages}`}
   >
     <div class="container product-reference-gallery">
+      <section class="product-custom-design-process" aria-labelledby="product-custom-design-title">
+        <header class="product-custom-design-process__heading">
+          <span class="eyebrow">{copy.process.eyebrow}</span>
+          <h2 id="product-custom-design-title">{copy.process.title}</h2>
+          <p>{copy.process.description}</p>
+        </header>
+        <ol class="product-custom-design-process__steps">
+          {copy.process.steps.map((step, index) => (
+            <li>
+              <span class="product-custom-design-process__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d={processIconPaths[step.icon]} />
+                </svg>
+              </span>
+              <span class="product-custom-design-process__number">{String(index + 1).padStart(2, '0')}</span>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       {productCards.length > 0 && (
         <div class="product-reference-gallery__main">
           <header class="product-section-heading product-reference-gallery__heading">
             <span class="eyebrow">{copy.galleryEyebrow}</span>
             <h2>{copy.galleryTitle}</h2>
           </header>
-          <div class="product-feature-image-grid" data-product-reference-grid>
-            {productCards.map(item => (
-              <figure
-                class="product-feature-image"
-                data-feature-kind={item.kind}
-                data-product-hover-card
-                role="button"
-                tabindex="0"
-                aria-label={`${copy.openPreview}: ${item.label}`}
-              >
-                <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
-                <figcaption>
-                  <strong title={item.label}>{item.label}</strong>
-                </figcaption>
-              </figure>
-            ))}
+          <div
+            class:list={['product-detail-media-carousel', 'product-detail-media-carousel--gallery', { 'is-single': productCards.length === 1 }]}
+            data-marquee-shell
+            data-marquee-duration="64"
+            data-marquee-direction="rtl"
+          >
+            {productCards.length > 1 && (
+              <button
+                type="button"
+                class="product-detail-media-carousel__control product-detail-media-carousel__control--prev"
+                aria-label={`${common.previousImage}: ${copy.galleryTitle}`}
+                data-marquee-prev
+              >&#8249;</button>
+            )}
+            <div class="product-detail-media-carousel__viewport" tabindex="0" aria-label={copy.galleryTitle}>
+              <div class="product-detail-media-carousel__track" data-marquee-track data-product-reference-grid>
+                {productCarouselCards.map(({ item, isClone }) => (
+                  <figure
+                    class="product-feature-image"
+                    data-feature-kind={item.kind}
+                    data-product-hover-card
+                    data-media-clone={isClone ? 'true' : undefined}
+                    role="button"
+                    tabindex={isClone ? -1 : 0}
+                    aria-hidden={isClone ? 'true' : undefined}
+                    aria-label={isClone ? undefined : `${copy.openPreview}: ${item.label}`}
+                  >
+                    <PublicImage src={item.image} alt={isClone ? '' : `${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                    <figcaption>
+                      <strong title={item.label}>{item.label}</strong>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+            {productCards.length > 1 && (
+              <button
+                type="button"
+                class="product-detail-media-carousel__control product-detail-media-carousel__control--next"
+                aria-label={`${common.nextImage}: ${copy.galleryTitle}`}
+                data-marquee-next
+              >&#8250;</button>
+            )}
           </div>
         </div>
       )}
@@ -299,29 +420,50 @@ const optionCountLabel = (count: number) => spanish
                     <p>{group.description}</p>
                   </header>
                   <div
-                    class:list={[
-                      'product-feature-image-grid',
-                      { 'product-feature-image-grid--single': group.cards.length === 1 },
-                      { 'product-feature-image-grid--pair': group.cards.length === 2 },
-                    ]}
-                    data-product-option-grid
+                    class:list={['product-detail-media-carousel', 'product-detail-media-carousel--options', { 'is-single': group.cards.length === 1 }]}
+                    data-marquee-shell
+                    data-marquee-duration="88"
+                    data-marquee-direction="rtl"
+                    data-product-option-carousel={group.key}
                   >
-                    {group.cards.map(item => (
-                      <figure
-                        class="product-feature-image"
-                        data-feature-kind={item.kind}
-                        data-product-hover-card
-                        role="button"
-                        tabindex="0"
-                        aria-label={`${copy.openPreview}: ${item.label}`}
-                      >
-                        <PublicImage src={item.image} alt={`${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
-                        <figcaption>
-                          <strong>{item.label}</strong>
-                          <span>{item.description}</span>
-                        </figcaption>
-                      </figure>
-                    ))}
+                    {group.cards.length > 1 && (
+                      <button
+                        type="button"
+                        class="product-detail-media-carousel__control product-detail-media-carousel__control--prev"
+                        aria-label={`${common.previousImage}: ${group.title}`}
+                        data-marquee-prev
+                      >&#8249;</button>
+                    )}
+                    <div class="product-detail-media-carousel__viewport" tabindex="0" aria-label={group.title}>
+                      <div class="product-detail-media-carousel__track" data-marquee-track data-product-option-grid>
+                        {group.carouselCards.map(({ item, isClone }) => (
+                          <figure
+                            class="product-feature-image"
+                            data-feature-kind={item.kind}
+                            data-product-hover-card
+                            data-media-clone={isClone ? 'true' : undefined}
+                            role="button"
+                            tabindex={isClone ? -1 : 0}
+                            aria-hidden={isClone ? 'true' : undefined}
+                            aria-label={isClone ? undefined : `${copy.openPreview}: ${item.label}`}
+                          >
+                            <PublicImage src={item.image} alt={isClone ? '' : `${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                            <figcaption>
+                              <strong>{item.label}</strong>
+                              <span>{item.description}</span>
+                            </figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    </div>
+                    {group.cards.length > 1 && (
+                      <button
+                        type="button"
+                        class="product-detail-media-carousel__control product-detail-media-carousel__control--next"
+                        aria-label={`${common.nextImage}: ${group.title}`}
+                        data-marquee-next
+                      >&#8250;</button>
+                    )}
                   </div>
                 </section>
               ))}
@@ -329,6 +471,13 @@ const optionCountLabel = (count: number) => spanish
           </div>
         </section>
       )}
+      <div class="product-media-actions" aria-label={copy.process.actionsLabel}>
+        <a class="product-media-action product-media-action--contact" href={contactHref}>{copy.process.contact}</a>
+        <a class="product-media-action product-media-action--design" href={freeDesignHref}>
+          {copy.process.startDesign}
+          <span aria-hidden="true">&#8594;</span>
+        </a>
+      </div>
     </div>
     <div class="product-image-hover-preview" data-product-hover-preview hidden aria-hidden="true">
       <figure class="product-image-hover-preview__panel" data-product-hover-preview-panel>
@@ -338,7 +487,6 @@ const optionCountLabel = (count: number) => spanish
       </figure>
     </div>
   </section>
-)}
 
 <script>
   const setupProductOptionBrowsers = () => {

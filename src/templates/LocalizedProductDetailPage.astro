@@ -142,7 +142,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
       <div class="container product-detail-jump-links">
         <a href="#product-overview">{pages.product.overviewEyebrow}</a>
         <a href="#product-specifications">{pages.product.specsEyebrow}</a>
-        {productDetailImages.length > 0 && <a href="#product-gallery">{common.featureImages}</a>}
+        <a href="#product-gallery">{common.featureImages}</a>
         {localized.applications.length > 0 && <a href="#product-applications">{pages.product.applicationsTitle}</a>}
         {localized.faqs.length > 0 && <a href="#product-faq">{pages.product.faqEyebrow}</a>}
       </div>
