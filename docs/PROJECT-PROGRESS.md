@@ -35,3 +35,7 @@ Open items and next action:
 - Work: clarified independent new-site release and mother CAP adoption in bilingual AGENTS; added CAP-0001/0002 assessment queue. Both remain `NOT AUDITED`; a new-site build is not an emergency old-site continuity migration. No customer runtime or README changed.
 - Checks/delivery: `git diff --check` exited 0 with line-ending warnings; docs-only, no build/browser/CI claimed. Local uncommitted changes only; no push or production deployment.
 - Next step: keep normal research-first construction separate from any specifically approved CAP alignment. On a new PC copy `.git` and untracked records, then verify status, branch and origin before continuing.
+
+## 2026-09-23 23:53 +08:00 - Remote backup addendum
+
+- Governance-only commit `3c89107` pushed to this repository's `codex/governance-20260923`; four scoped files. No `main` push, CI, preview or production deployment was initiated. CAP-0001/0002 remain NOT AUDITED locally; a remote branch is not a release.
