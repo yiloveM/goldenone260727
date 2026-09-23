@@ -1,5 +1,49 @@
 # Golden One Codex Operating Rules
 
+## Workspace governance
+
+This is an independent Git root for `yiloveM/goldenone260727`, not the
+mother template. When this checkout lives under `webtemp`, read
+`../CODEX-MASTER-INSTRUCTION.en.md` and `../docs/REPOSITORY-MAP.md` first.
+The parent owns shared governance; this file retains Golden One-specific
+constraints and protects standalone clones, where parent instructions may
+not exist or auto-load. This English `AGENTS.md` takes precedence over its
+`AGENTS.zh-CN.md` translation.
+
+Before any remote write, verify this Git root, requested branch, exact staged
+files, and both origin URLs resolve to `yiloveM/goldenone260727`. Never
+push mother or another customer content here, or push this repository to
+their remotes. Direct network first; retry port 7890 only after connection
+failure. Switch the existing `gh` account if needed and judge real API/push
+feedback; do not treat sandbox denial as a credential failure.
+
+Record reusable engineering additions in `docs/CAPABILITY-REGISTER.md` and,
+when the mother checkout is available, its `新增工程能力清单.txt` pending
+section. A candidate is not an approved backport. When this site's capability
+actually changes, update the existing README capability list and related
+instructions in place without changing its eight-chapter layout. Append a
+factual entry to `docs/PROJECT-PROGRESS.md` after every task and to the
+mother progress log when available; never record secrets or invented
+deployment status.
+
+This customer project has its own release and compatibility state, not an
+automatic mirror of the mother. For a selected CAP/revision, inspect the
+local register, code, settings and data before classifying it; keep
+implementation, enablement, preview validation and production release distinct.
+`NOT AUDITED` is not `missing`. Follow the mother's
+`../docs/CAPABILITY-ALIGNMENT-PROTOCOL.md` when present; a standalone clone
+uses its local records and grants no cross-repository push. At task start,
+lightly check mother GSC MCP availability if the mother exists. Use it only
+for GSC work after exact property verification; missing machine-local tools
+or credentials do not authorize site runtime or production changes.
+
+Never modify/delete files outside the project workspace. Before batch deletion
+(multiple files, directory, recursive or wildcard), show the exact resolved
+targets and purpose in an interactive warning and wait for the owner's exact
+`确认`. If the request ends in `静默处理无需汇报`, omit routine updates but
+retain tests, safety/Git checks, progress records, necessary approvals, and a
+brief final summary.
+
 This repository is the in-progress Golden One international commercial website, not an untouched template or an internal admin product. Preserve the Golden One brand, metal-gift product architecture, public visual layer, content, artwork-upload inquiry flow, URLs, and production resource identities.
 
 ## Detect required workflows
