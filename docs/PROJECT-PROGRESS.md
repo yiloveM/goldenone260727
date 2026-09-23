@@ -39,3 +39,8 @@ Open items and next action:
 ## 2026-09-23 23:53 +08:00 - Remote backup addendum
 
 - Governance-only commit `3c89107` pushed to this repository's `codex/governance-20260923`; four scoped files. No `main` push, CI, preview or production deployment was initiated. CAP-0001/0002 remain NOT AUDITED locally; a remote branch is not a release.
+
+## 2026-09-24 02:18 +08:00 - Governance consolidation
+
+- Pushed `b69bcc9` to Golden One's own `codex/governance-20260923`: only bilingual AGENTS changed, replacing the redundant protocol dependency with local execution rules and existing master references.
+- Scoped diff checks passed; no production push or runtime change. Continue from this branch and local records, reconciling current main before a future merge; this handoff is a follow-up documentation commit.
