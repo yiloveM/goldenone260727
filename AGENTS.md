@@ -4,7 +4,8 @@
 
 This is an independent Git root for `yiloveM/goldenone260727`, not the
 mother template. When this checkout lives under `webtemp`, read
-`../CODEX-MASTER-INSTRUCTION.en.md` and `../docs/REPOSITORY-MAP.md` first.
+`../AGENTS.md`, `../CODEX-MASTER-INSTRUCTION.en.md` and
+`../docs/REPOSITORY-MAP.md` first.
 The parent owns shared governance; this file retains Golden One-specific
 constraints and protects standalone clones, where parent instructions may
 not exist or auto-load. This English `AGENTS.md` takes precedence over its
@@ -30,9 +31,13 @@ This customer project has its own release and compatibility state, not an
 automatic mirror of the mother. For a selected CAP/revision, inspect the
 local register, code, settings and data before classifying it; keep
 implementation, enablement, preview validation and production release distinct.
-`NOT AUDITED` is not `missing`. Follow the mother's
-`../docs/CAPABILITY-ALIGNMENT-PROTOCOL.md` when present; a standalone clone
-uses its local records and grants no cross-repository push. At task start,
+`NOT AUDITED` is not `missing`. For approved changes, adapt minimum dependencies
+on an isolated branch, test old data and rollback, then follow the site's
+separate publishing authorization. The mother's master instruction section 13
+supplies details when available; a standalone clone uses these rules and its
+local register. Maintain the existing entries without adding another governance
+document. On another computer, read local progress and verify branch, HEAD and
+origin before continuing. At task start,
 lightly check mother GSC MCP availability if the mother exists. Use it only
 for GSC work after exact property verification; missing machine-local tools
 or credentials do not authorize site runtime or production changes.
