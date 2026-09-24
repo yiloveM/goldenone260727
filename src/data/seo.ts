@@ -1,4 +1,18 @@
 import type { CollectionEntry } from 'astro:content';
+import type {
+  Article,
+  BreadcrumbList,
+  CollectionPage,
+  FAQPage,
+  Organization,
+  Product,
+  ProductGroup,
+  PropertyValue,
+  Service,
+  WebPage,
+  WebSite,
+  WithContext,
+} from 'schema-dts';
 import { brandAssets } from './assets';
 import { reviewSystemEnabled, seoReviewsForProduct } from './customerReviews';
 import { getProductCardKeywords } from './productCardKeywords';
@@ -12,6 +26,13 @@ type ProductEntry = CollectionEntry<'products'>;
 type BlogEntry = CollectionEntry<'blog'>;
 
 export type JsonLd = Record<string, unknown>;
+type ProductPageJsonLd = WithContext<Product | ProductGroup> & {
+  '@type': 'Product' | 'ProductGroup';
+  name: string;
+  url: string;
+  image: string[];
+  inLanguage: string;
+};
 
 export const productEntitiesEnabled = true;
 
@@ -109,7 +130,7 @@ export const organizationStructuredData = (site?: URL | string | null): JsonLd =
   ...(siteInfo.address ? { address: siteInfo.address } : {}),
   logo: absoluteUrl(brandAssets.logo, site),
   sameAs: uniqueList(siteInfo.socialProfiles),
-});
+} satisfies WithContext<Organization>);
 
 export const websiteStructuredData = (site?: URL | string | null): JsonLd => ({
   '@context': 'https://schema.org',
@@ -120,7 +141,7 @@ export const websiteStructuredData = (site?: URL | string | null): JsonLd => ({
   description: siteInfo.description,
   publisher: { '@id': organizationId(site) },
   inLanguage: 'en',
-});
+} satisfies WithContext<WebSite>);
 
 export const webPageStructuredData = (
   options: {
@@ -146,7 +167,7 @@ export const webPageStructuredData = (
     publisher: { '@id': organizationId(site) },
     ...(options.image ? { primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(options.image, site) } } : {}),
     ...(options.mainEntityId ? { mainEntity: { '@id': options.mainEntityId } } : {}),
-  };
+  } satisfies WithContext<WebPage>;
 };
 
 export const breadcrumbStructuredData = (
@@ -161,7 +182,7 @@ export const breadcrumbStructuredData = (
     name: item.name,
     item: absoluteUrl(item.url, site),
   })),
-});
+} satisfies WithContext<BreadcrumbList>);
 
 type ProductProperty = {
   name: string;
@@ -170,7 +191,7 @@ type ProductProperty = {
   unitText?: string;
 };
 
-const propertyValues = (items: ProductProperty[]) => {
+const propertyValues = (items: ProductProperty[]): PropertyValue[] => {
   const grouped = new Map<string, { name: string; values: string[]; propertyID?: string; unitText?: string }>();
   items.forEach(item => {
     const name = cleanText(item.name);
@@ -189,7 +210,7 @@ const propertyValues = (items: ProductProperty[]) => {
     grouped.set(key, group);
   });
   return Array.from(grouped.values()).map(item => ({
-    '@type': 'PropertyValue',
+    '@type': 'PropertyValue' as const,
     name: item.name,
     value: item.values.join(' / '),
     ...(item.propertyID ? { propertyID: item.propertyID } : {}),
@@ -394,7 +415,7 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
         ...publicProductSpecs(product.data.specs).map(spec => ({ name: spec.label, value: spec.value })),
         ...product.data.applications.map((application, index) => ({ name: `Application ${index + 1}`, value: application })),
       ]),
-    };
+    } satisfies WithContext<Service> & { additionalProperty: PropertyValue[]; inLanguage: string };
     const data: JsonLd[] = productEntitiesEnabled ? [serviceEntity, baseBreadcrumb] : [baseBreadcrumb];
     if (product.data.faqs.length) {
       data.push({
@@ -447,7 +468,7 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
     productID: product.data.series,
     keywords: productSeoKeywordVariants(product).join(', '),
     additionalProperty: propertyValues([...seriesProperties, ...(variants.length > 1 ? sharedProperties : [])]),
-  };
+  } satisfies ProductPageJsonLd;
 
   const verifiedProductReviews = seoReviewsForProduct(slug);
   if (verifiedProductReviews.length > 0) {
@@ -553,7 +574,7 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
         name: cleanText(item.question),
         acceptedAnswer: { '@type': 'Answer', text: cleanText(item.answer) },
       })),
-    });
+    } satisfies WithContext<FAQPage>);
   }
 
   return data;
@@ -600,7 +621,7 @@ export const collectionStructuredData = (
       ...(item.image ? { image: absoluteUrl(item.image, site) } : {}),
     })),
   },
-});
+} satisfies WithContext<CollectionPage>);
 
 export const articleStructuredData = (post: BlogEntry, slug: string, site?: URL | string | null): JsonLd => {
   const url = absoluteUrl(`/blog/${slug}/`, site);
@@ -617,5 +638,5 @@ export const articleStructuredData = (post: BlogEntry, slug: string, site?: URL 
     author: { '@id': organizationId(site) },
     publisher: { '@id': organizationId(site) },
     mainEntityOfPage: { '@id': `${url}#webpage` },
-  };
+  } satisfies WithContext<Article>;
 };

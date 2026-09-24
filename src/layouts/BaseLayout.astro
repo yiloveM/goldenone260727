@@ -9,6 +9,7 @@ import { industryProfile, visualTokens } from '../data/industry-profile';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
 import { absoluteUrl, organizationStructuredData, siteUrl, webPageStructuredData, websiteStructuredData } from '../data/seo';
 import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
+import { serializeJsonLd } from '../lib/json-ld.mjs';
 import InquiryCart from '../components/InquiryCart.astro';
 import BackToTop from '../components/BackToTop.astro';
 import ContactAction from '../components/ContactAction.astro';
@@ -82,6 +83,13 @@ const coreStructuredDataItems = [
   ),
 ];
 const structuredDataItems = [...coreStructuredDataItems, ...providedStructuredDataItems].reduce<Record<string, unknown>[]>((items, item) => {
+  const pageIndex = items.findIndex(existing =>
+    existing['@id'] && existing['@id'] === item['@id'] && existing['@type'] === 'WebPage' && item['@type'] === 'CollectionPage'
+  );
+  if (pageIndex >= 0) {
+    items[pageIndex] = { ...items[pageIndex], ...item };
+    return items;
+  }
   const key = `${item['@id'] || item['url'] || ''}|${item['@type'] || ''}`;
   if (key !== '|' && items.some(existing => `${existing['@id'] || existing['url'] || ''}|${existing['@type'] || ''}` === key)) {
     return items;
@@ -195,7 +203,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
     <link rel="stylesheet" href={fontHref} />
     {preloadPageImage && <link rel="preload" as="image" href={image} fetchpriority="high" />}
     {preloadHomeHero && <link rel="preload" as="image" href={webpPreloadImage || image} fetchpriority="high" />}
-    {structuredDataItems.map(item => <script is:inline type="application/ld+json" set:html={JSON.stringify(item)} />)}
+    {structuredDataItems.map(item => <script is:inline type="application/ld+json" set:html={serializeJsonLd(item)} />)}
     <style is:inline set:html={visualTokenStyle}></style>
   </head>
   <body>

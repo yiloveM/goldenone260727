@@ -117,6 +117,7 @@ After meaningful public, content-schema, or deployment changes, run:
 npm run types:cloudflare -- --check
 npm run check
 npm run check:template
+npm run test:jsonld
 npm run build
 ```
 

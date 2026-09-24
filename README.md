@@ -35,6 +35,7 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 
 - canonical、`hreflang`、多语言 sitemap、`robots.txt`、`llms.txt` 和机器可读产品目录。
 - Organization、ProductGroup/Product、Service、BreadcrumbList、FAQPage 等结构化数据。
+- JSON-LD 先经过类型检查与安全序列化；构建成功后自动检查每个生成页面的结构化数据，不会为询价产品编造价格或评分。
 - 产品、文章、图片替代文本、内链和语言发布状态由同一内容源生成。
 - 第一方无 Cookie 访问分析：浏览量、日访客、落地页、来源、关键词、国家、设备、语言、引荐站、Campaign 和最近访问。
 - SEO 决策摘要、Google Search Console 搜索词机会、点击率与排名分析。
@@ -99,6 +100,7 @@ npm clean-install
 npm run types:cloudflare -- --check
 npm run check
 npm run check:template
+npm run test:jsonld
 npm run build
 ```
 
@@ -766,6 +768,8 @@ Codex 必须：
 ```
 
 Codex 必须先调查最新搜索规范和真实 SERP，再完成关键词到页面映射、标题与摘要、产品架构、图片 alt、内链、结构化数据、`hreflang`、sitemap、`llms.txt` 和产品目录。它必须根据 Golden One 实际业务判断单品、系列、服务和解决方案关系，不得伪造报价、库存、评分、认证、性能或交期。
+
+结构化数据维护：修改产品资料或 SEO 生成逻辑后，先运行 `npm run test:jsonld`，再运行 `npm run build`；构建会自动执行 `check:jsonld`。若已有构建产物，也可单独运行 `npm run check:jsonld`。输出中的“without rich-result inputs”仅表示该询价产品没有可核实的报价/评分/评价，不是构建错误，也不代表 Google 一定不收录；真正的 JSON 格式、重复标识、页面与数据不一致会报错。必须在构建成功后才把产物审计视为通过。新增真实报价或评分时先确保页面可见且与 JSON-LD 一致，再用 Google 富结果测试和 GSC 复核。
 
 </details>
 

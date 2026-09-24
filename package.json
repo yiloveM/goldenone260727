@@ -31,6 +31,8 @@
     "media:apply:goldenone:cutouts": "node scripts/apply-goldenone-cutout-mapping.mjs",
     "media:upload:goldenone:cutouts": "node scripts/upload-goldenone-r2-media.mjs --manifest \"don't push/sitedata/r2-upload/goldenone-cutouts/cutout-processing-manifest.json\"",
     "check:seo": "node scripts/audit-product-seo.mjs",
+    "check:jsonld": "node scripts/audit-jsonld.mjs",
+    "test:jsonld": "node --test scripts/test-json-ld.mjs",
     "check:rich-results": "node scripts/audit-product-seo.mjs --rich-results",
     "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",
     "preview:astro": "node scripts/run-astro.mjs preview",
@@ -61,6 +63,8 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "parse5": "7.3.0",
+    "schema-dts": "2.0.0",
     "wrangler": "^4.114.0"
   }
 }

@@ -6,6 +6,7 @@ import { loadWranglerVars } from './load-wrangler-vars.mjs';
 const projectRoot = process.cwd();
 const astroEntry = resolve(projectRoot, 'node_modules', 'astro', 'bin', 'astro.mjs');
 const keystaticBuildCheck = resolve(projectRoot, 'scripts', 'verify-keystatic-build.mjs');
+const jsonLdBuildCheck = resolve(projectRoot, 'scripts', 'audit-jsonld.mjs');
 const wranglerVars = loadWranglerVars(projectRoot);
 const configuredWranglerVars = Object.fromEntries(
   Object.entries(wranglerVars).filter(([, value]) => value.trim())
@@ -44,6 +45,9 @@ if (command === 'verified-build') {
   if (checkStatus !== 0) process.exit(checkStatus);
   const buildStatus = run(['build', ...args]);
   if (buildStatus !== 0) process.exit(buildStatus);
+  const jsonLdStatus = spawnSync(process.execPath, [jsonLdBuildCheck], sharedOptions);
+  if (jsonLdStatus.error) throw jsonLdStatus.error;
+  if (jsonLdStatus.status !== 0) process.exit(jsonLdStatus.status ?? 1);
   const verifyStatus = spawnSync(process.execPath, [keystaticBuildCheck], sharedOptions);
   if (verifyStatus.error) throw verifyStatus.error;
   process.exit(verifyStatus.status ?? 1);
