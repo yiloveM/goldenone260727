@@ -8,7 +8,7 @@ const visit = function* (node) {
   for (const child of node.childNodes || []) yield* visit(child);
 };
 
-const attribute = (node, name) => node.attrs?.find(item => item.name === name)?.value || '';
+const attribute = (node, name) => node?.attrs?.find(item => item.name === name)?.value || '';
 const scriptText = node => (node.childNodes || []).map(child => child.value || '').join('');
 const visibleText = node => {
   if (node.nodeName === 'script' || node.nodeName === 'style') return '';
@@ -36,6 +36,8 @@ export const auditJsonLdHtml = (html, label = 'page') => {
   const bodyText = visibleText(body || document).replace(/\s+/g, ' ');
   const canonical = nodes.find(node => node.nodeName === 'link' && attribute(node, 'rel') === 'canonical');
   const canonicalUrl = canonical ? attribute(canonical, 'href') : '';
+  const robots = nodes.find(node => node.nodeName === 'meta' && attribute(node, 'name').toLowerCase() === 'robots');
+  const noindex = /(?:^|[\s,])noindex(?:[\s,]|$)/i.test(attribute(robots, 'content'));
   const scripts = nodes.filter(node => node.nodeName === 'script' && attribute(node, 'type').toLowerCase() === 'application/ld+json');
   const errors = [];
   let productCount = 0;
@@ -65,7 +67,7 @@ export const auditJsonLdHtml = (html, label = 'page') => {
         ids.add(node['@id']);
       }
       if (node.url && !isAbsoluteUrl(node.url)) errors.push(label + ': ' + type + ' has a non-absolute URL');
-      if (types.some(item => item === 'WebPage' || item === 'CollectionPage') && canonicalUrl && node.url !== canonicalUrl) {
+      if (!noindex && types.some(item => item === 'WebPage' || item === 'CollectionPage') && canonicalUrl && node.url !== canonicalUrl) {
         errors.push(label + ': page URL differs from canonical');
       }
       if (types.some(item => ['Product', 'ProductGroup', 'Service', 'Organization', 'WebSite', 'WebPage', 'CollectionPage'].includes(item))

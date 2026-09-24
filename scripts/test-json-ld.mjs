@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { serializeJsonLd } from '../src/lib/json-ld.mjs';
 import { auditJsonLdHtml } from './audit-jsonld.mjs';
 
-const page = (schema, body = '') =>
-  '<html><head><link rel="canonical" href="https://example.com/product"></head><body>' +
+const page = (schema, body = '', head = '') =>
+  '<html><head><link rel="canonical" href="https://example.com/product">' + head + '</head><body>' +
   body + '<script type="application/ld+json">' + schema + '</script></body></html>';
 
 test('JSON-LD serialization blocks script breakout and preserves content', () => {
@@ -50,4 +50,13 @@ test('duplicate page identifiers are rejected while graph nodes inherit context'
   const result = auditJsonLdHtml(page(graph));
   assert.equal(result.errors.length, 1);
   assert.match(result.errors[0], /duplicate JSON-LD @id/);
+});
+
+test('canonical mismatch is ignored only for explicitly noindex pages', () => {
+  const schema = serializeJsonLd({
+    '@context': 'https://schema.org', '@type': 'CollectionPage',
+    name: 'Unpublished translation', url: 'https://example.com/fr/product',
+  });
+  assert.match(auditJsonLdHtml(page(schema)).errors[0], /page URL differs from canonical/);
+  assert.deepEqual(auditJsonLdHtml(page(schema, '', '<meta name="robots" content="noindex, nofollow">')).errors, []);
 });
