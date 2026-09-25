@@ -2,6 +2,25 @@
 
 ## Workspace governance
 
+Lifecycle: `building`. Current workspace directory: `goldenone002-building/`
+(formerly `goldenone002/`). The owner's standing instruction authorizes delivery
+of approved work to this repository's `main`, including its existing Actions
+publish workflow. A temporary branch is optional; finish integration and push
+to `main` without another push confirmation. An explicit no-push/branch-only
+task overrides this default. Reachable custom domains and a `production-ready`
+content field do not mean the customer has accepted commercial launch. Preserve
+this status in standalone clones until the owner changes it. Record before SHA,
+change commits, checks, push/CI and scoped revert instructions in the local log.
+This does not authorize DNS changes, live data migrations or other customers.
+
+Accept concrete owner-provided/confirmed facts without repeated external proof.
+Check model mapping, units, missing values and contradictions; the agent owns
+research/visual/SEO metadata, not the client. Do not add evidence-per-field forms,
+invent missing counts/prices or equate search-engine eligibility with business
+truth. Owner confirmation can satisfy `factsVerified` for its confirmed scope.
+Governance/path-only edits need diff, reference and isolation checks, not a full
+site build; reuse valid checks and observe CI when a runtime release is triggered.
+
 This is an independent Git root for `yiloveM/goldenone260727`, not the
 mother template. When this checkout lives under `webtemp`, read
 `../AGENTS.md`, `../CODEX-MASTER-INSTRUCTION.en.md` and
@@ -32,8 +51,8 @@ automatic mirror of the mother. For a selected CAP/revision, inspect the
 local register, code, settings and data before classifying it; keep
 implementation, enablement, preview validation and production release distinct.
 `NOT AUDITED` is not `missing`. For approved changes, adapt minimum dependencies
-on an isolated branch, test old data and rollback, then follow the site's
-separate publishing authorization. The mother's master instruction section 13
+using an isolated branch when useful, test old data and rollback, then integrate
+and push `main` under the building authorization above. The mother's master instruction section 13
 supplies details when available; a standalone clone uses these rules and its
 local register. Maintain the existing entries without adding another governance
 document. On another computer, read local progress and verify branch, HEAD and
