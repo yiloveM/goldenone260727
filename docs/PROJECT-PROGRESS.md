@@ -66,3 +66,8 @@ Open items and next action:
 - Bilingual AGENTS and existing README now require authorized work to be integrated and pushed to main without a second push question; temporary branch work is not completed delivery. Commercial launch is owner-designated, not inferred from a reachable Worker. Owner-confirmed concrete facts are accepted; AI completes research metadata instead of requiring customer proof-per-field.
 - No new engineering CAP or backend fields. Historical eac9edf..267e23e diff confirms no changes to keystatic.config.ts/content schema/industry profile in the earlier JSON-LD adoption. This task only checks governance, paths, README structure and isolated diff; it does not rerun site builds.
 - Delivery: main documentation commit with [skip ci] prepared; receipt follows. Recovery: revert that scoped commit against baseline 267e23e, not earlier CAP-0003 code. No database changes. On a copied workspace use this new path, preserve .git/local files and reconfigure external credentials; GSC still has no owner-created property.
+
+## 2026-09-25 10:10 +08:00 - Main delivery verified
+
+- Pushed 40cdc4a to this repository's main from 267e23e. Only bilingual AGENTS, existing README and this progress log changed; no runtime/customer data/schema/deployment change. Exact-SHA Actions query returned no runs, as intended for [skip ci].
+- Recovery: git revert 40cdc4a, then authorized push to this origin, preserving later changes. Existing CAP-0003 implementation and prior successful site deployment are unchanged. This entry is a documentation-only receipt; continue from main in goldenone002-building on the next computer after checking its own .git and origin.
