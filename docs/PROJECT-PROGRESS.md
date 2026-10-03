@@ -1,19 +1,23 @@
 # Golden One Project Progress
 
-Append a factual entry after every Golden One task, using paths relative to
-this Git root. Never record secrets. If the mother workspace is available,
-also append its shared handoff log.
+Record meaningful resumption, release/recovery, capability, or governance state,
+not every task or operation. One batch entry covers multi-page content/media,
+mapping/parameter changes, consequential external-state changes, and unfinished
+work. Completed low-risk copy/single-image fixes with no handoff or release
+impact need no entry; Git is sufficient. Advice-only answers, download/conversion
+steps, retries, and cleanup statistics do not belong here. Preserve history
+and keep secrets out. The mother log, when available, holds only a summary.
+Keep product facts/media URLs in their content files; retain minimal originals
+and mappings while unfinished, without adding a permanent media ledger.
 
 ## Entry template
 
 ```text
-Time (+08:00):
-Branch/local HEAD; remote HEAD if freshly verified:
-Goal and work completed:
-Capability/README/register state:
-Checks and result:
-Commit/push/CI/production evidence (separate):
-Open items and next action:
+Time (+08:00); target/scope:
+Branch/baseline/change commit or unique entry heading:
+Relevant checks; actual commit/push/CI/preview/production separately:
+Pending/next action; rollback or external-state recovery when needed:
+CAP/register/README status only for capability work.
 ```
 
 ## 2026-09-21 04:18 +08:00 - Governance baseline
@@ -71,3 +75,12 @@ Open items and next action:
 
 - Pushed 40cdc4a to this repository's main from 267e23e. Only bilingual AGENTS, existing README and this progress log changed; no runtime/customer data/schema/deployment change. Exact-SHA Actions query returned no runs, as intended for [skip ci].
 - Recovery: git revert 40cdc4a, then authorized push to this origin, preserving later changes. Existing CAP-0003 implementation and prior successful site deployment are unchanged. This entry is a documentation-only receipt; continue from main in goldenone002-building on the next computer after checking its own .git and origin.
+
+
+## 2026-10-03 22:32 +08:00 - Buyer Copy, Complete Media and Selective Handoffs
+
+- Scope: Own bilingual AGENTS, existing two-phase prompt/workflow/skill and README now enforce buyer-facing copy, complete media groups above matching text without splitting modules, and selective handoffs. Existing log policy/template updated; no new governance file, mandatory CMS field, media register, or engineering capability.
+- Baseline: freshly verified origin/main = `a8b18b0988b719ac3f94062b85d7474f57aed8d4`; change reference is the commit introducing this unique heading.
+- Checks: PASS scoped documentation diff/UTF-8, English/Chinese core rules, README chapters/folds/fences, and independent origin/ref access. Full site build/browser/SEO tests NOT RUN (no runtime, content, media, data, or workflow changes).
+- Delivery/recovery: documentation-only `[skip ci]` commit targeting this repository's `main`; verify its presence in that remote ref on resumption. No preview/production release requested. Scoped-revert the introducing commit on that same authorized ref; no R2/D1 recovery needed.
+- Next: Resume on this customer's main after fetching and verifying the introducing commit. Existing eight-chapter README, customer facts, visual layer, routes, and resources are unchanged.

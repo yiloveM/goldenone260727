@@ -33,6 +33,22 @@ Trigger only from explicit authorization such as `旧站迁移+网址`.
 6. Apply the legacy information architecture, information layer, verified copy, specifications, metadata, media, and URLs to the customer site. Each old page is the mandatory factual and copy source.
 7. Research current high-ranking industry pages only for buyer vocabulary, professional terminology, information density, and sentence rhythm. Rewrite the old copy to remove formulaic AI phrasing without factual drift, unsupported claims, competitor imitation, or from-scratch replacement based only on ranking-site style.
 
+## Buyer-facing copy and media
+
+In both phases and maintenance, write public copy, captions, alt text, metadata,
+and translations for buyers, never as import/AI verification reports. Preserve
+genuine catalogue downloads, series names, attribution, and business information.
+Before batch media work, identify product/model, gallery versus content role,
+and complete image/text groups, including curve legends, units, and model labels.
+Place explanatory figures immediately above matching prose; for a cohesive
+features/cards/steps/table/tabs module, place the figure before the entire module,
+never between its items. Verify representative pages before batch application,
+then desktop/mobile and affected languages for correct products, complete groups,
+intact modules, and unchanged specifications. Follow the existing AGENTS handoff
+policy; one meaningful batch entry, not an operation diary. Do not force unrelated
+rewrites during urgent continuity delivery. Details: `docs/CODEX-INDUSTRY-WORKFLOW.md`.
+
+
 ## Two-phase workflow
 
 ### Phase one: industry visual build

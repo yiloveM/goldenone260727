@@ -22,6 +22,13 @@ Use this prompt when turning a fresh BusinessWeb copy into a customer site.
 
 执行要求：
 
+两阶段及后续维护都遵守以下内容规则：公开正文、标题、图注、alt、SEO 字段和翻译写给买家，不写“从目录导入”“AI已核实”等工作汇报；保留真正的目录下载、系列名和必要署名，不按禁词机械替换。
+
+导入媒体先核对产品/型号、产品图与内容插图，以及完整图文组合；曲线图保留全部图例、单位和型号。解释性插图紧接对应文字段落上方；若对应的是整组特性卡片、步骤或表格，则放在整个模块之前，绝不把模块拆散。产品照片放图库。先验代表页，再批量处理并检查桌面/手机及受影响语种；不改真实参数。
+
+进度不是流水账：批量内容/媒体、发布、回退相关变化或未完成任务才按 AGENTS 记一条；下载、转码、重试和清理不单独记。紧急保站不因此强制做无关的改写或重排。
+
+
 1. 先完整阅读 README.md、AGENTS.md、docs/CODEX-INDUSTRY-WORKFLOW.md、docs/ASTROWIND-INTEGRATION.md、docs/PUBLIC-VISUAL-FOUNDATION.md 和 .agents/skills/businessweb-seo-geo/SKILL.md；提供旧站迁移 URL 时还要阅读 docs/OLD-SITE-MIGRATION.md。
 2. 在编辑任何文件前，先把本次全部要求逐项列入以下四类，并写明将落到哪些文件；没有完成归类不得开始实现：
    - A｜Codex 第一阶段决策规则：迁移触发词、研究顺序、输入职责、真实文案处理、原 URL 策略、R2 key 语义原则、受控下载是否启用及页面位置、视觉参考优先级、交互 QA、验收标准和“确认修改能力”门禁。这些只进入 AGENTS、Skill、流程文档和本提示词，不得变成买家页面上的运行时代码或文案。
@@ -73,4 +80,5 @@ After real products and company information are uploaded:
 目标市场：
 
 先调查最新 Google Search Central 官方文档、当前目标市场 SERP、买家问题和真实竞争页面，再建立关键词到页面的意图映射。只能使用已核实的产品、公司、价格、认证、案例和评价资料。完成后运行 check、check:template:production、check:seo 和 build。
+公开优化结果仍写给买家，不展示 AI 处理说明；媒体先识别产品与完整图组，解释性插图放对应文字上方，整组卡片/步骤/表格保持连续，不能借 SEO 拆模块或改真实参数。进度按 AGENTS 选择性记录批量变化、发布/回退或待办，不记操作流水账。
 ```

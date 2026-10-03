@@ -125,6 +125,29 @@ Choose imagery in this order:
 
 Construction-stage placeholder products and images may be used to complete the page design without per-item source records or code restrictions. Phase one should create only a small set of clearly labeled, industry-neutral demo reviews for visual preview; never import or invent platform reviews. Do not present fabricated customer logos, certifications, case studies, ratings, facilities, employees, project locations, or performance as verified proof, and do not feed demonstrations into eligible structured data.
 
+## Buyer-facing copy and complete media
+
+These rules apply to both phases and ongoing maintenance, without forcing
+unrelated rewrites during urgent continuity delivery.
+
+- Public body copy, headings, captions, alt text, metadata, and translations
+  serve buyers, not AI import/verification reports. Prefer natural labels such
+  as `Features`. Preserve genuine catalogue downloads, series names, necessary
+  attribution, and business information; never use blind forbidden-word removal.
+- Before batch media work, identify product/model, gallery versus content role,
+  and complete semantic groups. Preserve paired images, legends, axes, units,
+  and model labels. Canva grouping or one PDF page is not proof of one product.
+- Put explanatory figures immediately above matching prose; if it is part of
+  a cohesive features/cards/steps/table/tabs module, place the figure before
+  the whole module and keep its heading and items continuous. Do not split six
+  cards into three, a figure, then three, or stack unrelated figures. Product
+  photos stay in galleries; dimensions accompany their matching table.
+- Check representative pages before batch application, then desktop/mobile and
+  affected languages for complete groups, buyer wording, intact modules, and
+  unchanged specifications. Use the existing progress-log policy for meaningful
+  batches and pending work; do not log downloads, retries, or cleanup statistics.
+
+
 ## Public visual reconstruction
 
 After the research gate:
@@ -134,7 +157,7 @@ After the research gate:
 3. Use the information density buyers actually need. A visual consumer product and a technical model-series catalog should not share the same module order.
 4. Replace neutral template modules when research indicates a better structure. Do not merely recolor the starter.
 5. Preserve `/keystatic/`, `/manager/`, R2, D1, KV, AI translation, shared CAPTCHA, public-form D1/Resend delivery, configurable controlled downloads, content schemas, and publishing workflows.
-6. Keep public wording external. Do not mention templates, CMS fields, drafts, R2, D1, or deployment on buyer-facing pages.
+6. Keep buyer-facing wording free of internal import, verification, CMS, and deployment reports; apply the copy/media rules above without stripping legitimate business information.
 7. Use reusable role/state class names. Do not copy customer, industry, facility, reference-site, old-theme, color, or temporary-effect names into template classes.
 8. If implementation would change the technical stack, an engineering capability, application boundary, or deployment ownership, stop before editing. Explain the exact before/after behavior and wait for the owner's exact reply `确认修改能力`.
 
@@ -170,6 +193,8 @@ For an approved customer implementation:
 - Continuous motion is allowed when the reference design calls for it and it remains readable, pauses on user interaction where appropriate, and respects reduced motion.
 - Respect `prefers-reduced-motion`.
 - Keep animated text dimensions stable so it cannot move surrounding layout.
+
+Before accepting public copy/media changes, inspect representative desktop/mobile pages and affected languages for buyer-facing wording, complete image/text groups, correct product identity, and continuous feature/table modules.
 
 ## Phase-one QA gate
 

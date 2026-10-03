@@ -41,10 +41,19 @@ Record reusable engineering additions in `docs/CAPABILITY-REGISTER.md` and,
 when the mother checkout is available, its `新增工程能力清单.txt` pending
 section. A candidate is not an approved backport. When this site's capability
 actually changes, update the existing README capability list and related
-instructions in place without changing its eight-chapter layout. Append a
-factual entry to `docs/PROJECT-PROGRESS.md` after every task and to the
-mother progress log when available; never record secrets or invented
-deployment status.
+instructions in place without changing its eight-chapter layout.
+
+Record in `docs/PROJECT-PROGRESS.md` only what another agent needs for
+resumption, release/recovery, capability work, or repository/governance changes:
+one concise entry per batch content/media change, mapping/parameter change,
+release, consequential external-state change, or unfinished task. Normally use
+3-5 short lines covering scope, branch/baseline/change reference, relevant checks,
+actual delivery state, and pending/next/recovery steps. Completed low-risk copy
+or single-image fixes with no handoff/release impact need no separate entry;
+Git is sufficient. Advice-only answers, downloads, conversions, upload/retry
+steps, and cleanup statistics are not progress entries. Preserve historical
+records; keep secrets out and never invent deployment status. The mother log,
+when available, contains only a cross-workspace summary, not duplicated detail.
 
 This customer project has its own release and compatibility state, not an
 automatic mirror of the mother. For a selected CAP/revision, inspect the
@@ -65,7 +74,7 @@ Never modify/delete files outside the project workspace. Before batch deletion
 (multiple files, directory, recursive or wildcard), show the exact resolved
 targets and purpose in an interactive warning and wait for the owner's exact
 `确认`. If the request ends in `静默处理无需汇报`, omit routine updates but
-retain tests, safety/Git checks, progress records, necessary approvals, and a
+retain tests, safety/Git checks, required handoff records, necessary approvals, and a
 brief final summary.
 
 This repository is the in-progress Golden One international commercial website, not an untouched template or an internal admin product. Preserve the Golden One brand, metal-gift product architecture, public visual layer, content, artwork-upload inquiry flow, URLs, and production resource identities.
@@ -127,6 +136,26 @@ Before phase-one edits, classify each requirement as a Codex decision rule, reus
 - Keep `README.md` in the same exact eight-chapter order as the mother template: Repo feature summary; step-by-step deployment; collapsed Keystatic guide; collapsed Manager guide; important project locations; collapsed two-stage Codex build flow; collapsed troubleshooting guide; collapsed preview guide. Content must remain Golden One-specific.
 - Update information only in its matching chapter. Do not rename, reorder, split, merge, or add peer chapters without owner approval.
 - Keep deployment ownership, portal login, variable setup, publish rules, and verified incident conclusions. Avoid reference-document lists and repeated warnings.
+
+## Buyer-facing copy and media
+
+- Write public copy, headings, captions, alt text, metadata, and translations
+  for buyers, not as an AI work report. Keep import, verification, and processing
+  notes internal. Use natural labels such as `Features`, not `Catalogue material`.
+  Retain genuine catalogue downloads, product/series names, necessary attribution,
+  and business information; do not blindly replace words.
+- Before batch export/import, identify product/model, gallery versus content
+  role, and complete image/text groups. Preserve legends, axes, units, and model
+  labels. Grouping or sharing a catalogue page does not imply one product.
+- Place explanatory figures immediately above matching prose. If it belongs to
+  a cohesive features/cards/steps/table/tabs module, put the figure before the
+  entire module; keep its heading and items together. Do not split six cards
+  into three, an image, then three, or stack unrelated figures. Product photos
+  stay in galleries; dimensions accompany the matching table. Media import is
+  not authorization to restructure modules. First verify representative pages,
+  then desktop/mobile and affected languages for identity, complete groups,
+  buyer wording, intact modules, and unchanged specifications. Apply this to
+  maintenance and both phases without forcing unrelated continuity-site rewrites.
 
 ## Required verification
 
