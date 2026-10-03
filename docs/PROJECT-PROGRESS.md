@@ -1,4 +1,4 @@
-# Golden One Project Progress
+# Golden One Project Status and Progress
 
 Record meaningful resumption, release/recovery, capability, or governance state,
 not every task or operation. One batch entry covers multi-page content/media,
@@ -10,6 +10,31 @@ and keep secrets out. The mother log, when available, holds only a summary.
 Keep product facts/media URLs in their content files; retain minimal originals
 and mappings while unfinished, without adding a permanent media ledger.
 
+## 当前状态
+
+更新：2026-10-04（+08:00）。源码基线：`a40783ebb4c67b826bb571648a068bce4a6e94b4`。
+范围：`yiloveM/goldenone260727` 的 `main`；本次只整理文档，不改变任何开关。
+
+这是一份交接快照，不是配置文件。接入、配置、开关分开看；“已启用”不等于
+已完成线上验收。待接入/待配置/待启用表示确有后续需求；主动关闭、不适用、
+未核查各自登记，不自动催办或启用。验证列保留证据日期，历史成功不冒充今天成功。
+按功能归类，不逐产品/图片登记；开始任务先看此表和相关交接，只更新受影响行。
+换电脑后先核对本仓库 Git/分支，再核查本次需要的外部访问，不因复制记录就假定凭据可用。
+负责人：标明站长的事项由站长决定/配置，其余技术核查由接手 AI 在相关任务中执行。
+工程来源、兼容与回退细节见 [能力账本](CAPABILITY-REGISTER.md)；
+[README](../README.md) 只讲部署和使用，原有历史条目保留在下方。
+
+| 功能/分支范围 | 接入 | 配置 | 开关 | 日期/验证依据 | 下一步/负责人 |
+| --- | --- | --- | --- | --- | --- |
+| 公开站、后台及发布链路 | 已接入 | 仓库配置已有；云端未重新核查 | 无统一开关 | 2026-10-04 读取源码；2026-09-25 发布证据见下方日志 | 后续相关任务再核查；本轮不部署 |
+| 网站访问分析 | 已接入 | 仓库配置已有；云端未核查 | Manager 入口已启用（源码）；采集无此 JSON 开关 | `src/keystatic/analytics-dashboard.json` 仅含 `managerVisible: true` | 不套用 Aquamama 的较新开关字段；涉及分析时核查实际实现 |
+| GSC / 本机只读 MCP（CAP-0002） | 后台能力已有；客户 MCP 映射待接入 | 待配置；站长此前确认暂无 property，授权未核查 | 本机工具非站点开关；后台状态未核查 | 2026-09-25 交接；本客户无 `ops/gsc-site.json` | 站长提出接入任务并提供 property 后处理；不重复索取 |
+| 公共表单 CAPTCHA / D1 / 邮件 | 已接入 | 仓库配置已有；当前云端凭据、成功留存与投递未核查 | 必需保护，无绕过开关 | 2026-10-04 源码存在；不是线上成功流程证明 | 仅相关表单任务检查；未核查不等于缺密钥 |
+| 受控 PDF 下载 | 已接入 | 文件白名单尚为空；非必需功能 | 主动关闭（源码），不是待启用 | `src/data/catalog-downloads.json`：`false`、空列表 | 有明确下载需求时再配置文件及启用；不主动催办 |
+| JSON-LD 安全与构建审计（CAP-0003） | 已接入 | 已配置 | 必需构建检查 | 2026-09-25 Actions `36037373380`：843 HTML、4699 JSON-LD、0 错误 | 这是历史验证，不代表本轮重新验收；数据变化再检查 |
+| 隔离预览（CAP-0001） | 已接入（历史等价实现核对） | 源码检查通过；云端未验证 | 按获准分支触发；非 CMS 开关 | 2026-09-25 能力账本及下方交接；预览工作流存在 | 仅收到预览任务后验证独立资源和工作流 |
+| 评价 / 多语言 | 已接入 | 已有配置；评价事实与当前发布状态未核查 | 评价已启用；西班牙语已启用（源码），其余目标语关闭 | `customer-reviews.json`、`site-language-settings.json` | 开关开启不是评分 SEO 合格证明；不改内容或语言 |
+
 ## Entry template
 
 ```text
@@ -17,7 +42,7 @@ Time (+08:00); target/scope:
 Branch/baseline/change commit or unique entry heading:
 Relevant checks; actual commit/push/CI/preview/production separately:
 Pending/next action; rollback or external-state recovery when needed:
-CAP/register/README status only for capability work.
+Affected overview rows; capability provenance link only when relevant.
 ```
 
 ## 2026-09-21 04:18 +08:00 - Governance baseline
@@ -84,3 +109,10 @@ CAP/register/README status only for capability work.
 - Checks: PASS scoped documentation diff/UTF-8, English/Chinese core rules, README chapters/folds/fences, and independent origin/ref access. Full site build/browser/SEO tests NOT RUN (no runtime, content, media, data, or workflow changes).
 - Delivery/recovery: documentation-only `[skip ci]` commit targeting this repository's `main`; verify its presence in that remote ref on resumption. No preview/production release requested. Scoped-revert the introducing commit on that same authorized ref; no R2/D1 recovery needed.
 - Next: Resume on this customer's main after fetching and verifying the introducing commit. Existing eight-chapter README, customer facts, visual layer, routes, and resources are unchanged.
+
+## 2026-10-04 - Unified Status and Progress
+
+- Scope/baseline: yiloveM/goldenone260727/main at `a40783ebb4c67b826bb571648a068bce4a6e94b4`; current integration/configuration/switch/dated verification and next actions now live at the top of this same file, historical handoffs retained. Bilingual AGENTS, existing prompts where present, engineering-ledger references and stable README responsibilities aligned; no new governance file or engineering capability.
+- Checks: PASS README chapter/fold/fence preservation, unchanged mail-setup sections, exact historical-entry preservation, six-column overview/source-switch consistency, document links and scoped documentation diff. Runtime/build/browser/Google/mail tests NOT RUN: no runtime, configuration, data, resources or deployment changed.
+- Delivery/recovery: documentation-only `[skip ci]` commit/push to `yiloveM/goldenone260727/main`; change reference is the commit introducing this unique heading, to be checked against that exact remote ref on resumption. No site release; scoped-revert that introducing commit on the same authorized ref, preserving later work. No D1/R2 recovery required.
+- Next: Resume from this customer's main and this overview; optional downloads remain intentionally off, GSC property remains owner-deferred pending a relevant task. Do not infer cloud access from source settings.

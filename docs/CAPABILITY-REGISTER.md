@@ -33,6 +33,15 @@ parity remains a separate decision from industry/content/design construction.
 
 Delivery addendum (2026-09-25 01:57 +08:00): owner explicitly requested Golden One `main` delivery. Initial `20256ac` CI run `36036620566` built pages but stopped before deploy on 169 false-positive canonical mismatches for intentionally noindex disabled locales. `b6227a4` corrected the audit to enforce canonical parity on indexable pages only; run `36037373380` completed build, 0-error generated-page audit and production Worker deployment. This supersedes the earlier pre-release status above. All 570 Product nodes remain quote-only without verified price/rating/review inputs; that is a rich-result eligibility gap, not a fabricated fix or an indexing diagnosis. No GSC property exists yet, per owner.
 
+## Operational Status Location
+
+The current integration/configuration/switch/verification overview and next
+actions live only in [PROJECT-PROGRESS.md](PROJECT-PROGRESS.md). This ledger
+retains engineering provenance, approvals/revisions, dependency and compatibility
+evidence, migration and rollback. Dated assessments below are history, not a
+second live state table. Link affected overview rows when recording a capability
+change; README changes require actual supported-behavior or use-procedure changes.
+
 ## Entry template
 
 ```text
@@ -40,7 +49,7 @@ Date/time and timezone:
 Local ID: CAND-NNNN or linked mother CAP-NNNN/revision:
 State: candidate / proposed / applied / equivalent / customized / deferred / not-applicable / rolled-back
 Assessment: NOT AUDITED / missing / partial / equivalent / customized / applied / deferred / not-applicable; evidence date:
-Implementation / configuration enabled / preview verified / production released (four distinct states):
+Engineering implementation/revision evidence; current state link in PROJECT-PROGRESS.md:
 Target baseline branch and HEAD; mother CAP ID/revision and dependency IDs:
 Source branch and commit:
 Behavior before -> after; inputs/outputs:
@@ -50,7 +59,7 @@ Mother ledger cross-reference and approval state:
 Migration and rollback, including data:
 Tests and production evidence (separate):
 Risk, rollout window, stop condition and rollback evidence:
-README capability-list and related-section update:
+README update only if supported behavior or deployment/use steps changed:
 Next step and owner:
 ```
 

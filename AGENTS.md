@@ -43,6 +43,27 @@ section. A candidate is not an approved backport. When this site's capability
 actually changes, update the existing README capability list and related
 instructions in place without changing its eight-chapter layout.
 
+Use the existing `docs/PROJECT-PROGRESS.md` as the single operational record:
+dated, branch-scoped current status at the top, concise handoffs below. Record
+integration, configuration, switch state and verification separately, with
+evidence and next action/responsible party. Enabled is not working; not audited
+is not missing. Distinguish intentional off/owner-deferred from pending activation
+and machine-local access from deployed service state. Read this overview and
+the latest relevant handoff at task start; update only affected rows, not every
+customer or service. Pending rows do not authorize changes, repeated setup
+requests or reminders in unrelated tasks. Preserve owner deferrals.
+README is a stable deployment/use manual: update it only for actual supported
+behavior or procedure changes, never to mirror toggles, temporary incidents,
+missing credentials or to-do lists. Keep its original configuration instructions
+and chapter layout. Explain purpose, prerequisites, steps and expected results
+for human owners/administrators, not an AI handoff. Before editing README,
+distinguish a changed reusable instruction from this task's outcome/state;
+the latter belongs only in progress. Do not erase valid setup requirements to
+hide an incomplete flow. Group status by feature, not every product/image.
+Capability ledgers retain engineering provenance, approval,
+dependencies, compatibility and rollback; link current status here rather than
+maintaining another live table. Do not create a new status/protocol file.
+
 Record in `docs/PROJECT-PROGRESS.md` only what another agent needs for
 resumption, release/recovery, capability work, or repository/governance changes:
 one concise entry per batch content/media change, mapping/parameter change,

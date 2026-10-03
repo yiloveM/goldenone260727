@@ -33,6 +33,16 @@ Trigger only from explicit authorization such as `旧站迁移+网址`.
 6. Apply the legacy information architecture, information layer, verified copy, specifications, metadata, media, and URLs to the customer site. Each old page is the mandatory factual and copy source.
 7. Research current high-ranking industry pages only for buyer vocabulary, professional terminology, information density, and sentence rhythm. Rewrite the old copy to remove formulaic AI phrasing without factual drift, unsupported claims, competitor imitation, or from-scratch replacement based only on ranking-site style.
 
+## Operational status and manuals
+
+In both phases and maintenance, read the customer's existing
+`docs/PROJECT-PROGRESS.md` overview and relevant handoff; keep current states
+there and update only affected rows. Follow AGENTS for distinct integration,
+configuration, switch and dated verification, owner deferrals and unverified
+access. README is the human deployment/use manual, not an AI report or reminder
+board; edit only real behavior/procedure changes. Keep engineering provenance
+in the capability ledger; do not create another status file.
+
 ## Buyer-facing copy and media
 
 In both phases and maintenance, write public copy, captions, alt text, metadata,

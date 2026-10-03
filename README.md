@@ -13,6 +13,8 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 回退读 [项目进度](docs/PROJECT-PROGRESS.md) 中的基线/提交，用反向提交恢复本轮范围，
 不改其它客户或母版。复制到新电脑须保留本仓库 .git 和本地未提交资料。
 
+本手册供站长部署和日常使用。功能接入、配置、开关现状及后续待办，统一看 [项目状态与进度](docs/PROJECT-PROGRESS.md#当前状态)，不在本手册重复登记。
+
 ### 1. 技术架构
 
 | 层级 | 实现 |
@@ -31,11 +33,11 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 - Golden One 定制徽章、奖牌、挑战币、钥匙扣和金属礼品产品架构。
 - 产品分类、型号、材料、工艺、参数表、应用、FAQ、图库、详情图和排序管理。
 - 博客、客户评价、询盘购物车、艺术稿上传、共享 CAPTCHA、联系邮件、D1 留资和 R2 图片池。
-- 英语为唯一源语言；站长以复选框启用目标语言，当前只额外启用西班牙语。新增的日语、马来语、荷兰语、希腊语和泰语预置均保持关闭。
+- 英语为唯一源语言；站长以复选框启用目标语言，未启用语种不进入导航和 sitemap。
 - AI 仅生成翻译草稿；审核与明确发布之前不会自动公开。
 - Keystatic 直接管理 Git 内容；Manager 先写 D1 草稿，再经专用 Actions 写回 Git。
 - 两套后台共用登录用户名 `PUBLIC_KEYSTATIC_GITHUB_APP_SLUG` 和密码 `KEYSTATIC_SECRET`，但使用不同 Host 和 UUID。
-- 可配置受控 PDF 下载默认关闭且白名单为空；客户资料 URL 只有在 CAPTCHA、D1 和 Resend 全部成功后才由服务端返回。
+- 支持可配置受控 PDF 下载；客户资料 URL 只有在 CAPTCHA、D1 和 Resend 全部成功后才由服务端返回。
 - Worker 优先读取 Astro 预渲染静态资源，避免 `/manager/`、文章和详情页被错误交给 SSR 后返回 404。
 
 ### 3. SEO/GEO 能力
@@ -467,7 +469,7 @@ cd .\oldsite\r2-upload\legacy
    - `ANALYTICS_RETENTION_DAYS = "365"`
 2. 公开 HTML 请求由 Worker 异步写入 `MANAGER_DB`，不会给访客设置分析 Cookie。
 3. `network` 模式允许保存 365 天；若改成 `full`，代码会把保留期限制为最多 30 天。
-4. Keystatic -> **数据分析** 中的“在 Manager 显示网站访问分析”默认为关闭；本仓库的 `src/keystatic/analytics-dashboard.json` 已设为 `true`，所以本站 Manager 显示入口。
+4. Keystatic -> **数据分析** 中的“在 Manager 显示网站访问分析”控制 Manager 入口；配置保存在 `src/keystatic/analytics-dashboard.json`，不控制底层采集。
 5. 修改该开关后保存，再点击“发布网站更新”；直接改 JSON 也不会自动部署。
 
 可选接入 Google Search Console：
@@ -501,10 +503,10 @@ LIMIT 50;
 
 #### 15.1 按需启用受控 PDF 下载
 
-1. 当前 `src/data/catalog-downloads.json` 保持 `enabled: false` 且列表为空，不会改变 Golden One 前台。
+1. `src/data/catalog-downloads.json` 保存下载总开关和文件白名单；无下载需求时保持关闭，启用前先完成下面的配置。
 2. 确有需求时，先把已核实 PDF 上传到 R2/CDN，并逐个验证 HTTPS 地址。
 3. Keystatic -> **站点设置 -> 受控下载**，保持总开关关闭，填写唯一 ID、真实文件名、访客标题、说明和 R2/CDN 地址。
-4. 按买家流程把 `CatalogDownloadGate.astro` 接入指定客户页面并匹配当时的公共视觉；本次能力迁移不自动放置组件。
+4. 按买家流程把 `CatalogDownloadGate.astro` 接入指定客户页面并匹配页面风格。
 5. 验证 CAPTCHA、D1、Resend 和文件白名单后再勾选总开关并点击“发布网站更新”。
 6. 成功前页面 HTML 不得包含 PDF 直链；成功邮件只发送访客资料和所选 PDF 名称，不发送 PDF 附件。
 7. 关闭总开关并发布后，配置和历史留资保留，`/api/download` 返回 404。
@@ -584,7 +586,7 @@ npm run build
 3. **产品管理/产品排序**：维护 Golden One 产品、图库、参数、型号、FAQ、发布状态与顺序。
 4. **博客**：维护英语源文章和封面。
 5. **评价系统**：演示评价只用于布局且不能进入 SEO；真实评价必须有可核实来源后才能设置 `seoEligible: true`。
-6. **受控下载**：按开关下方小字顺序操作，先上传并验证 PDF，再填写白名单，再确认页面组件、D1、Resend 和 CAPTCHA，最后才开启并发布。当前保持关闭且为空。
+6. **受控下载**：按开关下方小字顺序操作，先上传并验证 PDF，再填写白名单，再确认页面组件、D1、Resend 和 CAPTCHA，最后才开启并发布。
 
 ### 图片池
 
@@ -695,10 +697,12 @@ npm run build
 | `src/lib/analytics/capture.ts` | 无 Cookie 访问采集与保留期 |
 | `src/pages/api/manager/ai/translation-locales.ts` | 受保护的 Manager 语言列表 |
 | `keystatic.config.ts` | 站长字段、导航、语言和 Manager 分析开关 |
-| `src/keystatic/analytics-dashboard.json` | Manager 分析入口当前状态 |
+| `src/keystatic/analytics-dashboard.json` | Manager 分析入口开关配置 |
 | `src/data/industry-profile.json` | Golden One 品牌、市场、产品架构与治理事实 |
 | `src/data/site-language-settings.json` | 唯一目标语言启用源 |
-| `src/data/catalog-downloads.json` | 受控下载总开关和服务端 PDF 白名单；当前关闭且为空 |
+| `src/data/catalog-downloads.json` | 受控下载总开关和服务端 PDF 白名单 |
+| `docs/PROJECT-PROGRESS.md` | 唯一功能状态总览、待办与跨电脑交接记录 |
+| `docs/CAPABILITY-REGISTER.md` | 工程来源、审批、兼容和回退证据；不另作状态表 |
 | `src/data/site-origin.json` | 公开站生产 origin 与退役 Host |
 | `src/content/products/` | 英语产品 |
 | `src/content/blog/` | 英语文章 |
@@ -735,6 +739,7 @@ npm run build
 - 文案写给买家，不展示“从目录导入”“AI已核实”等工作说明；正常的目录下载和产品系列名保留。
 - 导入图片先分清产品图、内容插图和完整图组。插图放对应文字上方；如果是整组特性卡片或表格，放整个模块之前，不能拆开。曲线图的型号、图例和单位要完整。
 - 进度只记批量调整、发布/回退、能力或治理变化、未完成事项，一批一条；已完成的小修、下载转码、重试和清理不单独记。客户进度保留细节，母版只写摘要。
+- 两阶段和维护开始先读客户 `docs/PROJECT-PROGRESS.md` 的当前状态及相关交接；只更新受影响的行。README 只有稳定功能或操作方法改变才更新，开关、待配置和暂缓不作手册提醒。
 
 
 ### 第一阶段：行业视觉与信息架构

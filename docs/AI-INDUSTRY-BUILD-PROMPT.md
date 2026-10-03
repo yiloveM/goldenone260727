@@ -28,6 +28,8 @@ Use this prompt when turning a fresh BusinessWeb copy into a customer site.
 
 进度不是流水账：批量内容/媒体、发布、回退相关变化或未完成任务才按 AGENTS 记一条；下载、转码、重试和清理不单独记。紧急保站不因此强制做无关的改写或重排。
 
+状态与交接合并在客户原有 docs/PROJECT-PROGRESS.md：开始先读顶部状态和相关交接，接入、配置、开关、实际验证分开登记，只更新受影响的行；主动关闭、未核查、站长暂缓不自动变成启用任务。README 写给站长和管理员，只保留稳定功能、部署和使用步骤；只有用法变化才改，不能写 AI 本次汇报、开关现状、缺凭据或催办提醒。工程来源/兼容/回退留在原能力账本，不新建状态文件。
+
 
 1. 先完整阅读 README.md、AGENTS.md、docs/CODEX-INDUSTRY-WORKFLOW.md、docs/ASTROWIND-INTEGRATION.md、docs/PUBLIC-VISUAL-FOUNDATION.md 和 .agents/skills/businessweb-seo-geo/SKILL.md；提供旧站迁移 URL 时还要阅读 docs/OLD-SITE-MIGRATION.md。
 2. 在编辑任何文件前，先把本次全部要求逐项列入以下四类，并写明将落到哪些文件；没有完成归类不得开始实现：
@@ -81,4 +83,5 @@ After real products and company information are uploaded:
 
 先调查最新 Google Search Central 官方文档、当前目标市场 SERP、买家问题和真实竞争页面，再建立关键词到页面的意图映射。只能使用已核实的产品、公司、价格、认证、案例和评价资料。完成后运行 check、check:template:production、check:seo 和 build。
 公开优化结果仍写给买家，不展示 AI 处理说明；媒体先识别产品与完整图组，解释性插图放对应文字上方，整组卡片/步骤/表格保持连续，不能借 SEO 拆模块或改真实参数。进度按 AGENTS 选择性记录批量变化、发布/回退或待办，不记操作流水账。
+先读客户 docs/PROJECT-PROGRESS.md 的当前状态与相关交接，只更新本轮涉及状态；README 只在稳定功能/部署/使用方法变化时更新，不作 SEO 工作汇报或待办提醒板。
 ```

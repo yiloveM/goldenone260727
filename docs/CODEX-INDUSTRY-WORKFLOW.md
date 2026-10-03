@@ -125,6 +125,17 @@ Choose imagery in this order:
 
 Construction-stage placeholder products and images may be used to complete the page design without per-item source records or code restrictions. Phase one should create only a small set of clearly labeled, industry-neutral demo reviews for visual preview; never import or invent platform reviews. Do not present fabricated customer logos, certifications, case studies, ratings, facilities, employees, project locations, or performance as verified proof, and do not feed demonstrations into eligible structured data.
 
+## Operational status and manuals
+
+In both phases and maintenance, first read the customer's existing
+`docs/PROJECT-PROGRESS.md` overview and latest relevant handoff. Keep current
+integration/configuration/switch/dated verification there, updating affected rows
+only. Respect owner deferrals; not audited is not missing, intentionally off is
+not an automatic activation task. Engineering provenance stays in the capability
+ledger. README serves human owners/admins with stable prerequisites, deployment
+and use steps; edit only changed supported behavior/procedures, not task reports,
+toggle snapshots or pending-setup reminders. Do not create another status file.
+
 ## Buyer-facing copy and complete media
 
 These rules apply to both phases and ongoing maintenance, without forcing
