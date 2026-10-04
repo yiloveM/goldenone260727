@@ -94,3 +94,12 @@ Rollback: scoped revert of this repo's capability commit on current branch and
 existing publish path; no reset or database rollback. Export later CMS reviews/
 policy before rollback and preserve later customer changes.
 Operational state: [PROJECT-PROGRESS.md](PROJECT-PROGRESS.md).
+
+Delivery receipt (2026-10-04 20:25 +08:00):
+- Source `2e3e7bddec6c259dfc4bf27d8ad18a693abf0c0e`; customer release `6cd7f6606c5b51f19ff0d6a14fd191b6549f2f5c`
+  pushed to `yiloveM/goldenone260727/main`; Actions 37201263685 completed/success.
+- Final 16/16 regression and full type/build checks passed. Existing customer main deployment succeeded; sampled public routes and desktop/mobile rendering verified.
+- OFF retains unpublished same-product draft reviews while hiding fields/public schema;
+  ON permits explicit clear. Owner policy is enforced at save and current-Git write-back.
+- No real production D1 review write or authenticated Keystatic write claimed.
+  Roll back this customer's release commit by scoped revert; retain newer CMS data.

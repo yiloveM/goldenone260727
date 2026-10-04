@@ -1,15 +1,5 @@
 # Golden One Project Status and Progress
 
-## 2026-10-04 - CAP-0004 产品编辑与评价统一
-
-- 目标 `main`；本次基线 `f758d1dcd845558d3c78fdfd4c2e1ff90be26cf7`；源 SHA/交付回执待补。
-- 产品评价最少字段、首页评分独立、关闭保留数据；站长 Keystatic 控制默认类型/
-  型号和产品例外，Manager 只读；保存与写回防止旧草稿覆盖站长最新策略。
-- 15/15 回归及适用 visual/preview/template/SEO 通过；完整类型/构建/实际部署
-  待回执。保持产品、图像、开关、资源、样式和站长既有延后事项不变。
-- 下一步：接手 AI 完成独立构建/推送验收后补此回执；回退按能力账本正常
-  revert，保留后续 CMS 数据。
-
 
 Record meaningful resumption, release/recovery, capability, or governance state,
 not every task or operation. One batch entry covers multi-page content/media,
@@ -44,8 +34,8 @@ and mappings while unfinished, without adding a permanent media ledger.
 | 受控 PDF 下载 | 已接入 | 文件白名单尚为空；非必需功能 | 主动关闭（源码），不是待启用 | `src/data/catalog-downloads.json`：`false`、空列表 | 有明确下载需求时再配置文件及启用；不主动催办 |
 | JSON-LD 安全与构建审计（CAP-0003） | 已接入 | 已配置 | 必需构建检查 | 2026-09-25 Actions `36037373380`：843 HTML、4699 JSON-LD、0 错误 | 这是历史验证，不代表本轮重新验收；数据变化再检查 |
 | 隔离预览（CAP-0001） | 已接入（历史等价实现核对） | 源码检查通过；云端未验证 | 按获准分支触发；非 CMS 开关 | 2026-09-25 能力账本及下方交接；预览工作流存在 | 仅收到预览任务后验证独立资源和工作流 |
-| 评价 / 多语言 | CAP-0004 已本地适配 | 旧资料保持；首页评分选填、产品独立录入 | 评价开启（保持原值）；西班牙语已启用（源码），其余目标语关闭 | 2026-10-04：15/15 回归，完整交付待下方回执 | 站长管理事实及示例替换；不自动改开关/语言 |
-| 产品编辑策略（CAP-0004） | 已本地接入 | 默认 physical-product / series；具体产品例外优先 | Manager 只读，无独立启用开关 | API 与最新 Git 写回策略回归通过 | 站长 Keystatic 设策略；管理员维护内容 |
+| 评价 / 多语言 | CAP-0004 已发布 | 旧资料保持；首页评分选填、产品独立录入 | 评价开启（保持原值）；西班牙语已启用（源码），其余目标语关闭 | 2026-10-04：16/16 回归；main 已推送；现有 Actions 构建/部署成功，见下方回执 | 站长管理事实及示例替换；不自动改开关/语言 |
+| 产品编辑策略（CAP-0004） | 已发布 | 默认 physical-product / series；具体产品例外优先 | Manager 只读，无独立启用开关 | 2026-10-04：API/写回回归、完整构建通过；已部署 | 站长 Keystatic 设策略；管理员维护内容 |
 
 ## Entry template
 
@@ -56,6 +46,30 @@ Relevant checks; actual commit/push/CI/preview/production separately:
 Pending/next action; rollback or external-state recovery when needed:
 Affected overview rows; capability provenance link only when relevant.
 ```
+
+## 2026-10-04 20:25 +08:00 - CAP-0004 产品编辑与评价统一交付
+
+- 目标 `main`；改造前基线 `f758d1dcd845558d3c78fdfd4c2e1ff90be26cf7`；
+  母版来源 `2e3e7bddec6c259dfc4bf27d8ad18a693abf0c0e`，本客户能力提交 `6cd7f6606c5b51f19ff0d6a14fd191b6549f2f5c`。
+- 最终站长决定：关闭评价只隐藏；旧草稿重新保存时保留未发布评价，
+  关闭期间不展示评价、不输出 Review/聚合评分；重新开启后可继续编辑。
+  首页评分独立选填。Keystatic 决定类型/型号，Manager 只读；
+  API 和最新 Git 写回防止旧草稿覆盖站长策略。
+- 四仓共用契约但独立发布；本仓 16/16 回归通过；321 文件类型检查 0 错误；843 HTML / 4699 JSON-LD / 570 Product，审计 0 错误。
+  适用 visual/preview/template/SEO/continuity 检查通过；原有提示保留。
+- [Actions 37201263685](https://github.com/yiloveM/goldenone260727/actions/runs/37201263685) completed/success。
+  main 已推送；现有 Actions 构建/部署成功。未更改唯一生产发布链路。
+- 发布后首页/抽样产品 HTTP 200；1440/390 视口抽查无脚本错误及横向溢出，
+  首屏产品与品牌图正常。公开页面保留可索引设置。
+- 后台浏览器交互使用隔离 mock（母版/Aquamama/Golden One）及原生字段/写回回归；
+  未向真实 D1 保存测试评价，未执行真实后台 Git 写回。CSS、产品正文/参数、
+  媒体、资源绑定、评价开关和既有延后事项保持不变。
+- 回退：在本仓当前分支正常 revert `6cd7f6606c5b51f19ff0d6a14fd191b6549f2f5c`，
+  再按原发布链路验收；不 reset、不迁移/回滚 D1。先导出改造后新增评价/策略，
+  保留后续 CMS 变更。
+- 本轮完成；站长按原 README 使用，后续 AI 先读顶部状态及本条交接。
+  本回执是 docs-only 提交，用 [skip ci] 防止重复发布。
+
 
 ## 2026-09-21 04:18 +08:00 - Governance baseline
 
