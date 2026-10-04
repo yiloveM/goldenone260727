@@ -93,14 +93,27 @@ When the owner asks for SEO/GEO optimization after real content is present:
 
 ### Review and rating workflow
 
-1. Read `src/data/customer-reviews.json` and `src/data/customerReviews.ts` before changing review copy or product JSON-LD. Treat the store summary and individual review records as different evidence classes.
-2. Respect the owner-controlled `enabled` switch. When it is false, public review sections and all review-derived structured data must be suppressed without deleting records.
-3. A store-level score may be displayed as supplier reputation only when its public source and last-checked date are present. Never copy that supplier score into every product's `AggregateRating`.
-4. An individual review may become Product `Review` JSON-LD only when `kind` is `verified`, it is verbatim and visible, has a traceable source URL, includes reviewer and publication date, is assigned through `productSlugs`, and has `seoEligible: true`.
-5. `kind: demo` records are construction previews only. They must be visibly labeled, must never enter JSON-LD, and must be removed or replaced before production launch.
-6. Product `AggregateRating` remains controlled by the product content fields. Populate it only from a real aggregate for that exact product or product group, not from the Alibaba supplier profile and not from a hand-counted subset of selected reviews.
-7. Manager review edits remain D1 drafts until the dedicated apply workflow writes the record to the Git-backed JSON source; only the owner controls the global switch through Keystatic.
-8. During full-site SEO/GEO work, audit visible review cards against emitted JSON-LD, test affected product URLs in Rich Results Test or Schema Markup Validator, and record the source check date.
+- Keystatic controls the global switch and optional home/store summary. OFF
+  hides review inputs in both product editors and public review/schema output,
+  retaining stored data, including unpublished reviews when resaving the same
+  Manager draft. ON takes effect after saving and publishing.
+- Product reviews live in the source product. Both editors accept author,
+  integer 1–5 stars, review text, optional date and display switch. Published
+  visible reviews automatically generate that product's Review JSON-LD.
+- Home/store summary is optional and never gates product reviews. Optional
+  product aggregate rating/count may override the product's derived average
+  and count; never borrow home feedback or another product's reviews.
+- Manager retains D1 drafts, Git apply and explicit product publishing. Legacy
+  central product associations remain a read fallback until explicit product
+  edits; an empty product review list intentionally clears the fallback.
+- The webmaster manages example replacement before launch; do not add
+  source-proof, demo/verified or SEO-eligibility controls. Do not invent business
+  feedback. Technical validity and visible-content consistency remain required.
+- Keystatic owns the site's default content type/model strategy in
+  `src/data/product-editor-settings.json` and per-product exceptions. Manager
+  displays that policy read-only and edits content only. Save APIs and Git
+  write-back resolve the current owner policy; stale drafts cannot override it.
+  New products use owner defaults. Preserve customer table/media extensions.
 
 ## SEO Rules
 

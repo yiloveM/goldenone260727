@@ -123,7 +123,7 @@ Choose imagery in this order:
 2. owner-approved R2 assets;
 3. suitable placeholder or generated imagery when real assets are not yet available.
 
-Construction-stage placeholder products and images may be used to complete the page design without per-item source records or code restrictions. Phase one should create only a small set of clearly labeled, industry-neutral demo reviews for visual preview; never import or invent platform reviews. Do not present fabricated customer logos, certifications, case studies, ratings, facilities, employees, project locations, or performance as verified proof, and do not feed demonstrations into eligible structured data.
+Construction examples may complete design without per-item evidence forms. The webmaster manages review examples and their launch replacement; do not add demo modes or manual SEO-eligibility gates. Never present AI-created business claims as verified facts. Keystatic's switch controls both editors and public output; published visible reviews entered on either product editor generate that product's Review JSON-LD, independently of optional home ratings.
 
 ## Operational status and manuals
 
@@ -282,3 +282,9 @@ Use `check:rich-results` or `check:merchant-listings` only when real visible off
 ## Evidence standard
 
 AI may improve structure, clarity, hierarchy, usability, and visual treatment. It must not create business facts. Missing certifications, specifications, facilities, lead times, prices, case studies, customer proof, market coverage, or commercial terms belong in an owner action list rather than public copy.
+
+- Keystatic owns the site's default content type/model strategy in
+  `src/data/product-editor-settings.json` and per-product exceptions. Manager
+  displays that policy read-only and edits content only. Save APIs and Git
+  write-back resolve the current owner policy; stale drafts cannot override it.
+  New products use owner defaults. Preserve customer table/media extensions.

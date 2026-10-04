@@ -1,4 +1,8 @@
 import { collection, config, fields, singleton } from '@keystatic/core';
+import productEditorSettings from './src/data/product-editor-settings.json';
+import { productClassificationFields } from './src/keystatic/product-editor-fields';
+import { productReviewFields, reviewFields, reviewFieldVisibility } from './src/keystatic/review-fields';
+import { reviewSystemEnabled } from './src/data/customerReviews';
 import { productManagerField } from './src/keystatic/product-manager-field';
 import { productOrderField } from './src/keystatic/product-order-field';
 import { r2ImagePoolField } from './src/keystatic/r2-image-pool-field';
@@ -175,6 +179,12 @@ export default config({
         ),
       },
     }),
+    productEditorSettings: singleton({
+      label: '产品类型与型号策略',
+      path: 'src/data/product-editor-settings',
+      format: 'json',
+      schema: productClassificationFields(),
+    }),
     customerReviews: singleton({
       label: '评价系统',
       path: 'src/data/customer-reviews',
@@ -183,55 +193,23 @@ export default config({
         enabled: fields.checkbox({
           label: '启用前台评价系统（总开关）',
           defaultValue: true,
-          description: '关闭后，首页和全部产品详情页不显示评价区，评价 Review 结构化数据也不会输出。数据会保留，重新开启即可恢复。',
+          description: '开启后在产品内维护评价并自动输出；关闭时隐藏评价，保留已发布产品与草稿中的评价资料，重新开启后可继续编辑。',
         }),
         summary: fields.object({
-          rating: fields.text({ label: '店铺聚合评分', defaultValue: '4.9', description: '只能填写已经核实的公开评分，例如 4.9。' }),
-          source: fields.text({ label: '评分来源名称', defaultValue: 'Alibaba.com' }),
-          profileUrl: fields.text({ label: '店铺评价页链接', defaultValue: '' }),
-          checkedOn: fields.text({ label: '最后核实日期（YYYY-MM-DD）', defaultValue: '' }),
+          rating: fields.text({ label: '首页总评分（选填）', defaultValue: '' }),
+          reviewCount: fields.integer({ label: '首页评分人数（选填）', defaultValue: 0, validation: { min: 0 } }),
+          source: reviewFieldVisibility(fields.text({ label: 'Legacy source' }), false),
+          profileUrl: reviewFieldVisibility(fields.text({ label: 'Legacy profile' }), false),
+          checkedOn: reviewFieldVisibility(fields.text({ label: 'Legacy date' }), false),
         }, {
-          label: '店铺总评分',
-          description: '评价数量无需填写，系统会自动统计下方评价列表中的记录总数。',
+          label: '首页总体评分（选填）',
+          description: '留空不影响产品评价。产品评价在具体产品编辑页维护。',
         }),
         reviews: fields.array(
-          fields.object({
-            id: fields.text({ label: '唯一 ID', description: '使用英文小写、数字和短横线，例如 alibaba-order-20260813-01。' }),
-            published: fields.checkbox({ label: '前台显示', defaultValue: true }),
-            kind: fields.select({
-              label: '数据类型',
-              options: [
-                { label: '真实且已核实', value: 'verified' },
-                { label: '样式演示（不进入 SEO）', value: 'demo' },
-              ],
-              defaultValue: 'verified',
-            }),
-            rating: fields.select({
-              label: '星级',
-              options: [{ label: '5 星', value: '5' }, { label: '4 星', value: '4' }],
-              defaultValue: '5',
-            }),
-            quote: fields.text({ label: '评价原文', multiline: true }),
-            buyerLabel: fields.text({ label: '买家显示名称', defaultValue: 'Verified Alibaba buyer' }),
-            country: fields.text({ label: '国家/地区（可空）', defaultValue: '' }),
-            date: fields.text({ label: '评价日期（YYYY-MM-DD）', defaultValue: '' }),
-            projectType: fields.text({ label: '产品或项目类型', defaultValue: '' }),
-            source: fields.text({ label: '来源名称', defaultValue: 'Alibaba.com' }),
-            sourceUrl: fields.text({ label: '该评价的可核实链接', defaultValue: '' }),
-            productSlugs: fields.array(fields.text({ label: '产品 Slug' }), {
-              label: '关联产品 Slug（留空则仅作为通用评价）',
-              itemLabel: props => props.value || '产品 Slug',
-            }),
-            seoEligible: fields.checkbox({
-              label: '允许进入 Review SEO 结构化数据',
-              defaultValue: false,
-              description: '仅当数据类型为“真实且已核实”，并填写买家名称、日期、来源链接和关联产品后才能勾选。',
-            }),
-          }),
+          reviewFields(),
           {
-            label: '评价列表（数量自动统计）',
-            description: '新增或删除评价后，前台评价数量会随列表记录总数自动变化。',
-            itemLabel: props => props.fields.buyerLabel.value || props.fields.id.value || '评价',
+            label: '首页店铺评价',
+            itemLabel: props => props.fields.buyerLabel.value || '评价',
           }
         ),
       },
@@ -444,25 +422,7 @@ export default config({
       schema: {
         title: fields.slug({ name: { label: '标题' } }),
         description: fields.text({ label: '简短描述', multiline: true }),
-        offeringType: fields.select({
-          label: '结构化数据中的内容类型',
-          options: [
-            { label: '实物产品', value: 'physical-product' },
-            { label: '服务', value: 'service' },
-            { label: '工程解决方案', value: 'solution' },
-          ],
-          defaultValue: 'physical-product',
-        }),
-        modelStrategy: fields.select({
-          label: '型号与参数结构',
-          options: [
-            { label: '单一可销售型号', value: 'single-model' },
-            { label: '包含多个型号行的系列', value: 'series' },
-            { label: '按订单配置', value: 'configurable' },
-            { label: '不适用于此服务', value: 'not-applicable' },
-          ],
-          defaultValue: 'series',
-        }),
+        ...productClassificationFields(productEditorSettings),
         category: fields.text({ label: '公开分类', defaultValue: 'Solutions' }),
         series: fields.text({ label: '系列 / 型号 / 服务组' }),
         sortOrder: fields.integer({ label: '显示顺序', defaultValue: 9999 }),
@@ -507,16 +467,9 @@ export default config({
           }),
           { label: '常见问题', itemLabel: props => props.fields.question.value || 'FAQ' }
         ),
-        aggregateRatingValue: fields.text({
-          label: '真实客户聚合评分（仅站长维护）',
-          description: '可选。只能填写真实公开的 1.0 至 5.0 评分数据。',
-          defaultValue: '',
-        }),
-        aggregateRatingCount: fields.integer({
-          label: '真实评分数量（仅站长维护）',
-          description: '可选。填写评分值时，这里必须是实际评分数量。',
-          defaultValue: 0,
-        }),
+        reviews: productReviewFields(reviewSystemEnabled),
+        aggregateRatingValue: reviewFieldVisibility(fields.text({ label: '产品总评分（选填）', defaultValue: '' }), reviewSystemEnabled),
+        aggregateRatingCount: reviewFieldVisibility(fields.integer({ label: '产品评分人数（选填）', defaultValue: 0, validation: { min: 0 } }), reviewSystemEnabled),
         featured: fields.checkbox({ label: '首页推荐', defaultValue: false }),
         content: fields.markdoc({ label: '正文内容', components: r2MarkdocComponents }),
       },

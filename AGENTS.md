@@ -193,3 +193,28 @@ npm run build
 Before a real production launch, run `npm run check:template:production` after the industry brief, company information, and product data are verified.
 
 Browser QA for phase one covers desktop and mobile navigation, submenu pointer transitions, keyboard focus, touch, galleries, carousels, filters, forms, CAPTCHA loading/refresh/expiry, error/success states, no-script/reduced-motion behavior, overflow, image loading, and duplicate/template residue. Do not modify Golden One public styling during an engineering-capability migration.
+
+## Review Editing Contract
+
+- The webmaster owns review accuracy and sample replacement before launch.
+  Do not add proof links, verification dates, demo/verified modes, manual IDs,
+  product slugs or separate SEO-eligibility controls to review editing.
+- Keystatic owns the global review switch. OFF hides review fields in both
+  product editors and public review/schema output without deleting stored data.
+  ON takes effect after saving/publishing; refresh the editors afterward.
+- Product reviews belong in the source product. Name, integer 1–5 stars and
+  review text are required; date is optional. Published visible reviews
+  automatically generate that product's Review and aggregate JSON-LD.
+- Home/store aggregate is optional and independent. A product may optionally
+  have its own aggregate rating/count; otherwise derive them from its reviews.
+  Never copy home/other-product feedback into a product.
+- Preserve Manager D1 drafts, Git apply and explicit product publishing.
+  Legacy metadata is hidden compatibility data, not owner paperwork.
+- With reviews OFF, review inputs are hidden but existing unpublished draft
+  reviews must survive content resaves. Merge omitted keys from the same draft/
+  product only; explicit empty reviews while ON intentionally clears them.
+- Keystatic owns the site's default content type/model strategy in
+  `src/data/product-editor-settings.json` and per-product exceptions. Manager
+  displays that policy read-only and edits content only. Save APIs and Git
+  write-back resolve the current owner policy; stale drafts cannot override it.
+  New products use owner defaults. Preserve customer table/media extensions.

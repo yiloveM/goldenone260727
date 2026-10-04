@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import productEditorSettings from './data/product-editor-settings.json';
 
 const localizedDraftLocales = ['zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'] as const;
 
@@ -39,8 +40,8 @@ const products = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    offeringType: z.enum(['physical-product', 'service', 'solution']).default('physical-product'),
-    modelStrategy: z.enum(['single-model', 'series', 'configurable', 'not-applicable']).default('series'),
+    offeringType: z.enum(['physical-product', 'service', 'solution']).default(productEditorSettings.offeringType as 'physical-product' | 'service' | 'solution'),
+    modelStrategy: z.enum(['single-model', 'series', 'configurable', 'not-applicable']).default(productEditorSettings.modelStrategy as 'single-model' | 'series' | 'configurable' | 'not-applicable'),
     category: z.string(),
     series: z.string(),
     sortOrder: z.number().int().default(9999),
@@ -60,10 +61,15 @@ const products = defineCollection({
       question: z.string(),
       answer: z.string(),
     })).default([]),
-    aggregateRatingValue: z.string()
-      .refine(value => value === '' || (/^(?:[1-4](?:\.\d)?|5(?:\.0)?)$/.test(value) && Number(value) >= 1), 'Rating must be between 1.0 and 5.0.')
-      .default(''),
+    aggregateRatingValue: z.coerce.string().default(''),
     aggregateRatingCount: z.number().int().nonnegative().default(0),
+    reviews: z.array(z.object({
+      buyerLabel: z.string().default(''),
+      rating: z.coerce.number().int().min(1).max(5),
+      quote: z.string().default(''),
+      date: z.string().default(''),
+      published: z.boolean().default(true),
+    }).catchall(z.unknown())).optional(),
     featured: z.boolean().default(false),
   }),
 });

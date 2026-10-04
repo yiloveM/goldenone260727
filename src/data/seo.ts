@@ -14,7 +14,8 @@ import type {
   WithContext,
 } from 'schema-dts';
 import { brandAssets } from './assets';
-import { reviewSystemEnabled, seoReviewsForProduct } from './customerReviews';
+import { reviewSystemEnabled, reviewsForProduct } from './customerReviews';
+import { productReviewStructuredData } from '../lib/product-reviews.mjs';
 import { getProductCardKeywords } from './productCardKeywords';
 import { getCategoryMeta } from './productCategories';
 import { publicProductSpecs } from './productSpecs';
@@ -470,32 +471,12 @@ export const productStructuredData = (product: ProductEntry, slug: string, site?
     additionalProperty: propertyValues([...seriesProperties, ...(variants.length > 1 ? sharedProperties : [])]),
   } satisfies ProductPageJsonLd;
 
-  const verifiedProductReviews = seoReviewsForProduct(slug);
-  if (verifiedProductReviews.length > 0) {
-    baseProduct.review = verifiedProductReviews.map(review => ({
-      '@type': 'Review',
-      reviewBody: cleanText(review.quote),
-      datePublished: review.date,
-      author: { '@type': 'Person', name: review.buyerLabel },
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: review.rating,
-        bestRating: 5,
-        worstRating: 1,
-      },
-      url: review.sourceUrl,
-    }));
-  }
-
-  if (reviewSystemEnabled && product.data.aggregateRatingValue && product.data.aggregateRatingCount > 0) {
-    baseProduct.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: product.data.aggregateRatingValue,
-      ratingCount: product.data.aggregateRatingCount,
-      bestRating: 5,
-      worstRating: 1,
-    };
-  }
+  Object.assign(baseProduct, productReviewStructuredData(
+    reviewSystemEnabled,
+    reviewsForProduct(slug, product.data.reviews),
+    product.data.aggregateRatingValue,
+    product.data.aggregateRatingCount,
+  ));
 
   if (variants.length === 1) {
     const [{ model, properties, tableTitles }] = variants;

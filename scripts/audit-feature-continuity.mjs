@@ -226,9 +226,9 @@ const contracts = [
     markers: ['data-panel="reviews"', '/api/manager/review-drafts', '生成删除草稿'],
   },
   {
-    area: 'Review SEO evidence gate',
+    area: 'Independent product review editing and structured data',
     file: 'src/data/customerReviews.ts',
-    markers: ['reviewSystemEnabled', "review.kind === 'verified'", 'review.seoEligible === true'],
+    markers: ['reviewSystemEnabled', 'resolveProductReviews', 'productReviewSummary', 'visibleReviewRecords'],
   },
   {
     area: 'Cloudflare Worker publishing workflow',

@@ -68,3 +68,29 @@ existing README capability list plus matching operational instructions in
 place. Preserve Golden One's eight chapters and site-specific details. Also
 register a reusable candidate in the mother ledger when available. Never
 label a candidate as integrated or production-verified.
+
+## CAP-0004 / Revision 1 - Owner-controlled product editing and reviews
+
+Date: 2026-10-04 +08:00; approved twice with `确认修改能力`.
+Source mother baseline: `986a073ac0a7b37a60075ef002c75ebfb2d2e9bb`;
+target baseline: `f758d1dcd845558d3c78fdfd4c2e1ff90be26cf7`; delivery target: `main`.
+Integrated mother source: `2e3e7bddec6c259dfc4bf27d8ad18a693abf0c0e` (CAP-0004 rev1).
+Release SHA and remote outcomes follow in the delivery receipt.
+Before -> after: product-level minimal reviews, no proof/demo/SEO controls,
+optional independent home aggregate. Keystatic owns the switch and default
+type/model policy plus product exceptions; Manager is content-only/read-only.
+Save API and Git write-back re-resolve owner policy against stale drafts.
+Files/dependencies: generic product-editor/reviews modules, native Keystatic
+fields, product-editor-settings.json, existing schema/D1/Manager/API, apply
+scripts, public review/schema consumers, tests and existing governance/manual.
+No new library, D1 table, resource binding or deployment workflow.
+Existing safe JSON-LD helper reused; public customer composition retained.
+Compatibility: old hidden metadata remains readable; absent old-draft reviews
+are retained, explicit empty reviews clear the fallback. Customer content,
+tables/media extensions, switches, credentials and front-end styling unchanged.
+Verified: 15/15 review/editor tests; applicable visual/preview/template/SEO.
+Complete type/build and release/preview status follow in receipt, not assumed.
+Rollback: scoped revert of this repo's capability commit on current branch and
+existing publish path; no reset or database rollback. Export later CMS reviews/
+policy before rollback and preserve later customer changes.
+Operational state: [PROJECT-PROGRESS.md](PROJECT-PROGRESS.md).

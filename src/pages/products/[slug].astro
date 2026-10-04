@@ -246,7 +246,7 @@ const tableHint = 'Drag / scroll to view full table';
         <div class="card-grid series-card-grid">{relatedProducts.map(item => <SeriesCard product={item} />)}</div>
       </section>
     )}
-    <CustomerReviews productSlug={slug} compact />
+    <CustomerReviews productSlug={slug} productReviews={product.data.reviews} aggregateRatingValue={product.data.aggregateRatingValue} aggregateRatingCount={product.data.aggregateRatingCount} compact />
   </main>
   <ProductTableScrollerScript hint={tableHint} />
 </BaseLayout>

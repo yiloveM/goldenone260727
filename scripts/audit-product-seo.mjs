@@ -2,6 +2,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { parse } from 'yaml';
+import { productReviewStructuredData, resolveProductReviews } from '../src/lib/product-reviews.mjs';
 
 const root = process.cwd();
 const productsDir = path.join(root, 'src', 'content', 'products');
@@ -27,6 +28,7 @@ const readSource = file => readFile(path.join(root, file), 'utf8');
 const seoSource = await readSource('src/data/seo.ts');
 const productPageSource = await readSource('src/pages/products/[slug].astro');
 const localizedTableScriptSource = await readSource('src/components/ProductTableScrollerScript.astro');
+const reviewData = JSON.parse(await readSource('src/data/customer-reviews.json'));
 
 const structuralChecks = [
   [/export const productEntitiesEnabled = true;/.test(seoSource), 'src/data/seo.ts', 'Product/ProductGroup entity output must remain enabled'],
@@ -122,7 +124,13 @@ for (const file of productFiles) {
   if (ratingValue && (!Number.isFinite(Number(ratingValue)) || Number(ratingValue) < 1 || Number(ratingValue) > 5)) {
     addFinding('error', relativeFile, 'Aggregate rating value must be between 1 and 5');
   }
-  const hasValidAggregateRating = Boolean(ratingValue && ratingCount > 0);
+  const reviewMarkup = productReviewStructuredData(
+    reviewData.enabled === true,
+    resolveProductReviews(slug, data.reviews, reviewData.reviews),
+    data.aggregateRatingValue,
+    data.aggregateRatingCount,
+  );
+  const hasValidAggregateRating = Boolean(reviewMarkup.review?.length || reviewMarkup.aggregateRating);
   if (strictRichResults && offeringType === 'physical-product' && !hasValidAggregateRating) {
     addFinding('error', relativeFile, 'Product rich-result eligibility requires a genuine visible Offer, Review, or AggregateRating');
   }

@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import reviewData from '../../../data/customer-reviews.json';
-import { customerReviewSummary } from '../../../data/customerReviews';
+import { allCustomerReviews, customerReviewSummary } from '../../../data/customerReviews';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import {
   createReviewDraftId,
@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
   return Response.json({
     manager: { email: access.email },
     settings: { enabled: reviewData.enabled, summary: customerReviewSummary },
-    reviews: reviewData.reviews,
+    reviews: allCustomerReviews.filter(review => !review.productSlugs.length),
     drafts: (drafts.results || []).map(reviewDraftToResponse),
   }, { headers: { 'cache-control': 'no-store' } });
 };

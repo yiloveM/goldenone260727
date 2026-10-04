@@ -1,5 +1,16 @@
 # Golden One Project Status and Progress
 
+## 2026-10-04 - CAP-0004 产品编辑与评价统一
+
+- 目标 `main`；本次基线 `f758d1dcd845558d3c78fdfd4c2e1ff90be26cf7`；源 SHA/交付回执待补。
+- 产品评价最少字段、首页评分独立、关闭保留数据；站长 Keystatic 控制默认类型/
+  型号和产品例外，Manager 只读；保存与写回防止旧草稿覆盖站长最新策略。
+- 15/15 回归及适用 visual/preview/template/SEO 通过；完整类型/构建/实际部署
+  待回执。保持产品、图像、开关、资源、样式和站长既有延后事项不变。
+- 下一步：接手 AI 完成独立构建/推送验收后补此回执；回退按能力账本正常
+  revert，保留后续 CMS 数据。
+
+
 Record meaningful resumption, release/recovery, capability, or governance state,
 not every task or operation. One batch entry covers multi-page content/media,
 mapping/parameter changes, consequential external-state changes, and unfinished
@@ -33,7 +44,8 @@ and mappings while unfinished, without adding a permanent media ledger.
 | 受控 PDF 下载 | 已接入 | 文件白名单尚为空；非必需功能 | 主动关闭（源码），不是待启用 | `src/data/catalog-downloads.json`：`false`、空列表 | 有明确下载需求时再配置文件及启用；不主动催办 |
 | JSON-LD 安全与构建审计（CAP-0003） | 已接入 | 已配置 | 必需构建检查 | 2026-09-25 Actions `36037373380`：843 HTML、4699 JSON-LD、0 错误 | 这是历史验证，不代表本轮重新验收；数据变化再检查 |
 | 隔离预览（CAP-0001） | 已接入（历史等价实现核对） | 源码检查通过；云端未验证 | 按获准分支触发；非 CMS 开关 | 2026-09-25 能力账本及下方交接；预览工作流存在 | 仅收到预览任务后验证独立资源和工作流 |
-| 评价 / 多语言 | 已接入 | 已有配置；评价事实与当前发布状态未核查 | 评价已启用；西班牙语已启用（源码），其余目标语关闭 | `customer-reviews.json`、`site-language-settings.json` | 开关开启不是评分 SEO 合格证明；不改内容或语言 |
+| 评价 / 多语言 | CAP-0004 已本地适配 | 旧资料保持；首页评分选填、产品独立录入 | 评价开启（保持原值）；西班牙语已启用（源码），其余目标语关闭 | 2026-10-04：15/15 回归，完整交付待下方回执 | 站长管理事实及示例替换；不自动改开关/语言 |
+| 产品编辑策略（CAP-0004） | 已本地接入 | 默认 physical-product / series；具体产品例外优先 | Manager 只读，无独立启用开关 | API 与最新 Git 写回策略回归通过 | 站长 Keystatic 设策略；管理员维护内容 |
 
 ## Entry template
 

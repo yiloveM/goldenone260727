@@ -1,11 +1,13 @@
 import type { ManagerEnv } from './access';
+import { validateReviewInput } from '../product-reviews.mjs';
+import { normalizeProductEditorPayload } from '../product-editor.mjs';
 
 export type ManagerProductDraftPayload = {
   productSlug: string;
   title: string;
   description: string;
-  offeringType: 'physical-product' | 'service' | 'solution';
-  modelStrategy: 'single-model' | 'series' | 'configurable' | 'not-applicable';
+  offeringType?: 'physical-product' | 'service' | 'solution';
+  modelStrategy?: 'single-model' | 'series' | 'configurable' | 'not-applicable';
   category: string;
   series: string;
   sortOrder: number;
@@ -27,6 +29,9 @@ export type ManagerProductDraftPayload = {
   faqs: Array<{ question: string; answer: string }>;
   featured: boolean;
   content?: string;
+  reviews?: Array<{ buyerLabel: string; rating: string; quote: string; date?: string; published?: boolean }>;
+  aggregateRatingValue?: string;
+  aggregateRatingCount?: number;
 };
 
 export type ManagerBlogDraftPayload = {
@@ -45,8 +50,8 @@ export type ManagerReviewPayload = {
   operation: 'upsert' | 'delete';
   id: string;
   published: boolean;
-  kind: 'verified' | 'demo';
-  rating: '4' | '5';
+  kind?: string;
+  rating: '1' | '2' | '3' | '4' | '5';
   quote: string;
   buyerLabel: string;
   country: string;
@@ -55,7 +60,7 @@ export type ManagerReviewPayload = {
   source: string;
   sourceUrl: string;
   productSlugs: string[];
-  seoEligible: boolean;
+  seoEligible?: boolean;
 };
 
 type D1DatabaseLike = {
@@ -192,57 +197,14 @@ export const ensureManagerSchema = async (db: D1DatabaseLike) => {
     .run();
 };
 
-export const normalizeProductDraftPayload = (value: unknown): ManagerProductDraftPayload => {
-  const body = (value || {}) as Partial<ManagerProductDraftPayload>;
-  const productSlug = String(body.productSlug || '').trim();
-
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(productSlug)) {
-    throw new Error('A valid product slug is required.');
-  }
-
-  const title = String(body.title || '').trim();
-  const description = String(body.description || '').trim();
-  const offeringType = String(body.offeringType || 'physical-product').trim();
-  const modelStrategy = String(body.modelStrategy || 'series').trim();
-  const category = String(body.category || '').trim();
-  const series = String(body.series || '').trim();
-  const image = String(body.image || '').trim();
-  const sortOrder = Number.isFinite(Number(body.sortOrder)) ? Math.max(1, Math.round(Number(body.sortOrder))) : 9999;
-
-  if (!title) throw new Error('Product title is required.');
-  if (!description) throw new Error('Product description is required.');
-  if (!['physical-product', 'service', 'solution'].includes(offeringType)) throw new Error('A valid offering type is required.');
-  if (!['single-model', 'series', 'configurable', 'not-applicable'].includes(modelStrategy)) throw new Error('A valid model strategy is required.');
-  if (!category) throw new Error('Product category is required.');
-  if (!series) throw new Error('Product series is required.');
-
-  const normalized: ManagerProductDraftPayload = {
-    productSlug,
-    title,
-    description,
-    offeringType: offeringType as ManagerProductDraftPayload['offeringType'],
-    modelStrategy: modelStrategy as ManagerProductDraftPayload['modelStrategy'],
-    category,
-    series,
-    sortOrder,
-    published: body.published !== false,
-    image,
-    galleryImages: normalizeStringArray(body.galleryImages),
-    detailImages: normalizeDetailImages(body.detailImages),
-    applications: normalizeStringArray(body.applications),
-    specs: normalizeSpecs(body.specs),
-    specTables: normalizeSpecTables(body.specTables),
-    highlights: normalizeStringArray(body.highlights),
-    faqs: normalizeFaqs(body.faqs),
-    featured: body.featured === true,
-  };
-
-  if (Object.prototype.hasOwnProperty.call(body, 'content')) {
-    normalized.content = String((body as { content?: unknown }).content || '').trim();
-  }
-
-  return normalized;
-};
+export const normalizeProductDraftPayload = (value: unknown): ManagerProductDraftPayload =>
+  normalizeProductEditorPayload(value, {
+    normalizeStringArray,
+    normalizeDetailImages,
+    normalizeSpecs,
+    normalizeSpecTables,
+    normalizeFaqs,
+  }) as ManagerProductDraftPayload;
 
 export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPayload => {
   const body = (value || {}) as Partial<ManagerBlogDraftPayload>;
@@ -280,41 +242,26 @@ export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPaylo
 
 export const normalizeReviewDraftPayload = (value: unknown): ManagerReviewPayload => {
   const body = (value || {}) as Partial<ManagerReviewPayload>;
-  const id = String(body.id || '').trim().toLowerCase();
-  const kind = body.kind === 'demo' ? 'demo' : 'verified';
-  const rating = String(body.rating) === '4' ? '4' : '5';
-  const quote = String(body.quote || '').trim();
-  const buyerLabel = String(body.buyerLabel || '').trim();
-  const date = String(body.date || '').trim();
-  const sourceUrl = String(body.sourceUrl || '').trim();
-  const productSlugs = normalizeStringArray(body.productSlugs).map(slug => slug.toLowerCase());
-  const seoEligible = body.seoEligible === true;
   const operation = body.operation === 'delete' ? 'delete' : 'upsert';
-
+  const id = String(body.id || (operation === 'upsert' ? `review-${crypto.randomUUID()}` : '')).trim().toLowerCase();
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error('A valid review ID is required.');
-  if (operation === 'upsert' && !quote) throw new Error('Review text is required.');
-  if (operation === 'upsert' && !buyerLabel) throw new Error('Buyer display name is required.');
-  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Review date must use YYYY-MM-DD.');
-  if (seoEligible && (kind !== 'verified' || !date || !sourceUrl || productSlugs.length === 0)) {
-    throw new Error('SEO reviews must be verified and include a date, source URL, and at least one product slug.');
-  }
+  const review = operation === 'upsert' ? validateReviewInput(body) : body;
 
   return {
+    ...review,
     operation,
     id,
     published: body.published !== false,
-    kind,
-    rating,
-    quote,
-    buyerLabel,
+    rating: String(review.rating || '') as ManagerReviewPayload['rating'],
+    quote: String(review.quote || '').trim(),
+    buyerLabel: String(review.buyerLabel || '').trim(),
+    date: String(review.date || '').trim(),
     country: String(body.country || '').trim(),
-    date,
     projectType: String(body.projectType || '').trim(),
-    source: String(body.source || (kind === 'verified' ? 'Alibaba.com' : 'Layout preview')).trim(),
-    sourceUrl,
-    productSlugs,
-    seoEligible: kind === 'verified' && seoEligible,
-  };
+    source: String(body.source || '').trim(),
+    sourceUrl: String(body.sourceUrl || '').trim(),
+    productSlugs: normalizeStringArray(body.productSlugs),
+  } as ManagerReviewPayload;
 };
 
 const normalizeStringArray = (value: unknown) => {

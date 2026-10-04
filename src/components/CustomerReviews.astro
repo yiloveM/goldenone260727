@@ -3,6 +3,7 @@ import {
   customerReviewSummary,
   reviewSystemEnabled,
   reviewsForProduct,
+  reviewSummaryForProduct,
   type CustomerReview,
 } from '../data/customerReviews';
 import { getLocaleFromPathname, ui } from '../data/i18n';
@@ -10,56 +11,42 @@ import { getLocaleFromPathname, ui } from '../data/i18n';
 interface Props {
   productSlug?: string;
   compact?: boolean;
+  productReviews?: unknown;
+  aggregateRatingValue?: unknown;
+  aggregateRatingCount?: unknown;
 }
 
-const { productSlug, compact = false } = Astro.props;
+const { productSlug, compact = false, productReviews, aggregateRatingValue, aggregateRatingCount } = Astro.props;
 const locale = getLocaleFromPathname(Astro.url.pathname);
 const copy = ui[locale].reviews;
-const reviews = reviewsForProduct(productSlug);
-const visibleReviews: CustomerReview[] = reviews.length > 0
-  ? reviews
-  : [];
-const localizedReviews = visibleReviews.map((review, index) => review.kind === 'demo' && locale !== 'en'
-  ? {
-      ...review,
-      quote: copy.demoQuotes[index] || review.quote,
-      buyerLabel: copy.sampleBuyer,
-      source: copy.layoutPreview,
-      projectType: copy.demoProjects[index] || review.projectType,
-    }
-  : review
-);
-const loopReviews = localizedReviews.length > 1 ? [...localizedReviews, ...localizedReviews] : localizedReviews;
-const sectionTitle = productSlug
-  ? copy.productTitle
-  : copy.homeTitle;
-const summarySource = customerReviewSummary.source === 'Sample summary' && locale !== 'en'
-  ? copy.sampleSummary
-  : customerReviewSummary.source;
-const reviewCountLabel = customerReviewSummary.reviewCount === 1 ? copy.review : copy.reviews;
+const visibleReviews: CustomerReview[] = reviewsForProduct(productSlug, productReviews);
+const summary = productSlug
+  ? reviewSummaryForProduct(productSlug, productReviews, aggregateRatingValue, aggregateRatingCount)
+  : customerReviewSummary;
+const hasSummary = summary.rating > 0 && summary.reviewCount > 0;
+const loopReviews = visibleReviews.length > 1 ? [...visibleReviews, ...visibleReviews] : visibleReviews;
+const sectionTitle = productSlug ? copy.productTitle : copy.homeTitle;
+const reviewCountLabel = summary.reviewCount === 1 ? copy.review : copy.reviews;
 ---
 
-{reviewSystemEnabled && <section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
+{reviewSystemEnabled && (visibleReviews.length > 0 || hasSummary) && <section class:list={['customer-ratings', compact && 'customer-ratings--compact']} aria-labelledby={`customer-ratings-title-${productSlug || 'home'}`}>
   <div class="metal-shell customer-ratings__inner">
     <div class="customer-ratings__heading">
       <p class="metal-kicker">{copy.customerRatings}</p>
       <h2 id={`customer-ratings-title-${productSlug || 'home'}`}>{sectionTitle}</h2>
     </div>
 
-    <div class="customer-ratings__overview">
-      <div class="customer-ratings__brand" aria-label={`${customerReviewSummary.rating} ${copy.outOfFiveOn} ${summarySource}`}>
-        <strong>{customerReviewSummary.rating}</strong>
-        <div>
-          <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-          <small>{summarySource}</small>
-        </div>
+    {hasSummary && <div class="customer-ratings__overview">
+      <div class="customer-ratings__brand" aria-label={`${summary.rating} ${copy.outOfFiveStars}`}>
+        <strong>{summary.rating}</strong>
+        <div><span class="customer-ratings__stars" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span style={`opacity:${Math.max(.2, Math.min(1, summary.rating - index))}`}>&#9733;</span>)}</span></div>
       </div>
       <div class="customer-ratings__count">
-        <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <strong>{customerReviewSummary.reviewCount} {reviewCountLabel}</strong>
+        <span class="customer-ratings__stars" aria-hidden="true">{Array.from({ length: 5 }, (_, index) => <span style={`opacity:${Math.max(.2, Math.min(1, summary.rating - index))}`}>&#9733;</span>)}</span>
+        <strong>{summary.reviewCount} {reviewCountLabel}</strong>
       </div>
-      {customerReviewSummary.profileUrl && <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">{copy.viewProfile}</a>}
-    </div>
+      {!productSlug && customerReviewSummary.profileUrl && <a href={customerReviewSummary.profileUrl} target="_blank" rel="noopener noreferrer">{copy.viewProfile}</a>}
+    </div>}
 
     {visibleReviews.length > 0 && (
       <div class="customer-ratings__carousel" data-marquee-shell data-marquee-duration="56" data-marquee-direction="rtl">
@@ -68,23 +55,20 @@ const reviewCountLabel = customerReviewSummary.reviewCount === 1 ? copy.review :
           <div class="customer-ratings__track" data-marquee-track>
             {loopReviews.map((review, index) => (
             <article class="customer-review-card" aria-hidden={index >= visibleReviews.length ? 'true' : undefined}>
-              {review.kind === 'demo' && <span class="customer-review-card__demo">{copy.sampleLayout}</span>}
               <header>
                 <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
                 <div>
-                  <strong>{review.buyerLabel || copy.verifiedBuyer}</strong>
-                  <small>{review.date || review.source}</small>
+                  <strong>{review.buyerLabel || 'Buyer'}</strong>
+                  {review.date && <small>{review.date}</small>}
                 </div>
               </header>
               <div class="customer-review-card__stars" aria-label={`${review.rating} ${copy.outOfFiveStars}`}>
                 {Array.from({ length: review.rating }).map(() => <span aria-hidden="true">&#9733;</span>)}
               </div>
               <blockquote>{review.quote}</blockquote>
-              <footer>
-                <span>{review.projectType || copy.defaultProject}{review.country ? ` / ${review.country}` : ''}</span>
-                {review.sourceUrl && <a href={review.sourceUrl} target="_blank" rel="noopener noreferrer" tabindex={index >= localizedReviews.length ? -1 : undefined}>{copy.viewSource}</a>}
-                {!review.sourceUrl && <small>{copy.demonstration}</small>}
-              </footer>
+              {(review.projectType || review.country) && <footer>
+                <span>{[review.projectType, review.country].filter(Boolean).join(' / ')}</span>
+              </footer>}
             </article>
             ))}
           </div>
@@ -92,12 +76,6 @@ const reviewCountLabel = customerReviewSummary.reviewCount === 1 ? copy.review :
         <button class="customer-ratings__control customer-ratings__control--next" type="button" aria-label={copy.next} data-marquee-next>&#8250;</button>
       </div>
     )}
-    {reviews.length === 0 && (
-      <div class="customer-ratings__empty">
-        <span class="customer-ratings__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <strong>{copy.emptyTitle}</strong>
-        <p>{copy.emptyDescription}</p>
-      </div>
-    )}
+
   </div>
 </section>}

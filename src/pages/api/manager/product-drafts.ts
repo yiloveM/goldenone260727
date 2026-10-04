@@ -1,4 +1,8 @@
 import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
+import productEditorSettings from '../../../data/product-editor-settings.json';
+import { enforceProductEditorPolicy, productDraftReviewFields, retainUneditedProductReviews } from '../../../lib/product-editor.mjs';
+import { reviewSystemEnabled } from '../../../data/customerReviews';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import {
   createDraftId,
@@ -68,7 +72,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
   try {
     const body = (await request.json()) as { id?: string; payload?: unknown };
     requestedId = String(body.id || '').trim();
-    payload = normalizeProductDraftPayload(body.payload);
+    const input = body.payload as { productSlug?: string } | undefined;
+    const product = (await getCollection('products')).find(item => item.id.replace(/\.mdoc$/, '') === input?.productSlug);
+    payload = normalizeProductDraftPayload(productDraftReviewFields(
+      enforceProductEditorPolicy(body.payload, productEditorSettings, product?.data), reviewSystemEnabled,
+    ));
   } catch (error) {
     void error;
     return new Response('产品草稿内容不完整，请检查后重试。', {
@@ -87,6 +95,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
   await ensureManagerSchema(db);
   const now = new Date().toISOString();
   const id = requestedId || createDraftId(payload.productSlug);
+  if (requestedId) {
+    const previous = await db.prepare('SELECT payload_json FROM manager_product_drafts WHERE id = ? AND product_slug = ?')
+      .bind(id, payload.productSlug).first<{ payload_json: string }>();
+    if (previous) payload = retainUneditedProductReviews(payload, JSON.parse(previous.payload_json));
+  }
   const payloadJson = JSON.stringify(payload);
 
   await db

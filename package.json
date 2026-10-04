@@ -14,6 +14,7 @@
     "deploy:worker": "node scripts/run-wrangler-deploy-with-retry.mjs",
     "types:cloudflare": "node scripts/run-wrangler-types.mjs",
     "check": "node scripts/run-astro.mjs check",
+    "test:reviews": "node --test scripts/test-product-reviews.mjs",
     "check:template": "node scripts/run-template-check.mjs",
     "check:template:production": "node scripts/run-template-check.mjs --production",
     "check:admin-portals": "node scripts/check-admin-portal-rewrite.mjs",

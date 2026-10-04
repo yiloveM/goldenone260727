@@ -1,4 +1,7 @@
 ---
+import productEditorSettings from '../../data/product-editor-settings.json';
+import { productEditorFields, resolveProductEditorPolicy } from '../../lib/product-editor.mjs';
+const productEditorPolicy = resolveProductEditorPolicy(productEditorSettings);
 import analyticsDashboardSettings from '../../keystatic/analytics-dashboard.json';
 import industryProfile from '../../data/industry-profile.json';
 import { reviewSystemEnabled } from '../../data/customerReviews';
@@ -3248,7 +3251,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
               </div>
               <div class="field">
                 <label for="offeringType">内容类型</label>
-                <select id="offeringType" name="offeringType">
+                <select id="offeringType" name="offeringType" disabled>
                   <option value="physical-product">实体产品（Product / ProductGroup）</option>
                   <option value="service">服务（Service）</option>
                   <option value="solution">工程解决方案（Service）</option>
@@ -3256,7 +3259,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
               </div>
               <div class="field">
                 <label for="modelStrategy">型号结构</label>
-                <select id="modelStrategy" name="modelStrategy">
+                <select id="modelStrategy" name="modelStrategy" disabled>
                   <option value="single-model">单个可售型号</option>
                   <option value="series">系列产品 / 多型号参数表</option>
                   <option value="configurable">按项目或配置下单</option>
@@ -3269,7 +3272,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
               </div>
               <div class="field">
                 <label for="series">系列 / 型号</label>
-                <input id="series" name="series" required />
+                <input id="series" name="series" />
               </div>
               <div class="field">
                 <label for="sortOrder">权重</label>
@@ -3361,6 +3364,22 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
                   <div class="builder-list" id="faqsList"></div>
                 </div>
               </div>
+              {managerReviewSystemEnabled && <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>产品评价</strong>
+                    <button class="mini-button" data-action="reviews:add" type="button">添加评价</button>
+                  </div>
+                  <div class="builder-list" id="productReviewList"></div>
+                  <details>
+                    <summary>产品总体评分（选填）</summary>
+                    <div class="form">
+                      <div class="field"><label for="aggregateRatingValue">总评分</label><input id="aggregateRatingValue" type="number" min="1" max="5" step="0.01" /></div>
+                      <div class="field"><label for="aggregateRatingCount">评分人数</label><input id="aggregateRatingCount" type="number" min="0" step="1" /></div>
+                    </div>
+                  </details>
+                </div>
+              </div>}
               <div class="field is-wide">
                 <div class="builder">
                   <div class="builder-head">
@@ -3468,10 +3487,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         <div class="grid">
           <aside class="panel">
             <div class="panel-head">
-              <div>
-                <h2>客户评价</h2>
-                <span id="reviewSystemStatus">评价展示设置由系统统一管理，本页面可维护评价内容。</span>
-              </div>
+              <div><h2>客户评价</h2><span id="reviewSystemStatus">评价展示设置由系统统一管理，本页面可维护评价内容。</span></div>
               <button class="button secondary" id="newReviewButton" type="button">新建评价草稿</button>
             </div>
             <div class="toolbar is-row">
@@ -3480,70 +3496,15 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
             </div>
             <div class="blog-list" id="reviewList"></div>
           </aside>
-
           <section class="panel">
-            <div class="panel-head">
-              <div>
-                <h2>评价草稿编辑器</h2>
-                <span>保存后先进入待审核列表；点击“应用到网站”后更新正式评价。</span>
-              </div>
-            </div>
+            <div class="panel-head"><div><h2>评价草稿编辑器</h2><span>保存后先进入待审核列表；点击“应用到网站”后更新正式评价。</span></div></div>
             <form class="form" id="reviewForm">
-              <div class="field">
-                <label for="reviewId">唯一 ID</label>
-                <input id="reviewId" placeholder="alibaba-order-20260813-01" />
-              </div>
-              <div class="field">
-                <label for="reviewBuyerLabel">买家显示名称</label>
-                <input id="reviewBuyerLabel" placeholder="Verified Alibaba buyer" />
-              </div>
-              <div class="field">
-                <label for="reviewKind">数据类型</label>
-                <select id="reviewKind">
-                  <option value="verified">真实且已核实</option>
-                  <option value="demo">样式演示（不进入 SEO）</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="reviewRating">星级</label>
-                <select id="reviewRating"><option value="5">5 星</option><option value="4">4 星</option></select>
-              </div>
-              <div class="field is-wide">
-                <label for="reviewQuote">评价原文</label>
-                <textarea id="reviewQuote" required></textarea>
-              </div>
-              <div class="field">
-                <label for="reviewDate">评价日期</label>
-                <input id="reviewDate" type="date" />
-              </div>
-              <div class="field">
-                <label for="reviewCountry">国家 / 地区</label>
-                <input id="reviewCountry" />
-              </div>
-              <div class="field">
-                <label for="reviewProjectType">产品 / 项目类型</label>
-                <input id="reviewProjectType" />
-              </div>
-              <div class="field">
-                <label for="reviewSource">来源名称</label>
-                <input id="reviewSource" value="Alibaba.com" />
-              </div>
-              <div class="field is-wide">
-                <label for="reviewSourceUrl">该条评价的可核实链接</label>
-                <input id="reviewSourceUrl" type="url" />
-              </div>
-              <div class="field is-wide">
-                <label for="reviewProductSlugs">关联产品页面标识</label>
-                <textarea id="reviewProductSlugs" placeholder="每行一个产品页面标识，例如 custom-challenge-coins"></textarea>
-              </div>
-              <div class="field">
-                <label>前台状态</label>
-                <span class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示该评价</span></span>
-              </div>
-              <div class="field">
-                <label>SEO 资格</label>
-                <span class="toggle"><input id="reviewSeoEligible" type="checkbox" /><span>输出 Review 结构化数据</span></span>
-              </div>
+              <input id="reviewId" type="hidden" />
+              <div class="field"><label for="reviewBuyerLabel">评价人</label><input id="reviewBuyerLabel" required /></div>
+              <div class="field"><label for="reviewRating">星级</label><select id="reviewRating"><option value="5">5 星</option><option value="4">4 星</option><option value="3">3 星</option><option value="2">2 星</option><option value="1">1 星</option></select></div>
+              <div class="field is-wide"><label for="reviewQuote">评价原文</label><textarea id="reviewQuote" required></textarea></div>
+              <div class="field"><label for="reviewDate">评价日期（选填）</label><input id="reviewDate" type="date" /></div>
+              <div class="field"><label>前台状态</label><span class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示该评价</span></span></div>
             </form>
             <div class="actions">
               <button class="button" id="saveReviewDraftButton" type="button">保存评价草稿</button>
@@ -3845,7 +3806,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       </section>
     </div>
 
-    <script is:inline define:vars={{ publicR2AssetBaseUrl, managerReviewSystemEnabled }}>
+<script is:inline define:vars={{ publicR2AssetBaseUrl, managerReviewSystemEnabled, productEditorFields, productEditorPolicy }}>
       // @ts-nocheck
       const state = {
         products: [],
@@ -3857,6 +3818,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         reviewDrafts: [],
         activeReviewId: '',
         activeReviewDraftId: '',
+        activeReviewData: {},
         orderChanges: new Map(),
         productPage: 1,
         activeSlug: '',
@@ -3910,6 +3872,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         richEditorSelection: null,
         themeChoice: localStorage.getItem('goldenone-manager-theme') || 'system',
         formData: {
+          reviews: [],
           galleryImages: [],
           detailImages: [],
           applications: [],
@@ -4839,7 +4802,13 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       const cloneArray = value => JSON.parse(JSON.stringify(Array.isArray(value) ? value : []));
 
       const setFormData = product => {
+        const current = state.products.find(item => item.slug === (product.slug || product.productSlug));
+        $('offeringType').value = current?.offeringType || productEditorPolicy.offeringType;
+        $('modelStrategy').value = current?.modelStrategy || productEditorPolicy.modelStrategy;
+        if ($('aggregateRatingValue')) $('aggregateRatingValue').value = product.aggregateRatingValue ?? current?.aggregateRatingValue ?? '';
+        if ($('aggregateRatingCount')) $('aggregateRatingCount').value = product.aggregateRatingCount ?? current?.aggregateRatingCount ?? 0;
         state.formData = {
+          reviews: cloneArray(product.reviews ?? current?.reviews),
           galleryImages: cloneArray(product.galleryImages),
           detailImages: cloneArray(product.detailImages),
           applications: cloneArray(product.applications),
@@ -5026,7 +4995,26 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         `;
       };
 
+      const renderProductReviews = () => {
+        const list = $('productReviewList');
+        if (!list) return;
+        list.innerHTML = state.formData.reviews.map((review, index) => `
+          <fieldset style="border:0;padding:12px 0;margin:0;">
+            <div class="builder-head">
+              <label class="toggle"><input type="checkbox" data-product-review="${index}" data-field="published" ${review.published !== false ? 'checked' : ''} /><span>显示该评价</span></label>
+              <button class="mini-button danger" data-action="reviews:remove" data-index="${index}" type="button">删除评价</button>
+            </div>
+            <div class="form">
+              <div class="field"><label>评价人<input data-product-review="${index}" data-field="buyerLabel" value="${escapeHtml(review.buyerLabel || '')}" required /></label></div>
+              <div class="field"><label>星级<select data-product-review="${index}" data-field="rating">${![1, 2, 3, 4, 5].includes(Number(review.rating)) ? '<option value="" selected>选择星级</option>' : ''}${[5, 4, 3, 2, 1].map(rating => `<option value="${rating}" ${String(review.rating) === String(rating) ? 'selected' : ''}>${rating} 星</option>`).join('')}</select></label></div>
+              <div class="field is-wide"><label>评价内容<textarea data-product-review="${index}" data-field="quote" required>${escapeHtml(review.quote || '')}</textarea></label></div>
+              <div class="field"><label>评价日期（选填）<input type="date" data-product-review="${index}" data-field="date" value="${escapeHtml(review.date || '')}" /></label></div>
+            </div>
+          </fieldset>`).join('');
+      };
+
       const renderProductBuilders = () => {
+        renderProductReviews();
         renderSingleTextList('galleryList', 'galleryImages', '产品主图链接');
         renderDetailImages();
         renderSingleTextList('applicationsList', 'applications', '应用场景');
@@ -5160,8 +5148,8 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         $('title').value = '';
         $('productSlug').value = '';
         $('productSlug').readOnly = false;
-        $('offeringType').value = 'physical-product';
-        $('modelStrategy').value = 'series';
+        $('offeringType').value = productEditorPolicy.offeringType;
+        $('modelStrategy').value = productEditorPolicy.modelStrategy;
         $('category').value = state.categories[0] || '';
         $('series').value = '';
         $('sortOrder').value = 9999;
@@ -5171,7 +5159,10 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         updateImageFieldPreview('image');
         $('description').value = '';
         setRichTextValue('productContent', '');
+        if ($('aggregateRatingValue')) $('aggregateRatingValue').value = '';
+        if ($('aggregateRatingCount')) $('aggregateRatingCount').value = 0;
         state.formData = {
+          reviews: [],
           galleryImages: [],
           detailImages: [],
           applications: [''],
@@ -5265,41 +5256,28 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       };
 
       const reviewPayloadFromForm = (operation = 'upsert') => ({
+        ...state.activeReviewData,
         operation,
         id: $('reviewId').value.trim().toLowerCase(),
         published: $('reviewPublished').checked,
-        kind: $('reviewKind').value,
         rating: $('reviewRating').value,
         quote: $('reviewQuote').value.trim(),
         buyerLabel: $('reviewBuyerLabel').value.trim(),
-        country: $('reviewCountry').value.trim(),
         date: $('reviewDate').value,
-        projectType: $('reviewProjectType').value.trim(),
-        source: $('reviewSource').value.trim(),
-        sourceUrl: $('reviewSourceUrl').value.trim(),
-        productSlugs: $('reviewProductSlugs').value.split(/\r?\n|,/).map(value => value.trim()).filter(Boolean),
-        seoEligible: $('reviewSeoEligible').checked,
       });
 
       const fillReviewForm = review => {
         const item = review || {};
-        state.activeReviewId = item.id || '';
+        const { draftId, ...previous } = item;
+        state.activeReviewData = previous;
         state.activeReviewDraftId = item.draftId || '';
-        $('reviewId').value = item.id || '';
-        $('reviewId').readOnly = Boolean(item.id && !item.draftId);
+        $('reviewId').value = item.id || `review-${crypto.randomUUID()}`;
         $('reviewBuyerLabel').value = item.buyerLabel || '';
-        $('reviewKind').value = item.kind === 'demo' ? 'demo' : 'verified';
-        $('reviewRating').value = String(item.rating) === '4' ? '4' : '5';
+        $('reviewRating').value = item.rating === undefined ? '5' : String(item.rating);
         $('reviewQuote').value = item.quote || '';
         $('reviewDate').value = item.date || '';
-        $('reviewCountry').value = item.country || '';
-        $('reviewProjectType').value = item.projectType || '';
-        $('reviewSource').value = item.source || 'Alibaba.com';
-        $('reviewSourceUrl').value = item.sourceUrl || '';
-        $('reviewProductSlugs').value = (item.productSlugs || []).join('\n');
         $('reviewPublished').checked = item.published !== false;
-        $('reviewSeoEligible').checked = item.seoEligible === true;
-        setStatus('reviewStatus', item.id ? `正在编辑：${item.id}` : '正在新建评价草稿。');
+        setStatus('reviewStatus', item.id ? `正在编辑：${item.buyerLabel || '评价'}` : '正在新建评价草稿。');
       };
 
       const renderReviews = () => {
@@ -5307,10 +5285,18 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
           ? state.reviews.map(review => `
               <button class="blog-row" data-review-id="${escapeHtml(review.id)}" type="button">
                 <span><strong>${escapeHtml(review.buyerLabel || review.id)}</strong><small>${escapeHtml(review.projectType || review.source || '')}</small></span>
-                <span class="status">${review.kind === 'demo' ? '演示' : '已核实'} · ${review.published === false ? '隐藏' : `${review.rating} 星`}</span>
+                <span class="status">${review.published === false ? '隐藏' : `${review.rating} 星`}</span>
               </button>`).join('')
           : '<div class="draft"><span><strong>暂无正式评价</strong><small>可以新建评价草稿。</small></span></div>';
         $('reviewListStatus').textContent = `共 ${state.reviews.length} 条正式评价`;
+        $('reviewDraftList').innerHTML = state.reviewDrafts.length
+          ? state.reviewDrafts.map(draft => `
+              <div class="draft">
+                <span><strong>${escapeHtml(draft.buyerLabel || draft.reviewId)}</strong><small>${escapeHtml(draft.status)} · ${formatDate(draft.updatedAt)}</small></span>
+                <button class="button secondary" data-review-draft-edit="${escapeHtml(draft.id)}" type="button">编辑</button>
+                <button class="button secondary" data-review-draft-apply="${escapeHtml(draft.id)}" type="button">应用到网站</button>
+              </div>`).join('')
+          : '<div class="draft"><span><strong>暂无评价草稿</strong><small>保存后会显示在这里。</small></span></div>';
       };
 
       const renderReviewDrafts = () => {
@@ -5328,17 +5314,12 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         const data = await requestJson('/api/manager/review-drafts');
         state.reviews = data.reviews || [];
         state.reviewDrafts = data.drafts || [];
-        $('reviewSystemStatus').textContent = `评价展示：${data.settings?.enabled ? '已启用' : '已关闭'}；当前正式评价 ${data.settings?.summary?.reviewCount || 0} 条。`;
+        $('reviewSystemStatus').textContent = `评价展示：${data.settings?.enabled ? '已启用' : '已关闭'}；店铺评价 ${state.reviews.length} 条。`;
         renderReviews();
-        renderReviewDrafts();
       };
 
-      const saveReviewDraft = async operation => {
+      const saveReviewDraft = async (operation = 'upsert') => {
         const payload = reviewPayloadFromForm(operation);
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.id)) {
-          setStatus('reviewStatus', '唯一 ID 只能使用小写英文、数字和短横线。', true);
-          return;
-        }
         setStatus('reviewStatus', operation === 'delete' ? '正在生成删除草稿...' : '正在保存评价草稿...');
         const data = await requestJson('/api/manager/review-drafts', {
           method: 'POST',
@@ -5363,6 +5344,9 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       };
 
       const productToPayload = (product, sortOrder = product.sortOrder) => ({
+        ...(product.reviews === undefined ? {} : { reviews: product.reviews }),
+        aggregateRatingValue: product.aggregateRatingValue ?? '',
+        aggregateRatingCount: product.aggregateRatingCount ?? 0,
         productSlug: product.slug,
         title: product.title,
         description: product.description,
@@ -5526,18 +5510,19 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       };
 
       const getPayload = () => ({
+        ...Object.fromEntries(productEditorFields.map(({ name, kind }) => {
+          const field = $(name);
+          return [name, kind === 'checkbox' ? field.checked : kind === 'number' ? Number(field.value || 9999) : kind === 'text' ? field.value.trim() : field.value];
+        })),
+        ...(managerReviewSystemEnabled ? {
+          reviews: state.formData.reviews,
+          aggregateRatingValue: $('aggregateRatingValue').value.trim(),
+          aggregateRatingCount: Number($('aggregateRatingCount').value || 0),
+        } : {}),
         productSlug: $('productSlug').value.trim().toLowerCase(),
-        title: $('title').value.trim(),
-        description: $('description').value.trim(),
         content: getRichTextValue('productContent').trim(),
         offeringType: $('offeringType').value,
         modelStrategy: $('modelStrategy').value,
-        category: $('category').value,
-        series: $('series').value.trim(),
-        sortOrder: Number($('sortOrder').value || 9999),
-        published: $('published').checked,
-        image: $('image').value.trim(),
-        featured: $('featured').checked,
         galleryImages: state.formData.galleryImages,
         detailImages: state.formData.detailImages,
         applications: state.formData.applications,
@@ -5548,6 +5533,11 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
       });
 
       const syncProductFormInput = target => {
+        if (target.dataset.productReview !== undefined) {
+          const review = state.formData.reviews[Number(target.dataset.productReview)];
+          if (review) review[target.dataset.field] = target.type === 'checkbox' ? target.checked : target.value;
+          return;
+        }
         if (target.id === 'image') {
           updateImageFieldPreview('image');
           return;
@@ -5619,6 +5609,8 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         const action = actionButton.dataset.action;
         const index = Number(actionButton.dataset.index);
         if (!action) return;
+        if (action === 'reviews:add') state.formData.reviews.push({ buyerLabel: '', rating: '5', quote: '', date: '', published: true });
+        if (action === 'reviews:remove') state.formData.reviews.splice(index, 1);
 
         if (action === 'gallery:add') state.formData.galleryImages.push('');
         if (action === 'galleryImages:remove') state.formData.galleryImages.splice(index, 1);

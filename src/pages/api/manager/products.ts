@@ -1,5 +1,9 @@
 import type { APIRoute } from 'astro';
+import productEditorSettings from '../../../data/product-editor-settings.json';
+import { resolveProductEditorPolicy } from '../../../lib/product-editor.mjs';
 import { getCollection } from 'astro:content';
+import { allCustomerReviews } from '../../../data/customerReviews';
+import { storedProductReviews } from '../../../lib/product-reviews.mjs';
 import { productCategoryMeta, sortProductsByPriority } from '../../../data/productCategories';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 
@@ -24,6 +28,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
     JSON.stringify({
       manager: { email: access.email },
       categories,
+      editorPolicy: resolveProductEditorPolicy(productEditorSettings),
       products: products.map(product => ({
         id: product.id,
         slug: slugFromId(product.id),
@@ -43,6 +48,9 @@ export const GET: APIRoute = async ({ locals, request }) => {
         specTables: product.data.specTables,
         highlights: product.data.highlights,
         faqs: product.data.faqs,
+        reviews: storedProductReviews(slugFromId(product.id), product.data.reviews, allCustomerReviews),
+        aggregateRatingValue: product.data.aggregateRatingValue,
+        aggregateRatingCount: product.data.aggregateRatingCount,
         featured: product.data.featured,
         content: (product as unknown as { body?: string }).body || '',
       })),

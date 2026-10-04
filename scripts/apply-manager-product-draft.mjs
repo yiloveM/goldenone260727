@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import YAML from 'yaml';
+import { validateProductRating, validateProductReviews } from '../src/lib/product-reviews.mjs';
+import { resolveProductEditorPolicy } from '../src/lib/product-editor.mjs';
 
 const cwd = process.cwd();
 const payloadBase64 = process.env.MANAGER_PRODUCT_DRAFT_PAYLOAD || '';
@@ -27,7 +29,7 @@ if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(productSlug)) {
   fail(`Invalid product slug: ${productSlug}`);
 }
 
-const requiredTextFields = ['title', 'description', 'category', 'series'];
+const requiredTextFields = ['title', 'description', 'category'];
 for (const field of requiredTextFields) {
   if (!String(payload[field] || '').trim()) {
     fail(`Product draft is missing ${field}.`);
@@ -39,7 +41,8 @@ let source;
 let isNewProduct = false;
 try {
   source = await fs.readFile(productPath, 'utf8');
-} catch {
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
   isNewProduct = true;
   source = `---
 title: ""
@@ -71,13 +74,21 @@ if (!match) {
 const frontmatter = match[1];
 const body = source.slice(match[0].length);
 const document = YAML.parseDocument(frontmatter);
+let editorSettings = {};
+try {
+  editorSettings = JSON.parse(await fs.readFile(path.join(cwd, 'src', 'data', 'product-editor-settings.json'), 'utf8'));
+} catch (error) {
+  if (error.code !== 'ENOENT') throw error;
+}
+// Re-resolve after checkout: an older Manager draft must not overwrite the owner's latest policy.
+const ownerPolicy = resolveProductEditorPolicy(editorSettings, isNewProduct ? {} : document.toJSON());
 
 document.set('title', String(payload.title).trim());
 document.set('description', String(payload.description).trim());
-document.set('offeringType', normalizeOfferingType(payload.offeringType));
-document.set('modelStrategy', normalizeModelStrategy(payload.modelStrategy));
+document.set('offeringType', normalizeOfferingType(ownerPolicy.offeringType));
+document.set('modelStrategy', normalizeModelStrategy(ownerPolicy.modelStrategy));
 document.set('category', String(payload.category).trim());
-document.set('series', String(payload.series).trim());
+document.set('series', String(payload.series || '').trim());
 document.set('sortOrder', Number.isFinite(Number(payload.sortOrder)) ? Math.max(1, Math.round(Number(payload.sortOrder))) : 9999);
 document.set('published', payload.published !== false);
 document.set('image', String(payload.image || '').trim());
@@ -89,6 +100,9 @@ document.set('specTables', normalizeSpecTables(payload.specTables));
 document.set('highlights', normalizeStringArray(payload.highlights));
 document.set('faqs', normalizeFaqs(payload.faqs));
 document.set('featured', payload.featured === true);
+
+if (Object.hasOwn(payload, 'reviews')) document.set('reviews', validateProductReviews(payload.reviews));
+for (const [key, value] of Object.entries(validateProductRating(payload))) document.set(key, value);
 
 if (isNewProduct) {
   document.set('featured', payload.featured === true);
