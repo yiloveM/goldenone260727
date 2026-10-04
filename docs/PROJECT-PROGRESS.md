@@ -47,6 +47,14 @@ Pending/next action; rollback or external-state recovery when needed:
 Affected overview rows; capability provenance link only when relevant.
 ```
 
+## 2026-10-04 22:08 +08:00 - 建站治理分工与远端防误推
+
+- 范围仅现有治理/两阶段方法文档；目标 `main`，前基线 `91b8de4d78be8943d41a8a5d2de968d2a1159939`。
+- 文件职责、全新站完整工程基线与开/关适配、站长负责真实性/占位、Keystatic 控制与 Manager 内容职责已对齐；已有客户不自动全量升级。推送必须绑定真实根/common Git、repo/URL/ref，编号目录只是线索。
+- README 只补第六章稳定使用方法；功能状态、CAP 实现、前端、产品、资源和站长延后事项均未改。不新增工程能力或重复登记表；额外治理建议尚未采纳。
+- 验证为文档 diff/引用/围栏/双语与独立仓库检查，不重跑应用构建。此治理提交用 [skip ci] 推上述目标，不请求部署。
+- 换电脑读顶部状态及本条；对应提交可按本条标题查 Git 历史，回退仅在本站正常 revert 本轮文档提交，不 reset、不改 D1。
+
 ## 2026-10-04 20:25 +08:00 - CAP-0004 产品编辑与评价统一交付
 
 - 目标 `main`；改造前基线 `f758d1dcd845558d3c78fdfd4c2e1ff90be26cf7`；

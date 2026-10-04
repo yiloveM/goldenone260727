@@ -45,6 +45,10 @@ in the capability ledger; do not create another status file.
 
 ## Buyer-facing copy and media
 
+Public pages sell this site's products/services to commercial buyers, not AI
+work. Reject public data/media-source, import, AI-check, sample/demo or task
+reports in copy, captions, alt, SEO and translations; keep them internal.
+
 In both phases and maintenance, write public copy, captions, alt text, metadata,
 and translations for buyers, never as import/AI verification reports. Preserve
 genuine catalogue downloads, series names, attribution, and business information.
@@ -60,6 +64,19 @@ rewrites during urgent continuity delivery. Details: `docs/CODEX-INDUSTRY-WORKFL
 
 
 ## Two-phase workflow
+
+### Phase-one foundation and owner responsibility
+
+Fresh independent copies retain the complete approved mother engineering
+baseline, including OFF features; inspect actual contracts/tests, not only CAP
+IDs, and record source in the existing ledger. Existing sites remain scoped
+adoptions. Choose reasoned defaults in progress and verify ON/OFF/empty/re-enabled
+adapters in isolated fixtures. Keystatic controls selectable business functions;
+Manager edits allowed content, not parallel policy. Required security stays on.
+The webmaster owns truth and launch examples. Do not conduct routine authenticity
+audits or add proof/demo/placeholder fields; note coarse scope in progress.
+Owner-confirmed input is sufficient; preserve matching, format, visibility and
+security checks. Follow the workflow for this foundation before public design.
 
 ### Phase one: industry visual build
 

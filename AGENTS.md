@@ -160,11 +160,16 @@ Before phase-one edits, classify each requirement as a Codex decision rule, reus
 
 ## Buyer-facing copy and media
 
-- Write public copy, headings, captions, alt text, metadata, and translations
-  for buyers, not as an AI work report. Keep import, verification, and processing
-  notes internal. Use natural labels such as `Features`, not `Catalogue material`.
-  Retain genuine catalogue downloads, product/series names, necessary attribution,
-  and business information; do not blindly replace words.
+- Public pages address commercial customers buying this site's products or
+  services. Copy, headings, captions, alt text, metadata and translations serve
+  product/service introduction, selection, procurement, quotation, cooperation
+  and support, never AI/operator work reports. Do not expose data/media-source,
+  import/extraction, AI-check, sample/demo-status or task-completion explanations
+  such as "data from the catalogue", "AI verified" or "import completed".
+  Keep those explanations internal. Use natural labels such as `Features`, not
+  `Catalogue material`. Preserve genuine catalogue downloads, product/series
+  names, necessary attribution and business information; this is a semantic
+  audience rule, not blind forbidden-word filtering.
 - Before batch export/import, identify product/model, gallery versus content
   role, and complete image/text groups. Preserve legends, axes, units, and model
   labels. Grouping or sharing a catalogue page does not imply one product.
@@ -193,6 +198,29 @@ npm run build
 Before a real production launch, run `npm run check:template:production` after the industry brief, company information, and product data are verified.
 
 Browser QA for phase one covers desktop and mobile navigation, submenu pointer transitions, keyboard focus, touch, galleries, carousels, filters, forms, CAPTCHA loading/refresh/expiry, error/success states, no-script/reduced-motion behavior, overflow, image loading, and duplicate/template residue. Do not modify Golden One public styling during an engineering-capability migration.
+
+## Instruction Roles and Owner Policy
+
+AGENTS governs this repo; the two-phase prompt selects work; workflow/Skill
+give steps; README teaches humans. Progress holds current states and concise
+placeholder scope, the capability register holds versions, and the mother map
+binds independent roots/remotes. Do not duplicate these records.
+Fresh copies retain the complete approved mother baseline, including OFF
+features; this existing customer instead adopts only authorized capabilities.
+Choose reasoned defaults and test ON/OFF/empty data/re-enabling in isolation.
+Keystatic owns selectable business capabilities and policy; Manager maintains
+allowed content, never parallel switches. Required security is not optional.
+Business truth and sample replacement belong to the webmaster; no routine AI
+authenticity audit, proof fields, demo modes or per-placeholder paperwork.
+Technical matching/validation remains; do not invent confirmed business facts.
+Before every push bind actual root/common Git, HEAD/branch, mapped owner/repo,
+effective fetch/push URLs and explicit destination ref. Resolve a worktree via
+common Git and the map, not its parent folder or the active GitHub account.
+Locate the mother/map via the registered primary root when available; ../ from
+a .sandbox worktree is not the mother. A standalone clone keeps its local rules.
+Require one expected push URL and no conflicting refspec/rewrite; stop on
+mismatch, never repoint origin. Push HEAD:refs/heads/<approved-target> only
+from the verified customer root and verify the same remote's receipt afterward.
 
 ## Review Editing Contract
 

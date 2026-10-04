@@ -10,6 +10,27 @@ Research sequence, migration triggers, source ownership, copy treatment, visual 
 
 ## Phase one: researched industry and visual build
 
+### Engineering foundation within phase one
+
+For a fresh independent copy, inspect the full approved mother baseline:
+README capabilities, actual settings/schemas/APIs/consumers, tests and ledgers.
+Retain all implemented contracts, including OFF capabilities, and record the
+source SHA in the existing customer capability register. Existing customers
+use scoped approved adoption; do not blanket-upgrade or delay urgent continuity.
+Choose defaults from buyer needs, inputs, prerequisites and cost/privacy impact;
+keep the reason and actual configuration/switch state in existing progress.
+Missing optional inputs leave the feature installed but OFF/unconfigured.
+Keystatic controls selectable business capabilities; Manager follows owner policy
+and edits allowed content. Required security is not an optional switch.
+Before phase-one delivery, verify ON/OFF, empty/populated data and re-enabling
+across fields/routes/APIs/write-back, public navigation/layout and schema using
+isolated fixtures, not real settings. Product reviews need no home aggregate;
+OFF preserves hidden draft reviews. Preserve each site's existing publish steps.
+The webmaster owns authenticity and examples; no routine AI proof requests,
+demo modes or per-placeholder fields. Here verified means owner-confirmed.
+Note coarse placeholder scope/owner action once in existing progress; maintain
+technical validation and do not invent confirmed commercial facts.
+
 For an authorized migration, phase one must populate the customer site from the
 old site's information architecture and information layer, verified copy,
 product specifications, metadata, media, and exact original URLs. Do not leave
@@ -119,7 +140,7 @@ The result must explain why the design fits this business. “Modern,” “prem
 
 Choose imagery in this order:
 
-1. verified company product, work, project, process, material, venue, team, or outcome;
+1. owner-supplied/confirmed company product, work, project, process, material, venue, team, or outcome;
 2. owner-approved R2 assets;
 3. suitable placeholder or generated imagery when real assets are not yet available.
 
@@ -141,10 +162,16 @@ toggle snapshots or pending-setup reminders. Do not create another status file.
 These rules apply to both phases and ongoing maintenance, without forcing
 unrelated rewrites during urgent continuity delivery.
 
-- Public body copy, headings, captions, alt text, metadata, and translations
-  serve buyers, not AI import/verification reports. Prefer natural labels such
-  as `Features`. Preserve genuine catalogue downloads, series names, necessary
-  attribution, and business information; never use blind forbidden-word removal.
+- Public pages address commercial customers buying this site's products or
+  services. Copy, headings, captions, alt text, metadata and translations serve
+  product/service introduction, selection, procurement, quotation, cooperation
+  and support, never AI/operator work reports. Do not expose data/media-source,
+  import/extraction, AI-check, sample/demo-status or task-completion explanations
+  such as "data from the catalogue", "AI verified" or "import completed".
+  Keep those explanations internal. Use natural labels such as `Features`, not
+  `Catalogue material`. Preserve genuine catalogue downloads, product/series
+  names, necessary attribution and business information; this is a semantic
+  audience rule, not blind forbidden-word filtering.
 - Before batch media work, identify product/model, gallery versus content role,
   and complete semantic groups. Preserve paired images, legends, axes, units,
   and model labels. Canva grouping or one PDF page is not proof of one product.
@@ -258,7 +285,7 @@ For a real model series, the first specification-table column must identify `Mod
 
 ## Phase two: current SEO and GEO research
 
-Run phase two only after verified products, imagery, company facts, and target markets are present.
+Run phase two on pages with owner-supplied/confirmed content and target markets; missing optional commercial facts do not block other SEO work.
 
 1. Browse current official Google Search Central guidance before changing search behavior or rich-result data.
 2. Research current target-market SERPs, buyer questions, commercial modifiers, long-tail queries, and ranking page types.
@@ -281,7 +308,7 @@ Use `check:rich-results` or `check:merchant-listings` only when real visible off
 
 ## Evidence standard
 
-AI may improve structure, clarity, hierarchy, usability, and visual treatment. It must not create business facts. Missing certifications, specifications, facilities, lead times, prices, case studies, customer proof, market coverage, or commercial terms belong in an owner action list rather than public copy.
+The webmaster owns business truth; supplied/confirmed information needs no AI authenticity audit or external proof. AI checks technical consistency, not the owner's credibility. Unspecified commercial facts are not invented; optional absent fields stay absent. Construction examples/placeholder media are permitted, with only coarse scope and next action in the existing progress record, not new CMS fields or proof lists. Existing technical production checks remain unchanged.
 
 - Keystatic owns the site's default content type/model strategy in
   `src/data/product-editor-settings.json` and per-product exceptions. Manager
