@@ -47,6 +47,13 @@ Pending/next action; rollback or external-state recovery when needed:
 Affected overview rows; capability provenance link only when relevant.
 ```
 
+## 2026-10-04 22:54 +08:00 - 代表产品闭环与 Manager 开关适配规则
+
+- 仅 A 类治理：两项建议已采纳；阶段一同时适配前端/Manager 的入口、字段、草稿及写回；批量建产品前验证一个代表条目的两个后台至发布/前端闭环；阶段二保留已验收布局，改布局先说明并取得同意。
+- 本仓交付目标 `main`；任务前基线 `61c0f99d499ee2e9706fa23e4f8b4499c2e9d1e6`，推前安全快进并保留站长评价配置 `fba8d4c4a439d56400273ffae18a55e4b0ffdf88`，总开关仍开启。本轮不改评价内容、运行代码、产品、开关、资源或站长暂缓事项，README 只改第六章稳定用法；保持原隔离及保存/发布流程。
+- 文档 diff/围栏/双语、README 其它章节及独立仓库检查通过；本轮不重跑应用构建，不新增 CAP 或验收表。本条所在文档提交用 [skip ci] 只推上述目标，不请求部署。
+- 后续建站按此规则及顶部状态继续；真实外部未验部分须如实标明，不冒充通过或拖延无关建设。按本条标题定位提交，在本仓正常 scoped revert 文档提交回退，保留后续 CMS 数据、不 reset 或改 D1。
+
 ## 2026-10-04 22:08 +08:00 - 建站治理分工与远端防误推
 
 - 范围仅现有治理/两阶段方法文档；目标 `main`，前基线 `91b8de4d78be8943d41a8a5d2de968d2a1159939`。

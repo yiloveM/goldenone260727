@@ -71,12 +71,20 @@ Fresh independent copies retain the complete approved mother engineering
 baseline, including OFF features; inspect actual contracts/tests, not only CAP
 IDs, and record source in the existing ledger. Existing sites remain scoped
 adoptions. Choose reasoned defaults in progress and verify ON/OFF/empty/re-enabled
-adapters in isolated fixtures. Keystatic controls selectable business functions;
-Manager edits allowed content, not parallel policy. Required security stays on.
+public frontend and Manager adapters before first Keystatic use in isolated
+fixtures, covering navigation/fields, validation, draft saves and API/write-back.
+Keystatic controls selectable business functions; Manager edits allowed content,
+not parallel policy. Required security stays on.
 The webmaster owns truth and launch examples. Do not conduct routine authenticity
 audits or add proof/demo/placeholder fields; note coarse scope in progress.
 Owner-confirmed input is sufficient; preserve matching, format, visibility and
 security checks. Follow the workflow for this foundation before public design.
+Before batch products, validate one representative offering through both editors,
+save/draft, existing publishing and public desktop/mobile read-back on an
+isolated authorized path; record test gaps, never bypass preview/live safeguards.
+After owner acceptance of phase one, phase-two SEO preserves the approved layout;
+explain affected pages and before/after impact and obtain approval before layout
+changes. Follow the existing workflow; no new forms or urgent-continuity delay.
 
 ### Phase one: industry visual build
 

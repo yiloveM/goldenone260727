@@ -207,7 +207,16 @@ placeholder scope, the capability register holds versions, and the mother map
 binds independent roots/remotes. Do not duplicate these records.
 Fresh copies retain the complete approved mother baseline, including OFF
 features; this existing customer instead adopts only authorized capabilities.
-Choose reasoned defaults and test ON/OFF/empty data/re-enabling in isolation.
+Choose reasoned defaults; before first Keystatic use, adapt public frontend and
+Manager for ON/OFF, empty data and re-enabling. Isolated checks cover public
+layout/schema and Manager navigation, fields, saves/resaves, APIs and write-back.
+Before batch product work, run one representative offering through both editors,
+save/draft, existing publishing and public desktop/mobile read-back on an
+isolated authorized path; do not bypass read-only previews or write live examples.
+After owner acceptance of phase one, phase-two SEO preserves the approved layout;
+explain affected pages and before/after impact and obtain approval before layout
+changes. Reuse valid evidence, record unavailable checks honestly, and do not
+delay urgent continuity or add approval forms. See mother master section 10.
 Keystatic owns selectable business capabilities and policy; Manager maintains
 allowed content, never parallel switches. Required security is not optional.
 Business truth and sample replacement belong to the webmaster; no routine AI

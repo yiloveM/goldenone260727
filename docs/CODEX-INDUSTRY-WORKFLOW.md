@@ -22,10 +22,20 @@ keep the reason and actual configuration/switch state in existing progress.
 Missing optional inputs leave the feature installed but OFF/unconfigured.
 Keystatic controls selectable business capabilities; Manager follows owner policy
 and edits allowed content. Required security is not an optional switch.
-Before phase-one delivery, verify ON/OFF, empty/populated data and re-enabling
-across fields/routes/APIs/write-back, public navigation/layout and schema using
-isolated fixtures, not real settings. Product reviews need no home aggregate;
+Before first Keystatic use and phase-one delivery, adapt and verify ON/OFF,
+empty/populated data and re-enabling in both public frontend and Manager.
+Cover public navigation/modules/layout/schema and Manager navigation, permitted
+editable/read-only/hidden fields, validation, draft saves/resaves, APIs and
+Git write-back with isolated fixtures, not real customer settings. Do not defer
+Manager adaptation to phase two. Product reviews need no home aggregate;
 OFF preserves hidden draft reviews. Preserve each site's existing publish steps.
+After research and representative page implementation, before batch products,
+run one representative offering through both editors, save/draft, the existing
+publish path and public desktop/mobile read-back. Use an authorized isolated
+path; do not bypass read-only previews or write examples to live customer data.
+Reuse valid evidence and record unavailable external checks honestly without
+stalling unrelated construction or urgent continuity. Fix a broken pattern
+before scaling it; no new owner fields or separate acceptance record.
 The webmaster owns authenticity and examples; no routine AI proof requests,
 demo modes or per-placeholder fields. Here verified means owner-confirmed.
 Note coarse placeholder scope/owner action once in existing progress; maintain
@@ -286,6 +296,14 @@ For a real model series, the first specification-table column must identify `Mod
 ## Phase two: current SEO and GEO research
 
 Run phase two on pages with owner-supplied/confirmed content and target markets; missing optional commercial facts do not block other SEO work.
+
+After owner acceptance of phase one, preserve its layout, module order/cohesion,
+gallery placement and styling. Optimize copy, semantics, metadata, links, schema
+and performance within that baseline. Before a visible layout/structural change,
+explain affected pages, reason and before/after impact and obtain approval for
+that adjustment; SEO authorization is not redesign authorization. Use existing
+progress for the accepted baseline, not another form or record. Engineering
+changes still need the separate capability gate.
 
 1. Browse current official Google Search Central guidance before changing search behavior or rich-result data.
 2. Research current target-market SERPs, buyer questions, commercial modifiers, long-tail queries, and ranking page types.
