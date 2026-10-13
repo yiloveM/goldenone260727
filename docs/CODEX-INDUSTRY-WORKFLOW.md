@@ -244,6 +244,38 @@ For an approved customer implementation:
 
 Before accepting public copy/media changes, inspect representative desktop/mobile pages and affected languages for buyer-facing wording, complete image/text groups, correct product identity, and continuous feature/table modules.
 
+## Multilingual content QA
+
+Use the AGENTS multilingual acceptance rules in both phases and maintenance:
+
+1. Establish the authorized source, accepted technical terminology and expected
+   routes for each enabled/published locale. Treat external reports as leads,
+   verify exact rendered elements and retain failed/unavailable routes in scope.
+2. Classify incidents, unfinished machine translation and missing ordinary copy.
+   Compare topic/product and meaning with the correct source; prioritize wrong
+   topics, AI replies/refusals, internal notes and broken primary navigation.
+   Fix source defects within scope, not fluent translations of the wrong topic.
+3. Trace each fix through the actual UI/page/content and editable translation
+   consumers, including lists/tags, document descriptions, alt, SEO and feedback.
+   Use structured parsers for JSON/YAML/HTML; protect terminology, facts, tables,
+   IDs/slugs, links/media, archives, draft boundaries and real feature switches.
+4. Scan all affected records/output; inspect flagged candidates semantically
+   instead of banning Latin text. Verify every known finding/high-risk article.
+   In phase one complete shared UI and representative page types per public
+   locale before batch translation; phase two also checks canonical/hreflang,
+   search titles/descriptions and links without redesigning accepted layouts.
+5. Check desktop/mobile per affected public locale and changed page type, with
+   RTL, menus, first-load images, carousel direction and isolated form/download
+   feedback. After authorized release verify deployed read-back; state source,
+   HTML, HTTP and browser coverage separately and retain unresolved gaps.
+   Diagnose access/runtime failures from evidence; reuse existing tools, and
+   propose new automated gates or rendering changes separately before implementation.
+
+After shared UI, source copy or template changes, rerun checks for the affected
+locales; prior approval flags are not new evidence or a reason to rewrite unrelated
+pages. One meaningful batch handoff belongs in existing progress, not README or another
+issue register. No per-fact proofs, extra CMS fields or automatic live writes.
+
 ## Phase-one QA gate
 
 Run:

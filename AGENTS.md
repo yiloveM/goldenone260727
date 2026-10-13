@@ -158,6 +158,33 @@ Before phase-one edits, classify each requirement as a Codex decision rule, reus
 - Update information only in its matching chapter. Do not rename, reorder, split, merge, or add peer chapters without owner approval.
 - Keep deployment ownership, portal login, variable setup, publish rules, and verified incident conclusions. Avoid reference-document lists and repeated warnings.
 
+## Multilingual content acceptance
+
+- Separate content incidents (wrong topic/product, AI replies/refusals or internal
+  analysis), unfinished translation (mixed words, repetition or broken grammar)
+  and missing ordinary translation. Restore buyer meaning from the correct
+  approved source; reports are candidates to verify against actual elements,
+  not automatic edit instructions. Correct a faulty English source only within
+  the authorized scope; never invent facts or delete content to clear a scan.
+- Preserve owner-accepted technical terms, brands, models, standards, numbers,
+  units, IDs, URLs and media mappings. Latin words alone are not defects. Reuse
+  accepted project terminology; ask only about consequential ambiguity.
+- Trace shared UI, pages, menus/lists/tags, downloads, form/CAPTCHA feedback,
+  alt, metadata/schema and editable translation records so saves do not revive
+  errors. Leave raw archives/history, unrelated drafts and feature states alone;
+  D1 writes must use an authorized path.
+- In both phases and maintenance, inventory expected routes/locales using this
+  site's enabled/published policy, scan the affected records, then semantically
+  resolve flagged candidates and check all known findings/high-risk articles.
+  Sample every affected public locale and changed page type on desktop/mobile,
+  including RTL, first-load media and interactions. Verify deployed read-back
+  after an authorized release; separate scan, HTTP and browser coverage. Shared
+  UI/source/template changes require rechecking affected locales, not unrelated rewrites.
+- Unavailable pages remain gaps, not passes. Diagnose network/runtime failures
+  from responses/logs; CI success does not prove full translation or stability.
+  Reuse existing checks, with one batch handoff in current progress. No new
+  proof fields, issue register, automated gate or runtime/build change is implied.
+
 ## Buyer-facing copy and media
 
 - Public pages address commercial customers buying this site's products or

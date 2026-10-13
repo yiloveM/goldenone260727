@@ -45,6 +45,11 @@ in the capability ledger; do not create another status file.
 
 ## Buyer-facing copy and media
 
+For multilingual work in either phase or maintenance, read the workflow's
+Multilingual content QA section and the local AGENTS acceptance rules. Distinguish
+wrong-topic/AI-response incidents from unfinished and missing translation; retain
+accepted technical terms and verify meaning, consumers, rendered output and RTL.
+
 Public pages sell this site's products/services to commercial buyers, not AI
 work. Reject public data/media-source, import, AI-check, sample/demo or task
 reports in copy, captions, alt, SEO and translations; keep them internal.
