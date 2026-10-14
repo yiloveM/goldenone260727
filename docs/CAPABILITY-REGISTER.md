@@ -68,6 +68,13 @@ Migration additive, default OFF compatible. Rollback scoped customer capability
 commit on own main/Actions, keeping later CMS/Secrets; no D1/R2 undo. Actual push/
 CI receipt belongs in progress; local pass is not deployed-service evidence.
 
+Delivery receipt 2026-10-15: own main sources `b651e61` and final clipped-honeypot
+supplement `36bae55`; Actions 38596317869 completed/success. Final 10 real
+desktop/mobile/Spanish visits passed, signed code refresh works, no form POST.
+Actual Turnstile service still owner-deferred. The supplement supersedes logical
+negative-offset positioning for mixed html/body directions; rollback supplement
+before core as needed. Current states/evidence remain in PROJECT-PROGRESS.
+
 ## Entry template
 
 ```text

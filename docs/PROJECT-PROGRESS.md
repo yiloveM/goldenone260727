@@ -13,7 +13,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 
 ## 当前状态
 
-更新：2026-10-14（+08:00）。本轮前基线：`edcb8d1e4c26c42e75ac42284ab63e8b6643510b`。
+更新：2026-10-15（+08:00）。本轮前基线：`edcb8d1e4c26c42e75ac42284ab63e8b6643510b`。
 范围：`yiloveM/goldenone260727` 的 `main`；CAP-0005 验证能力移植。其它行保留原验证日期及站长暂缓，不代表本轮全部重验。
 
 这是一份交接快照，不是配置文件。接入、配置、开关分开看；“已启用”不等于
@@ -27,7 +27,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 
 | 功能/分支范围 | 接入 | 配置 | 开关 | 日期/验证依据 | 下一步/负责人 |
 | --- | --- | --- | --- | --- | --- |
-| Turnstile 验证（CAP-0005） | 已移植，Keystatic、全部现有表单和共享服务端均有真实消费端 | 公钥空；站长明确稍后在本客户配置，未读取云端 Secret | 关闭，原四位码继续使用；Manager 无开关 | 2026-10-14：11 新回归、完整本地构建；两站共 20 组隔离 UI，含 Contact us/文件上传/询价车配合 | 站长后补并决定开启，通知 AI 验实际控件和获准后端；不自动启用或重新索取密钥 |
+| Turnstile 验证（CAP-0005） | 已移植并经自己的 Actions 发布 | 公钥空；站长明确后补，未读取云端 Secret | 关闭，原四位码线上有效；Manager 无开关 | 2026-10-15：Actions 38596317869 成功；10 次四视口/西语真实页面验收，无 JS 错误/溢出，原验证码加载/刷新有效；两态 SDK 验收为隔离模拟 | 站长后补并决定开启，通知 AI 验真实 Turnstile；不自动启用或索取已暂缓密钥 |
 | 公开站、后台及发布链路 | 已接入 | 仓库配置已有；云端未重新核查 | 无统一开关 | 2026-10-04 读取源码；2026-09-25 发布证据见下方日志 | 后续相关任务再核查；本轮不部署 |
 | 网站访问分析 | 已接入 | 仓库配置已有；云端未核查 | Manager 入口已启用（源码）；采集无此 JSON 开关 | `src/keystatic/analytics-dashboard.json` 仅含 `managerVisible: true` | 不套用 Aquamama 的较新开关字段；涉及分析时核查实际实现 |
 | GSC / 本机只读 MCP（CAP-0002） | 后台能力已有；客户 MCP 映射待接入 | 待配置；站长此前确认暂无 property，授权未核查 | 本机工具非站点开关；后台状态未核查 | 2026-09-25 交接；本客户无 `ops/gsc-site.json` | 站长提出接入任务并提供 property 后处理；不重复索取 |
@@ -44,6 +44,13 @@ and mappings while unfinished, without adding a permanent media ledger.
 - 本地 327 文件检查 0 错误/警告，原提示保留；完整构建通过，843 HTML / 4699 JSON-LD / 570 Product / 0 审计错误。11 新回归与原 JSON-LD/评价/工程检查；两站合计 20 组隔离 UI（四宽度、两态、阿语/西语、配置恢复、过期/重试、关闭重开/上传）通过。SDK、Siteverify、邮件均模拟，不写真实询盘；隐藏防垃圾字段仅改逻辑定位，不改变可见样式。
 - 交付自己的 main，实际推送/Actions 回执随后追加；Turnstile 关闭，站长稍后配置。原受控下载关闭/空列表、品牌内容、语言、资源和其它设置保持。不安装新依赖、不迁移 D1、不部署新预览或写 R2；下载三模式不在本轮采用。
 - 回退按本条标题定位本客户工程提交，定向 revert 并沿原流程发布，保留后续 CMS/资料及云端 Secret；无 D1/R2 数据回滚。换机先核对 Git/common Git/自己的远端，再读顶部/本条与能力账本，不把记录当配置或服务成功。
+
+## 2026-10-15 - CAP-0005 独立 main 发布与真实页面回执
+
+- 本客户主工程 `b651e61c46a624af70ed5a72a0be89ea73b3bf15`、混合方向隐藏字段补强 `36bae55f632021eba503ff50785bfe9b59c9cd9c` 已分别核对独立 main；[最终 Actions 38596317869](https://github.com/yiloveM/goldenone260727/actions/runs/38596317869) completed/success，构建与部署均通过。初次发布 38592944121 也成功，不把补强误说为重复发布系统。
+- 最终隐藏字段为零偏移裁切1px盒子；纯逻辑负偏移对 html RTL/body LTR 仍可能撑宽。补强后的两站 20 隔离案例再验通过；本站最终真实 10 次页面访问（首页/联系，1440/1024/390/360 与西语）均 200、0 JS 错误/溢出，Contact us 原表单/WhatsApp/Email 和签名码刷新可用。只读 check:forms 通过；所有联系/下载 POST 均禁止，未向真实 D1 提交测试资料或发邮件。
+- Turnstile OFF、原下载 OFF/空列表及客户其它设置保持。实际 Turnstile 密钥/质询/Siteverify 成功与重放仍待站长配置后获准验收；不拿模拟或签名码验收冒充。README 已有最简操作，无新增待办提醒。
+- 回退先定向 revert `36bae55`，再按需 revert `b651e61`，沿原 Actions，保留后来 CMS/Secret，不改 D1/R2。本回执只推本仓 docs [skip ci]，不再部署；母版仅记摘要与适配候选，Corner 未动。
 
 ## Entry template
 
