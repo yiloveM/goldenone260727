@@ -2974,10 +2974,12 @@ textarea {
 textarea { min-height: 150px; resize: vertical; }
 .form-trap {
   position: absolute;
-  inset-inline-start: -10000px;
+  inset-inline-start: 0;
   width: 1px;
   height: 1px;
   overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
 }
 .captcha-panel {
   display: grid;
