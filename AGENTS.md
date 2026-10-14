@@ -115,6 +115,16 @@ Before phase-one edits, classify each requirement as a Codex decision rule, reus
 
 ## Non-negotiable system boundaries
 
+CAP-0005 verification is installed here. Keystatic alone selects Turnstile or
+signed four-character CAPTCHA; Manager has no feature switches. Preserve Contact
+us popup/form/WhatsApp/email, its inquiry-cart/back-to-top coordination, contact
+and artwork forms, uploads and existing protected download gate. OFF keeps the
+accepted appearance; ON needs this customer's Wrangler public key, encrypted
+TURNSTILE_SECRET and actual SITE_URL hostname, with no failure downgrade.
+Read choices/configuration/deferrals in the existing progress record; do not
+auto-enable or request deferred keys. Separately verify actual controls plus authorized server-side
+success/replay; simulated acceptance and GET 200 are not real service acceptance.
+
 - Keep `/keystatic/` as the owner-only Git-backed surface.
 - Keep `/manager/` as the content-administrator portal with D1 drafts, R2 media, review, and approval/write-back flow.
 - In production, expose those surfaces only through two different dedicated custom domains plus two different secret UUID entry paths. Both portals must then require the configured GitHub App slug as username and `KEYSTATIC_SECRET` as password before opening a 12-hour signed session.

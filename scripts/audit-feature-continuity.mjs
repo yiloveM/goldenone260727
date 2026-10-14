@@ -98,12 +98,12 @@ const contracts = [
   {
     area: 'Contact lead delivery',
     file: 'src/pages/api/contact.ts',
-    markers: ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'validateFormCaptcha'],
+    markers: ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'verifyPublicForm'],
   },
   {
     area: 'Controlled download delivery',
     file: 'src/pages/api/download.ts',
-    markers: ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'documentId', 'validateFormCaptcha'],
+    markers: ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'documentId', 'verifyPublicForm'],
   },
   {
     area: 'Manager D1 service layer',

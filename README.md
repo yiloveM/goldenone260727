@@ -33,6 +33,7 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 - Golden One 定制徽章、奖牌、挑战币、钥匙扣和金属礼品产品架构。
 - 产品分类、型号、材料、工艺、参数表、应用、FAQ、图库、详情图和排序管理。
 - 博客、客户评价、询盘购物车、艺术稿上传、共享 CAPTCHA、联系邮件、D1 留资和 R2 图片池。
+- Keystatic 可选择 Cloudflare Turnstile 或原四位验证码；联系页、Contact us、设计稿询价和受保护下载均有对应的前后端验证。
 - 英语为唯一源语言；站长以复选框启用目标语言，未启用语种不进入导航和 sitemap。
 - AI 仅生成翻译草稿；审核与明确发布之前不会自动公开。
 - Keystatic 直接管理 Git 内容；Manager 先写 D1 草稿，再经专用 Actions 写回 Git。
@@ -511,6 +512,14 @@ LIMIT 50;
 6. 成功前页面 HTML 不得包含 PDF 直链；成功邮件只发送访客资料和所选 PDF 名称，不发送 PDF 附件。
 7. 关闭总开关并发布后，配置和历史留资保留，`/api/download` 返回 404。
 
+### Turnstile 人机验证（可选）
+
+1. 在 Golden One 的 Cloudflare 账户选择或创建 **Managed** Turnstile 组件；主机名填实际访问本站的域名，不带协议、路径或端口。
+2. 将组件的 **Site key** 告诉 Codex，写入本客户 `wrangler.toml` 的 `TURNSTILE_SITEKEY`。独立预览公钥放 `[env.preview.vars]`，不使用其它客户的组件。
+3. `goldenone` Worker -> **Settings -> Variables and Secrets**，添加加密 **Secret** `TURNSTILE_SECRET`，填同一组件的 Secret key。不要发到聊天或写进 Git；只需手工增加这一个新 Secret。
+4. Keystatic -> **站点设置 -> 表单人机验证** 开启、保存并 **发布网站更新**。联系页、右下 Contact us、设计稿询价和受保护下载共用设置；关闭回到原四位码，Manager 不控制开关。
+5. 用常用浏览器检查实际验证控件、手机显示、浮层关闭重开、刷新、过期及提交结果。开启但配置不完整时明确失败，不自动降级；已有 `SITE_URL` 必须与实际公开主机名一致。预览仍禁止真实提交。
+
 ### 第 16 步：确认保存与发布规则
 
 `site-publish.yml` 自动忽略：
@@ -587,6 +596,8 @@ npm run build
 4. **博客**：维护英语源文章和封面。
 5. **评价系统**：站长控制总开关，首页总评分选填；开启后直接在产品内维护评价，自动生成对应结构化数据。
 6. **受控下载**：按开关下方小字顺序操作，先上传并验证 PDF，再填写白名单，再确认页面组件、D1、Resend 和 CAPTCHA，最后才开启并发布。
+
+**表单人机验证：**仅站长在 Keystatic 选择 Turnstile 或四位码；配置步骤见第二章。保存后仍需发布，关闭保留密钥和原有表单能力。Manager 不提供开关。
 
 ### 图片池
 
@@ -716,6 +727,8 @@ npm run build
 | `src/content/blogTranslations/` | 文章翻译草稿/内容 |
 | `src/data/customer-reviews.json` | 评价总开关、汇总与评价记录 |
 | `src/lib/form-captcha.ts` | 联系与下载表单共用的签名 CAPTCHA |
+| `src/data/form-verification.json` | Keystatic 的 Turnstile 选择；只由站长控制 |
+| `src/lib/form-verification.ts`、`src/components/FormVerification.astro` | 所选验证方式的服务端校验与实际控件 |
 | `src/lib/public-form-submissions.ts` | 公开表单 D1 留资和 Resend 投递状态 |
 | `src/pages/api/contact.ts` | 询盘 CAPTCHA、D1、Resend 和艺术稿附件 |
 | `src/pages/api/download.ts` | 受控下载白名单、D1、Resend 与成功后 URL 返回 |

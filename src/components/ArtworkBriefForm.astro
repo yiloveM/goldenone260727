@@ -1,5 +1,6 @@
 ---
 import { getLocaleFromPathname, ui } from '../data/i18n';
+import FormVerification from './FormVerification.astro';
 
 const pagePath = Astro.url.pathname;
 const copy = ui[getLocaleFromPathname(pagePath)].forms;
@@ -18,7 +19,6 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
   data-error-label={copy.briefError}
   novalidate
 >
-  <input type="hidden" name="captchaToken" data-captcha-token />
   <input type="hidden" name="pagePath" value={pagePath} />
   <input type="hidden" name="inquiryItems" value="[]" />
   <input type="hidden" name="formType" value="artwork-brief" />
@@ -51,12 +51,14 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
     <label><span>{copy.countryRegion} <em>({copy.optional})</em></span><input name="country" autocomplete="country-name" /></label>
   </div>
 
+  <FormVerification action="contact" locale={getLocaleFromPathname(pagePath)} refreshLabel={copy.refreshCode} errorLabel={copy.captchaError}>
   <div class="artwork-brief__captcha">
-    <div><span>{copy.verificationCode}</span><strong data-captcha-code>----</strong></div>
+    <div><span>{copy.verificationCode}</span><strong data-captcha-code data-verification-code>----</strong></div>
     <input name="captcha" placeholder={copy.enterCode} inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
-    <button type="button" data-captcha-refresh aria-label={copy.refreshCode}>↻</button>
+    <button type="button" data-captcha-refresh data-verification-refresh aria-label={copy.refreshCode}>↻</button>
   </div>
-  <button class="artwork-brief__submit" type="submit" data-submit>{copy.freeDesign} <span aria-hidden="true">→</span></button>
+  </FormVerification>
+  <button class="artwork-brief__submit" type="submit" data-submit disabled>{copy.freeDesign} <span aria-hidden="true">→</span></button>
   <p class="artwork-brief__status" data-form-status aria-live="polite"></p>
 </form>
 
@@ -64,14 +66,17 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
   (() => {
     const endpoint = '/api/contact';
     document.querySelectorAll('[data-artwork-brief]').forEach(form => {
+      if (form.dataset.verificationBound) return;
+      form.dataset.verificationBound = 'true';
       const fileInput = form.querySelector('[data-artwork-input]');
       const fileLabel = form.querySelector('[data-artwork-file-label]');
       const dropzone = form.querySelector('[data-artwork-dropzone]');
       const status = form.querySelector('[data-form-status]');
       const submit = form.querySelector('[data-submit]');
-      const code = form.querySelector('[data-captcha-code]');
-      const token = form.querySelector('[data-captcha-token]');
-      const refresh = form.querySelector('[data-captcha-refresh]');
+      const verification = form.querySelector('form-verification');
+      let submitting = false;
+      const updateSubmit = () => { submit.disabled = submitting || !verification?.ready; };
+      verification?.addEventListener('verificationchange', updateSubmit);
 
       const updateFileName = () => {
         const file = fileInput?.files?.[0];
@@ -79,13 +84,8 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
         dropzone.classList.toggle('has-file', Boolean(file));
       };
       const loadCaptcha = async () => {
-        code.textContent = '....';
-        const response = await fetch(endpoint, { headers: { accept: 'application/json' }, credentials: 'same-origin' });
-        if (!response.ok) throw new Error('captcha');
-        const data = await response.json();
-        code.textContent = data.code;
-        token.value = data.token;
-        form.querySelector('input[name="captcha"]').value = '';
+        await customElements.whenDefined('form-verification');
+        await verification?.refresh();
       };
       fileInput?.addEventListener('change', updateFileName);
       ['dragenter', 'dragover'].forEach(type => dropzone?.addEventListener(type, event => {
@@ -102,13 +102,12 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
         fileInput.files = files;
         updateFileName();
       });
-      refresh?.addEventListener('click', () => loadCaptcha().catch(() => {
-        status.textContent = form.dataset.captchaError;
-      }));
       loadCaptcha().catch(() => { status.textContent = form.dataset.captchaError; });
       form.addEventListener('submit', async event => {
         event.preventDefault();
+        if (submitting || !verification?.ready) return;
         if (!form.reportValidity()) return;
+        submitting = true;
         submit.disabled = true;
         status.textContent = form.dataset.sendingLabel;
         status.dataset.state = 'pending';
@@ -124,8 +123,10 @@ const copy = ui[getLocaleFromPathname(pagePath)].forms;
         } catch (error) {
           status.textContent = error instanceof Error ? error.message : form.dataset.errorLabel;
           status.dataset.state = 'error';
+          loadCaptcha().catch(() => {});
         } finally {
-          submit.disabled = false;
+          submitting = false;
+          updateSubmit();
         }
       });
     });

@@ -128,12 +128,24 @@ export default config({
   ui: {
     brand: { name: 'Golden One 内容管理' },
     navigation: {
-      '站点设置': ['analyticsDashboard', 'siteFoundation', 'catalogDownloads', 'siteLanguages', 'customerReviews'],
+      '站点设置': ['analyticsDashboard', 'siteFoundation', 'catalogDownloads', 'siteLanguages', 'customerReviews', 'formVerification'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
   },
   singletons: {
+    formVerification: singleton({
+      label: '表单人机验证',
+      path: 'src/data/form-verification',
+      format: 'json',
+      schema: {
+        turnstileEnabled: fields.checkbox({
+          label: '使用 Cloudflare Turnstile',
+          defaultValue: false,
+          description: '先配置本站公钥和 TURNSTILE_SECRET，再开启、保存并发布。关闭使用原四位验证码；开启失败不自动降级。Manager 不控制此开关。',
+        }),
+      },
+    }),
     analyticsDashboard: singleton({
       label: '数据分析',
       path: 'src/keystatic/analytics-dashboard',

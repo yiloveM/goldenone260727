@@ -1,0 +1,43 @@
+---
+import { formVerificationProvider } from '../data/formVerification';
+
+interface Props {
+  action: 'contact' | 'download';
+  locale?: string;
+  refreshLabel?: string;
+  errorLabel?: string;
+}
+const {
+  action, locale = 'en', refreshLabel = 'Refresh verification',
+  errorLabel = 'Verification could not load. Please retry or contact us.',
+} = Astro.props;
+---
+<form-verification data-endpoint={`/api/${action}`} data-action={action}
+  data-provider={formVerificationProvider} data-language={locale} data-error={errorLabel}>
+  {formVerificationProvider === 'turnstile' ? (
+    <div class="form-verification-managed">
+      <input type="hidden" name="cf-turnstile-response" />
+      <div class="form-verification-managed__widget" data-verification-widget></div>
+      <button type="button" class="form-verification-managed__refresh" data-verification-refresh
+        aria-label={refreshLabel} title={refreshLabel}>&#8635;</button>
+    </div>
+  ) : (
+    <>
+      <input type="hidden" name="captchaToken" />
+      <slot />
+    </>
+  )}
+  <p class="form-verification-status" data-verification-status aria-live="polite" hidden></p>
+</form-verification>
+<script>
+  import '../lib/form-verification-client';
+</script>
+<style>
+  form-verification { display: contents; }
+  .form-verification-managed { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; grid-column: 1 / -1; width: 100%; min-width: 0; margin-block: 14px; }
+  .form-verification-managed__widget { flex: 1 1 200px; min-width: 0; min-height: 65px; }
+  .form-verification-managed__refresh { flex: 0 0 38px; width: 38px; height: 38px; border: 1px solid currentColor; border-radius: 4px; color: inherit; background: transparent; cursor: pointer; font-size: 22px; }
+  .form-verification-managed__refresh:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+  .form-verification-status { grid-column: 1 / -1; margin: 8px 0; font-size: 13px; line-height: 1.5; color: inherit; }
+  .form-verification-status[hidden] { display: none; }
+</style>

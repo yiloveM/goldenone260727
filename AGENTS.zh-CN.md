@@ -7,6 +7,12 @@
 
 ## 仓库隔离与记录
 
+本站已接入 CAP-0005：仅 Keystatic 控制 Turnstile/原签名四位码，Manager 无功能
+开关。保留 Contact us 浮层表单、WhatsApp/Email、询价车/回顶配合、联系/设计稿
+询价、文件上传及原受控下载。关闭保留已认可样式；开启需本站公钥、匹配加密
+TURNSTILE_SECRET 和正确 SITE_URL 主机名，失败不自动降级。选择、配置、暂缓看
+原进度，不自动启用或索取已暂缓密钥；另验真实控件与获准后端成功/重放，不能把模拟或 GET 当作服务成功。
+
 生命周期为 `building`，现目录 `goldenone002-building/`（旧名 `goldenone002/`）。
 已授权改动完成验证后合入并 push 本仓库 main，允许既有 Actions 发布，不再问 push；
 临时分支不是最终交付。该次明确“不推/只做分支”优先。测试站可访问、绑定域名或

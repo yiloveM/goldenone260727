@@ -1,5 +1,6 @@
 ---
 import { getLocaleFromPathname, ui } from '../data/i18n';
+import FormVerification from './FormVerification.astro';
 
 interface Props {
   whatsapp?: string;
@@ -43,7 +44,6 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
       <div class="contact-action-menu__body">
         <p>{copy.introduction}</p>
         <form class="contact-action-email-form" action="/api/contact" method="post" data-contact-action-form>
-          <input type="hidden" name="captchaToken" data-contact-action-captcha-token />
           <input type="hidden" name="pagePath" value={pagePath} />
           <input type="hidden" name="inquiryItems" value="[]" />
           <input type="hidden" name="formType" value="quick-contact" />
@@ -62,12 +62,14 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
             <span>{copy.message}</span>
             <textarea name="message" rows="3" required></textarea>
           </label>
+          <FormVerification action="contact" locale={getLocaleFromPathname(pagePath)} refreshLabel={copy.refreshCode} errorLabel={copy.captchaError}>
           <div class="contact-action-captcha">
-            <strong data-contact-action-captcha-code>----</strong>
+            <strong data-contact-action-captcha-code data-verification-code>----</strong>
             <input name="captcha" aria-label={copy.verificationCode} placeholder={copy.enterCode} autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required data-contact-action-captcha-input />
-            <button type="button" aria-label={copy.refreshCode} title={copy.refreshCode} data-contact-action-captcha-refresh>&#8635;</button>
+            <button type="button" aria-label={copy.refreshCode} title={copy.refreshCode} data-contact-action-captcha-refresh data-verification-refresh>&#8635;</button>
           </div>
-          <button class="contact-action-send" type="submit" data-contact-action-submit>{copy.sendEmail}</button>
+          </FormVerification>
+          <button class="contact-action-send" type="submit" data-contact-action-submit disabled>{copy.sendEmail}</button>
           <p class="contact-action-status" aria-live="polite" data-contact-action-status></p>
         </form>
         <div class="contact-action-menu__shortcuts">
@@ -101,43 +103,21 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
 <script is:inline>
   (() => {
     document.querySelectorAll('[data-contact-action]').forEach(root => {
+      if (root.dataset.verificationBound) return;
+      root.dataset.verificationBound = 'true';
       const trigger = root.querySelector('[data-contact-action-trigger]');
       const menu = root.querySelector('.contact-action-menu');
       const form = root.querySelector('[data-contact-action-form]');
       const status = root.querySelector('[data-contact-action-status]');
       const submit = root.querySelector('[data-contact-action-submit]');
-      const captchaCode = root.querySelector('[data-contact-action-captcha-code]');
-      const captchaToken = root.querySelector('[data-contact-action-captcha-token]');
-      const captchaInput = root.querySelector('[data-contact-action-captcha-input]');
-      const captchaRefresh = root.querySelector('[data-contact-action-captcha-refresh]');
-      let captchaLoaded = false;
-      let captchaLoading = null;
+      const verification = form?.querySelector('form-verification');
+      let submitting = false;
+      const updateSubmit = () => { if (submit) submit.disabled = submitting || !verification?.ready; };
+      verification?.addEventListener('verificationchange', updateSubmit);
 
-      const loadCaptcha = () => {
-        if (captchaLoading) return captchaLoading;
-        if (captchaCode) captchaCode.textContent = '....';
-        captchaLoading = fetch('/api/contact', { headers: { accept: 'application/json' }, credentials: 'same-origin' })
-          .then(response => {
-            if (!response.ok) throw new Error(root.dataset.captchaError);
-            return response.json();
-          })
-          .then(data => {
-            if (captchaCode) captchaCode.textContent = data.code;
-            if (captchaToken) captchaToken.value = data.token;
-            if (captchaInput) captchaInput.value = '';
-            captchaLoaded = true;
-          })
-          .catch(error => {
-            captchaLoaded = false;
-            if (captchaCode) captchaCode.textContent = '----';
-            if (status) {
-              status.textContent = error instanceof Error ? error.message : root.dataset.captchaError;
-              status.dataset.state = 'error';
-            }
-            throw error;
-          })
-          .finally(() => { captchaLoading = null; });
-        return captchaLoading;
+      const loadCaptcha = async () => {
+        await customElements.whenDefined('form-verification');
+        if (root.classList.contains('is-open')) await verification?.refresh();
       };
 
       const setOpen = open => {
@@ -149,7 +129,9 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
         if (menu instanceof HTMLElement) menu.inert = !open;
         if (open) {
           window.dispatchEvent(new CustomEvent('businessweb:contact-action-open'));
-          if (!captchaLoaded) loadCaptcha().catch(() => {});
+          loadCaptcha().catch(() => {});
+        } else {
+          verification?.suspend?.();
         }
       };
 
@@ -158,7 +140,7 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
         setOpen(!root.classList.contains('is-open'));
       });
       root.addEventListener('focusout', event => {
-        if (!(event.relatedTarget instanceof Node) || !root.contains(event.relatedTarget)) setOpen(false);
+        if (event.relatedTarget instanceof Node && !root.contains(event.relatedTarget)) setOpen(false);
       });
       document.addEventListener('click', event => {
         if (event.target instanceof Node && !root.contains(event.target)) setOpen(false);
@@ -168,20 +150,11 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
       });
       window.addEventListener('businessweb:inquiry-cart-open', () => setOpen(false));
 
-      captchaRefresh?.addEventListener('click', () => {
-        captchaLoaded = false;
-        if (status) status.textContent = '';
-        loadCaptcha().catch(() => {});
-      });
-
       form?.addEventListener('submit', async event => {
         event.preventDefault();
         if (!(form instanceof HTMLFormElement) || !form.reportValidity()) return;
-        if (!captchaLoaded) {
-          await loadCaptcha().catch(() => {});
-          captchaInput?.focus();
-          return;
-        }
+        if (submitting || !verification?.ready) return;
+        submitting = true;
         if (submit instanceof HTMLButtonElement) submit.disabled = true;
         if (status) {
           status.textContent = root.dataset.sendingLabel;
@@ -197,21 +170,20 @@ const copy = ui[getLocaleFromPathname(pagePath)].contactAction;
           const data = await response.json().catch(() => ({}));
           if (!response.ok || !data.ok) throw new Error(root.dataset.errorLabel);
           form.reset();
-          captchaLoaded = false;
           if (status) {
             status.textContent = root.dataset.successLabel;
             status.dataset.state = 'success';
           }
           await loadCaptcha();
         } catch (error) {
-          captchaLoaded = false;
           if (status) {
             status.textContent = error instanceof Error ? error.message : root.dataset.errorLabel;
             status.dataset.state = 'error';
           }
           loadCaptcha().catch(() => {});
         } finally {
-          if (submit instanceof HTMLButtonElement) submit.disabled = false;
+          submitting = false;
+          updateSubmit();
         }
       });
     });

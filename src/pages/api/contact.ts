@@ -4,7 +4,7 @@ import { getProductModelCodes, INQUIRY_CART_MAX_ITEMS, INQUIRY_CART_MAX_QUANTITY
 import { isProductPublished } from '../../data/productCategories';
 import { siteInfo } from '../../data/site';
 import { getRuntimeEnv } from '../../lib/runtime-env';
-import { createFormCaptcha, getFormCaptchaSecret, validateFormCaptcha } from '../../lib/form-captcha';
+import { publicFormVerification, verifyPublicForm, verificationUnavailable } from '../../lib/form-verification';
 import {
   createPublicFormSubmission,
   markPublicFormDelivery,
@@ -292,11 +292,10 @@ const sendInquiryEmail = async ({
   return response.json().catch(() => ({}));
 };
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, request }) => {
   const env = getRuntimeEnv(locals);
-  const secret = await getFormCaptchaSecret(env, 'contact-form-captcha');
-  if (!secret) return json({ ok: false, message: 'Inquiry CAPTCHA is not configured.' }, 503);
-  return json(await createFormCaptcha(secret));
+  const config = await publicFormVerification(env, 'contact', request);
+  return config ? json(config) : json({ ok: false, message: verificationUnavailable }, 503);
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
@@ -313,11 +312,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
     return json({ ok: true, message: 'Thank you. Your inquiry has been received.' });
   }
 
-  const captchaSecret = await getFormCaptchaSecret(env, 'contact-form-captcha');
-  if (!captchaSecret) return json({ ok: false, message: 'Inquiry CAPTCHA is not configured.' }, 503);
-  const captchaOk = await validateFormCaptcha(captchaSecret, field(formData, 'captcha', 12), field(formData, 'captchaToken', 300));
-  if (!captchaOk) {
-    return json({ ok: false, message: 'The CAPTCHA is incorrect or expired. Please try the new CAPTCHA.' }, 400);
+  const verification = await verifyPublicForm(env, 'contact', request, formData);
+  if (!verification.ok) {
+    return json({ ok: false, message: verification.status === 503 ? verificationUnavailable : 'Verification failed or expired. Please try again.' }, verification.status);
   }
 
   const origin = new URL(request.url).origin;

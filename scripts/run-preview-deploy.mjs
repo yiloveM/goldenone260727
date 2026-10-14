@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import process from 'node:process';
+import { loadWranglerVars } from './load-wrangler-vars.mjs';
 
 const root = process.cwd();
 const args = process.argv.slice(2);
@@ -69,7 +70,8 @@ const sanitizeAlias = value => {
 
 const previewAlias = sanitizeAlias(option('alias') || String(process.env.PREVIEW_ALIAS || '').trim() || branch);
 const wranglerEntry = resolve(root, 'node_modules', 'wrangler', 'bin', 'wrangler.js');
-const commonArgs = ['--name', workerName, '--var', 'DEPLOYMENT_CONTEXT:preview', '--keep-vars'];
+const previewSitekey = loadWranglerVars(root, 'preview').TURNSTILE_SITEKEY || '';
+const commonArgs = ['--name', workerName, '--var', 'DEPLOYMENT_CONTEXT:preview', '--var', 'TURNSTILE_SITEKEY:' + previewSitekey, '--keep-vars'];
 const wranglerArgs =
   mode === 'current'
     ? ['deploy', ...commonArgs]

@@ -42,6 +42,32 @@ evidence, migration and rollback. Dated assessments below are history, not a
 second live state table. Link affected overview rows when recording a capability
 change; README changes require actual supported-behavior or use-procedure changes.
 
+## CAP-0005 / Revision 1 - Owner-selectable Turnstile verification
+
+Approved 2026-10-14 with `确认修改能力`; applied/customized verification contract
+from mother `c9476e5133d4a074bbcc4fd3ef5be6654d726e57`, target main baseline
+`edcb8d1e4c26c42e75ac42284ab63e8b6643510b`. Current state/deferrals and release
+receipt live only in PROJECT-PROGRESS. Before: signed four-character only.
+After: Keystatic-owned provider choice, real widget and strict server action/host/
+Siteverify, expiry/reset/retry/close/reopen; no automatic downgrade or Manager switch.
+Preserved: Contact us form/feedback/WhatsApp/email, cart/back-to-top coordination,
+contact/artwork fields, drag/upload/attachment handling, original protected download
+boolean/white list and D1/email gate, customer content/URLs/styles/resource identities.
+Mother download three modes are not adopted in this scoped verification task.
+Closure: verification data/JSON/client/component/server/typed helper; existing
+four frontend consumers and two APIs, Keystatic, Wrangler/generated types, public
+preview-key reader, test/read-only audit/build hooks and existing guides/records.
+No new dependency, DB schema, infrastructure or deployment topology. Signed UI
+slots keep the old composition. Actual details-only disclosure lookup prevents
+DIV Contact us from being blocked; logical hidden-honeypot positioning avoids RTL
+page overflow. Both are reusable backport candidates, not automatic mother changes.
+Evidence: 11 new tests; 327-file check 0 errors/warnings; full local build 843 HTML/
+4699 JSON-LD/0 errors; combined customers 20 isolated UI cases. SDK/Siteverify/mail
+mocked, no real customer writes. Real cloud service acceptance awaits owner setup.
+Migration additive, default OFF compatible. Rollback scoped customer capability
+commit on own main/Actions, keeping later CMS/Secrets; no D1/R2 undo. Actual push/
+CI receipt belongs in progress; local pass is not deployed-service evidence.
+
 ## Entry template
 
 ```text

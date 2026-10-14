@@ -1,4 +1,5 @@
 ---
+import FormVerification from './FormVerification.astro';
 import type { Locale } from '../data/i18n';
 import { ui } from '../data/i18n';
 import { INQUIRY_CART_STORAGE_KEY } from '../data/inquiryCart';
@@ -36,7 +37,6 @@ const pagePath = Astro.url.pathname;
   data-error-label={formCopy.inquiryError}
   dir="ltr"
 >
-  <input type="hidden" name="captchaToken" data-captcha-token />
   <input type="hidden" name="pagePath" value={pagePath} />
   <input type="hidden" name="inquiryItems" value="[]" data-inquiry-items-input />
   <div class="form-trap" aria-hidden="true">
@@ -73,15 +73,17 @@ const pagePath = Astro.url.pathname;
     <input name="artwork" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" />
     <small>{formCopy.attachmentHelp}</small>
   </label>
+  <FormVerification action="contact" locale={locale} refreshLabel={formCopy.refreshCode} errorLabel={formCopy.captchaError}>
   <div class="captcha-panel" style="margin-top:14px;">
     <div>
       <span class="captcha-label">{formCopy.verificationCode}</span>
-      <strong class="captcha-code" data-captcha-code>----</strong>
+      <strong class="captcha-code" data-captcha-code data-verification-code>----</strong>
     </div>
-    <button class="captcha-refresh" type="button" data-captcha-refresh aria-label={formCopy.refreshCode}>{formCopy.refresh}</button>
+    <button class="captcha-refresh" type="button" data-captcha-refresh data-verification-refresh aria-label={formCopy.refreshCode}>{formCopy.refresh}</button>
     <input class="input captcha-input" name="captcha" placeholder={formCopy.enterCode} inputmode="text" autocomplete="off" maxlength="4" pattern="[A-Za-z0-9]{4}" required />
   </div>
-  <button class="btn primary contact-submit-button" type="submit" style="margin-top:14px;">{labels.sendInquiry}</button>
+  </FormVerification>
+  <button class="btn primary contact-submit-button" type="submit" style="margin-top:14px;" disabled>{labels.sendInquiry}</button>
   <p class="contact-form-status" data-form-status aria-live="polite"></p>
 </form>
 
@@ -89,25 +91,19 @@ const pagePath = Astro.url.pathname;
   (() => {
     const endpoint = '/api/contact';
     const loadCaptcha = async (form) => {
-      const codeEl = form.querySelector('[data-captcha-code]');
-      const tokenInput = form.querySelector('[data-captcha-token]');
-      const captchaInput = form.querySelector('input[name="captcha"]');
-      codeEl.textContent = '....';
-      const response = await fetch(endpoint, {
-        headers: { accept: 'application/json' },
-        credentials: 'same-origin',
-      });
-      if (!response.ok) throw new Error('captcha');
-      const data = await response.json();
-      codeEl.textContent = data.code;
-      tokenInput.value = data.token;
-      captchaInput.value = '';
+      await customElements.whenDefined('form-verification');
+      await form.querySelector('form-verification')?.refresh();
     };
 
     document.querySelectorAll('[data-inquiry-form]').forEach((form) => {
+      if (form.dataset.verificationBound) return;
+      form.dataset.verificationBound = 'true';
       const status = form.querySelector('[data-form-status]');
       const submitButton = form.querySelector('.contact-submit-button');
-      const refreshButton = form.querySelector('[data-captcha-refresh]');
+      const verification = form.querySelector('form-verification');
+      let submitting = false;
+      const updateSubmit = () => { submitButton.disabled = submitting || !verification?.ready; };
+      verification?.addEventListener('verificationchange', updateSubmit);
       const summary = form.querySelector('[data-contact-inquiry-summary]');
       const summaryList = form.querySelector('[data-contact-inquiry-list]');
       const inquiryItemsInput = form.querySelector('[data-inquiry-items-input]');
@@ -249,19 +245,13 @@ const pagePath = Astro.url.pathname;
         status.dataset.state = 'error';
       });
 
-      refreshButton?.addEventListener('click', () => {
-        status.textContent = '';
-        loadCaptcha(form).catch(() => {
-          status.textContent = form.dataset.captchaError;
-          status.dataset.state = 'error';
-        });
-      });
-
       form.addEventListener('submit', async (event) => {
         if (!window.fetch) return;
         event.preventDefault();
+        if (submitting || !verification?.ready) return;
         if (!form.reportValidity()) return;
 
+        submitting = true;
         submitButton.disabled = true;
         status.textContent = form.dataset.sendingLabel;
         status.dataset.state = 'pending';
@@ -290,7 +280,8 @@ const pagePath = Astro.url.pathname;
           status.dataset.state = 'error';
           loadCaptcha(form).catch(() => {});
         } finally {
-          submitButton.disabled = false;
+          submitting = false;
+          updateSubmit();
         }
       });
     });

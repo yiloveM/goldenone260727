@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { catalogDownloadById, catalogDownloadsAvailable } from '../../data/catalogDownloads';
 import { siteInfo } from '../../data/site';
-import { createFormCaptcha, getFormCaptchaSecret, validateFormCaptcha } from '../../lib/form-captcha';
+import { publicFormVerification, verifyPublicForm, verificationUnavailable } from '../../lib/form-verification';
 import {
   createPublicFormSubmission,
   markPublicFormDelivery,
@@ -112,10 +112,9 @@ const sendDownloadRequestEmail = async ({
   return response.json().catch(() => ({}));
 };
 
-const handleDownloadCaptcha = async (env: RuntimeEnv) => {
-  const secret = await getFormCaptchaSecret(env, 'download-form-captcha');
-  if (!secret) return json({ ok: false, message: 'Download CAPTCHA is not configured.' }, 503);
-  return json(await createFormCaptcha(secret));
+const handleDownloadCaptcha = async (env: RuntimeEnv, request: Request) => {
+  const config = await publicFormVerification(env, 'download', request);
+  return config ? json(config) : json({ ok: false, message: verificationUnavailable }, 503);
 };
 
 const handleDownloadSubmission = async (request: Request, env: RuntimeEnv) => {
@@ -141,15 +140,9 @@ const handleDownloadSubmission = async (request: Request, env: RuntimeEnv) => {
     return json({ ok: false, message: 'The download request could not be processed.' }, 400);
   }
 
-  const captchaSecret = await getFormCaptchaSecret(env, 'download-form-captcha');
-  if (!captchaSecret) return json({ ok: false, message: 'Download CAPTCHA is not configured.' }, 503);
-  const captchaOk = await validateFormCaptcha(
-    captchaSecret,
-    field(formData, 'captcha', 12),
-    field(formData, 'captchaToken', 300)
-  );
-  if (!captchaOk) {
-    return json({ ok: false, message: 'The CAPTCHA is incorrect or expired. Please try the new CAPTCHA.' }, 400);
+  const verification = await verifyPublicForm(env, 'download', request, formData);
+  if (!verification.ok) {
+    return json({ ok: false, message: verification.status === 503 ? verificationUnavailable : 'Verification failed or expired. Please try again.' }, verification.status);
   }
 
   const document = catalogDownloadById(field(formData, 'documentId', 80));
@@ -220,7 +213,7 @@ export const handleDownloadRequest = (request: Request, env: RuntimeEnv) => {
   if (!catalogDownloadsAvailable) {
     return json({ ok: false, message: 'Controlled downloads are not enabled.' }, 404);
   }
-  if (request.method === 'GET') return handleDownloadCaptcha(env);
+  if (request.method === 'GET') return handleDownloadCaptcha(env, request);
   if (request.method === 'POST') return handleDownloadSubmission(request, env);
   return new Response(null, {
     status: 405,

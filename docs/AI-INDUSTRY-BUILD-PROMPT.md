@@ -2,6 +2,12 @@
 
 Use this prompt when turning a fresh BusinessWeb copy into a customer site.
 
+For this existing customer, preserve all implemented form surfaces, especially
+Contact us, artwork inquiry/uploads and protected downloads. Keystatic alone
+selects Turnstile; Manager remains content/data-only. Build and test ON/OFF,
+missing configuration, retry/expiry and popup reopen before delivery; do not
+replace customer presentation or enable deferred services for phase-two SEO.
+
 ```text
 这是一个可复用的 Astro 6 + Cloudflare Workers + Keystatic + Manager + R2/D1/KV 国际商业网站模板。
 
