@@ -33,7 +33,7 @@ const titleLengthClass = longestTitleLine >= 27
       <span class="eyebrow">{eyebrow}</span>
       <h1 class:list={[resolvedTitleLines?.length ? 'page-banner-title--split' : '', titleLengthClass]}>
         {resolvedTitleLines?.length
-          ? resolvedTitleLines.map(line => <span class="page-banner-title-line">{line}</span>)
+          ? resolvedTitleLines.map((line, index) => <span class="page-banner-title-line">{index > 0 ? ' ' : ''}{line}</span>)
           : title}
       </h1>
       <p>{description}</p>

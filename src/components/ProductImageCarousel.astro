@@ -24,14 +24,14 @@ const dragHint = locale === 'es'
   data-product-image-carousel
   data-autoplay={hasControls ? 'true' : 'false'}
   role="region"
-  aria-label={`${title} product gallery`}
+  aria-label={locale === 'es' ? `Galería de ${title}` : `${title} product gallery`}
 >
   <div class="product-image-carousel__viewport">
     {carouselImages.map((image, index) => (
       <PublicImage
         class={`product-image-carousel__image${index === 0 ? ' is-active' : ''}`}
         src={image}
-        alt={`${title} - view ${index + 1} of ${carouselImages.length}`}
+        alt={locale === 'es' ? `${title} - imagen ${index + 1} de ${carouselImages.length}` : `${title} - view ${index + 1} of ${carouselImages.length}`}
         fetchpriority={priority && index === 0 ? 'high' : 'auto'}
         loading={priority && index === 0 ? 'eager' : 'lazy'}
         decoding="async"
@@ -62,14 +62,14 @@ const dragHint = locale === 'es'
   {hasControls && (
     <>
       <p class="product-image-carousel__drag-hint">{dragHint}</p>
-      <div class="product-image-carousel__thumbnails" role="group" aria-label={`${title} image choices`} data-carousel-thumbnails>
+      <div class="product-image-carousel__thumbnails" role="group" aria-label={locale === 'es' ? `Imágenes de ${title}` : `${title} image choices`} data-carousel-thumbnails>
         {carouselImages.map((image, index) => (
           <button
             class:list={['product-image-carousel__thumbnail', { 'is-active': index === 0 }]}
             type="button"
             data-carousel-thumbnail
             data-carousel-index={index}
-            aria-label={`Show ${title} image ${index + 1}`}
+            aria-label={locale === 'es' ? `Ver imagen ${index + 1} de ${title}` : `Show ${title} image ${index + 1}`}
             aria-pressed={index === 0 ? 'true' : 'false'}
           >
             <PublicImage

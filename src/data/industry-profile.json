@@ -69,9 +69,10 @@
       "https://www.yeslapelpin.com/",
       "https://lapelpins-maker.com/",
       "https://factorypin.com/",
-      "https://createpins.com/"
+      "https://createpins.com/",
+      "https://lapelpinsplus.com/pins/die-struck/"
     ],
-    "lastResearchDate": "2026-09-13"
+    "lastResearchDate": "2026-10-16"
   },
   "productArchitecture": {
     "offeringType": "discrete-products",
@@ -196,7 +197,7 @@
     "accentColorStrong": "#007d7a",
     "accentColorSoft": "#dff7f5",
     "heroDirection": "Preserve the established Golden One homepage: a crisp teal-and-orange storefront led by sharply detailed pins, coins, medals, keychains, ribbons, hardware, and finish samples. Give supporting pages saturated product imagery with a directional deep-teal text field, concise naturally wrapping headings, and solid editorial sections that remain free of the mother template's water and glass treatment.",
-    "imageRules": "Show products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery, place shared finish, size, hardware, and packaging references beside the relevant guidance, and use restrained hover and reveal motion without obscuring product detail."
+    "imageRules": "Show products at an inspectable scale: enamel color, edge depth, relief, plating, attachment, ribbon, leather grain, reverse side, and presentation. Keep product examples in the main gallery, place shared finish, size, hardware, and packaging references beside the relevant guidance, and use restrained hover and reveal motion without obscuring product detail. The owner-selected Pin Features reference uses a full-width, unframed image strip, compact text tabs and direct option labels (observed 216px items with 184px images at a 1280px viewport). Adopt this comparison rhythm using Golden One media, without copying third-party wording, prices or imagery. Avoid tile backgrounds, duplicate panel headings and repeated generic captions. Wider public sections retain readable prose and form widths."
   },
   "governance": {
     "factsVerified": true,

@@ -6,7 +6,7 @@ import {
   reviewSummaryForProduct,
   type CustomerReview,
 } from '../data/customerReviews';
-import { getLocaleFromPathname, ui } from '../data/i18n';
+import { getLocaleFromPathname, translateTechnicalText, ui } from '../data/i18n';
 
 interface Props {
   productSlug?: string;
@@ -58,16 +58,16 @@ const reviewCountLabel = summary.reviewCount === 1 ? copy.review : copy.reviews;
               <header>
                 <span class="customer-review-card__avatar" aria-hidden="true">{(review.buyerLabel || 'V').slice(0, 1).toUpperCase()}</span>
                 <div>
-                  <strong>{review.buyerLabel || 'Buyer'}</strong>
+                  <strong>{translateTechnicalText(review.buyerLabel || 'Buyer', locale)}</strong>
                   {review.date && <small>{review.date}</small>}
                 </div>
               </header>
               <div class="customer-review-card__stars" aria-label={`${review.rating} ${copy.outOfFiveStars}`}>
                 {Array.from({ length: review.rating }).map(() => <span aria-hidden="true">&#9733;</span>)}
               </div>
-              <blockquote>{review.quote}</blockquote>
+              <blockquote>{translateTechnicalText(review.quote, locale)}</blockquote>
               {(review.projectType || review.country) && <footer>
-                <span>{[review.projectType, review.country].filter(Boolean).join(' / ')}</span>
+                <span>{[translateTechnicalText(review.projectType, locale), review.country].filter(Boolean).join(' / ')}</span>
               </footer>}
             </article>
             ))}

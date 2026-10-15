@@ -39,7 +39,7 @@ const copy = spanish
       galleryEyebrow: 'Galería del producto',
       galleryTitle: 'Estilos y detalles del producto',
       optionsEyebrow: 'Opciones disponibles',
-      optionsTitle: 'Explora acabados y opciones personalizadas',
+      optionsTitle: 'Acabados y opciones',
       closePreview: 'Cerrar vista ampliada',
       openPreview: 'Abrir vista ampliada',
       optionsDescription: 'Compara cada grupo por separado para elegir con claridad el acabado, la forma y los detalles adecuados para tu proyecto.',
@@ -70,19 +70,19 @@ const copy = spanish
       },
       groups: {
         plating: {
-          title: 'Opciones de baño y acabado',
+          title: 'Acabados',
           description: 'Compara tonos de metal, brillo, color y tratamientos de superficie.',
         },
         edge: {
-          title: 'Opciones de canto',
+          title: 'Cantos',
           description: 'Compara perfiles y tratamientos de canto que modifican el contorno final.',
         },
         form: {
-          title: 'Opciones de tamaño y forma',
+          title: 'Tamaño y forma',
           description: 'Compara tamaños, proporciones, construcción y formas disponibles.',
         },
         additional: {
-          title: 'Opciones adicionales',
+          title: 'Accesorios y presentación',
           description: 'Compara métodos de logotipo, accesorios, cierres, embalajes y otros detalles del proyecto.',
         },
       },
@@ -113,7 +113,7 @@ const copy = spanish
       galleryEyebrow: 'Product gallery',
       galleryTitle: 'Product styles and design details',
       optionsEyebrow: 'Available options',
-      optionsTitle: 'Explore finishes and custom options',
+      optionsTitle: 'Finishes and options',
       closePreview: 'Close enlarged image',
       openPreview: 'Open enlarged image',
       optionsDescription: 'Compare each group separately to choose the right finish, form, and supporting details for your project.',
@@ -144,19 +144,19 @@ const copy = spanish
       },
       groups: {
         plating: {
-          title: 'Plating Options',
+          title: 'Plating',
           description: 'Compare metal tones, reflectivity, color treatments, and surface finishes.',
         },
         edge: {
-          title: 'Edge Options',
+          title: 'Edges',
           description: 'Compare edge profiles and treatments that change the finished outline.',
         },
         form: {
-          title: 'Size & Form Options',
+          title: 'Size and form',
           description: 'Compare available sizes, proportions, construction, and forms.',
         },
         additional: {
-          title: 'Additional Options',
+          title: 'Attachments and presentation',
           description: 'Compare logo methods, attachments, backings, packaging, and other project details.',
         },
       },
@@ -205,17 +205,65 @@ const classifyImage = (item: DetailImage): FeatureKind => {
   return 'references';
 };
 
+const optionNames: Record<string, [string, string]> = {
+  '2d-rope-edge': ['2D rope edge', 'Canto de cuerda 2D'],
+  '3d-rope-edge': ['3D rope edge', 'Canto de cuerda 3D'],
+  'diamond-edge': ['Diamond-cut edge', 'Canto de diamante'],
+  'flat-edge': ['Flat edge', 'Canto liso'],
+  'gear-edge': ['Gear edge', 'Canto dentado'],
+  'high-low-edge': ['Stepped edge', 'Canto escalonado'],
+  'laser-text': ['Laser lettering', 'Texto grabado con láser'],
+  'rotary-cut-edge': ['Rotary-cut edge', 'Canto de corte rotativo'],
+  'wave-edge': ['Wave edge', 'Canto ondulado'],
+  'antique-brass': ['Antique brass', 'Latón envejecido'],
+  'antique-copper': ['Antique copper', 'Cobre envejecido'],
+  'antique-gold': ['Antique gold', 'Dorado envejecido'],
+  'antique-nickel': ['Antique nickel', 'Níquel envejecido'],
+  'antique-silver': ['Antique silver', 'Plateado envejecido'],
+  'black-nickel': ['Black nickel', 'Níquel negro'],
+  brass: ['Brass', 'Latón'],
+  'chrome-plating': ['Chrome plating', 'Cromado'],
+  copper: ['Copper', 'Cobre'],
+  'dyed-black': ['Dyed black', 'Negro teñido'],
+  'matt-copper': ['Matte copper', 'Cobre mate'],
+  'matt-gold': ['Matte gold', 'Dorado mate'],
+  'matt-nickel': ['Matte nickel', 'Níquel mate'],
+  'nickel-plating': ['Nickel plating', 'Niquelado'],
+  'real-gold-plating': ['Real gold plating', 'Baño de oro auténtico'],
+  'shiny-gold-plating': ['Polished gold', 'Dorado brillante'],
+  'silver-plating': ['Silver plating', 'Baño de plata'],
+  'two-tone-plating': ['Two-tone plating', 'Baño de dos tonos'],
+  'coin-packaging': ['Coin presentation', 'Presentación de monedas'],
+  'logo-methods-and-packaging': ['Logo and packaging options', 'Logotipo y embalaje'],
+  'backing-accessories': ['Pin backings', 'Cierres para pins'],
+  'common-size-comparison': ['Size comparison', 'Comparación de tamaños'],
+  'curved-vs-flat-belt-buckle': ['Curved and flat buckles', 'Hebillas curvas y planas'],
+  'polished-vs-sandblasted': ['Polished and sandblasted finishes', 'Acabados pulidos y arenados'],
+  'ribbon-options': ['Ribbon options', 'Opciones de cinta'],
+  'ribbon-options-2': ['Ribbon attachments', 'Sujeciones de cinta'],
+  'golf-brush-eight-colors': ['Golf brush colors', 'Colores de cepillos de golf'],
+  'divot-tool-logo-customization': ['Divot tool personalization', 'Personalización de arreglapiques'],
+  'divot-tool-logo-methods': ['Divot tool logo options', 'Logotipos para arreglapiques'],
+  'leather-keychain-logo-and-packaging': ['Leather keychain presentation', 'Presentación de llaveros de piel'],
+  'leather-keychain-logo-options': ['Leather keychain logo options', 'Logotipos para llaveros de piel'],
+};
+
 const assetLabel = (item: DetailImage, fallback: string) => {
   const current = String(item.title || '').trim();
-  if (current && !/(?:product reference|option|guide|reference)\s+\d+$/i.test(current)) return current;
   try {
     const filename = decodeURIComponent(new URL(item.image).pathname.split('/').pop() || '')
       .replace(/\.[a-z0-9]+$/i, '')
-      .replace(/-[a-f0-9]{10}$/i, '')
+      .replace(/-[a-f0-9]{10}$/i, '');
+    const optionName = optionNames[filename];
+    if (optionName) return optionName[spanish ? 1 : 0];
+    if (spanish && /^lk-\d+$/i.test(filename)) return `${filename.toUpperCase()} · Dimensiones`;
+    if (spanish) return fallback;
+    if (current && !/(?:product reference|option|guide|reference)\s+\d+$/i.test(current)) return current;
+    const readable = filename
       .replace(/[-_]+/g, ' ')
       .trim();
-    if (!filename || filename === 'asset' || /^(?:[a-z]{1,5}[ -]?)?\d+(?:[ -]\d+)?$/i.test(filename)) return fallback;
-    return filename.replace(/\b\w/g, letter => letter.toUpperCase()).replace(/\b(2d|3d)\b/gi, value => value.toUpperCase());
+    if (!readable || readable === 'asset' || /^(?:[a-z]{1,5}[ -]?)?\d+(?:[ -]\d+)?$/i.test(readable)) return fallback;
+    return readable.replace(/\b\w/g, letter => letter.toUpperCase()).replace(/\b(2d|3d)\b/gi, value => value.toUpperCase());
   } catch {
     return fallback;
   }
@@ -223,7 +271,7 @@ const assetLabel = (item: DetailImage, fallback: string) => {
 
 const captionFor = (item: DetailImage, kind: FeatureKind) => {
   const caption = String(item.caption || '').trim();
-  if (caption && !/(?:product reference supplied|reference supplied for|supplied for .* review)/i.test(caption)) return caption;
+  if (!spanish && caption && !/(?:product reference supplied|reference supplied for|supplied for .* review)/i.test(caption)) return caption;
   return copy.notes[kind];
 };
 
@@ -235,7 +283,7 @@ const cards = featureImages.map(item => {
   return {
     ...item,
     kind,
-    label: spanish ? `${copy.labels[kind]} ${sequence}` : assetLabel(item, `${copy.labels[kind]} ${sequence}`),
+    label: assetLabel(item, `${copy.labels[kind]} ${sequence}`),
     description: captionFor(item, kind),
   };
 });
@@ -277,9 +325,6 @@ const optionGroups = optionGroupDefinitions
   .filter(group => group.cards.length > 0);
 const productCarouselCards = (productCards.length > 1 ? [...productCards, ...productCards] : productCards)
   .map((item, index) => ({ item, isClone: index >= productCards.length }));
-const optionCountLabel = (count: number) => spanish
-  ? `${count} ${count === 1 ? 'opción' : 'opciones'}`
-  : `${count} ${count === 1 ? 'option' : 'options'}`;
 ---
 
 <section
@@ -368,11 +413,9 @@ const optionCountLabel = (count: number) => spanish
         </div>
       )}
       {optionCards.length > 0 && (
-        <section class="product-option-gallery" aria-label={copy.optionsTitle}>
+        <section class="product-option-gallery product-option-gallery--strip" aria-label={copy.optionsTitle}>
           <header class="product-section-heading product-reference-gallery__heading product-option-gallery__heading">
-            <span class="eyebrow">{copy.optionsEyebrow}</span>
             <h2>{copy.optionsTitle}</h2>
-            <p>{copy.optionsDescription}</p>
           </header>
           <div class="product-option-browser" data-product-option-browser>
             <div
@@ -395,13 +438,7 @@ const optionCountLabel = (count: number) => spanish
                   tabindex={index === 0 ? 0 : -1}
                   data-product-option-tab={group.key}
                 >
-                  <span class="product-option-category-card__media" aria-hidden="true">
-                    <PublicImage src={group.cards[0].image} alt="" loading="eager" decoding="async" width="240" height="180" />
-                  </span>
-                  <span class="product-option-category-card__copy">
-                    <strong>{group.title}</strong>
-                    <span>{optionCountLabel(group.cards.length)}</span>
-                  </span>
+                  {group.title}
                 </a>
               ))}
             </div>
@@ -415,10 +452,6 @@ const optionCountLabel = (count: number) => spanish
                   aria-labelledby={`product-options-${group.key}-tab`}
                   data-product-option-panel={group.key}
                 >
-                  <header class="product-option-panel__heading">
-                    <h3>{group.title}</h3>
-                    <p>{group.description}</p>
-                  </header>
                   <div
                     class:list={['product-detail-media-carousel', 'product-detail-media-carousel--options', { 'is-single': group.cards.length === 1 }]}
                     data-marquee-shell
@@ -447,10 +480,9 @@ const optionCountLabel = (count: number) => spanish
                             aria-hidden={isClone ? 'true' : undefined}
                             aria-label={isClone ? undefined : `${copy.openPreview}: ${item.label}`}
                           >
-                            <PublicImage src={item.image} alt={isClone ? '' : `${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" />
+                            <PublicImage src={item.image} alt={isClone ? '' : `${title}: ${item.label}`} loading="lazy" decoding="async" width="1400" height="1050" draggable="false" />
                             <figcaption>
                               <strong>{item.label}</strong>
-                              <span>{item.description}</span>
                             </figcaption>
                           </figure>
                         ))}

@@ -7,7 +7,7 @@
   },
   "reviews": [
     {
-      "buyerLabel": "Sample buyer - replace before launch",
+      "buyerLabel": "Customer",
       "rating": "5",
       "quote": "The team communicated clearly about the artwork, finish options, and next steps.",
       "published": true,
@@ -19,10 +19,10 @@
       "productSlugs": []
     },
     {
-      "buyerLabel": "Sample buyer - replace before launch",
+      "buyerLabel": "Customer",
       "rating": "5",
       "quote": "The sample presentation shows how a verified five-star buyer comment will appear on the website.",
-      "published": true,
+      "published": false,
       "id": "sample-review-02",
       "kind": "demo",
       "seoEligible": false,
@@ -31,7 +31,7 @@
       "productSlugs": []
     },
     {
-      "buyerLabel": "Sample buyer - replace before launch",
+      "buyerLabel": "Customer",
       "rating": "5",
       "quote": "Production updates, packaging details, and delivery information were easy to follow.",
       "published": true,
@@ -43,10 +43,10 @@
       "productSlugs": []
     },
     {
-      "buyerLabel": "Sample buyer - replace before launch",
+      "buyerLabel": "Customer",
       "rating": "5",
       "quote": "The finished layout makes it simple to compare the project type, buyer feedback, and rating.",
-      "published": true,
+      "published": false,
       "id": "sample-review-04",
       "kind": "demo",
       "seoEligible": false,

@@ -604,6 +604,12 @@ export const elFaqs = localizedFaqs('el');
 export const thFaqs = localizedFaqs('th');
 
 const staticTextKeys: Record<string, string> = {
+  Customer: 'ui.reviews.buyer',
+  Buyer: 'ui.reviews.buyer',
+  'The team communicated clearly about the artwork, finish options, and next steps.': 'ui.reviews.demoQuotes.0',
+  'Production updates, packaging details, and delivery information were easy to follow.': 'ui.reviews.demoQuotes.2',
+  'Custom challenge coin': 'ui.reviews.demoProjects.0',
+  'Custom medal program': 'ui.reviews.demoProjects.2',
   'Compare the design, intended use, and available options before preparing your quotation request.': 'text.productOverview',
   'product series': 'text.productSeries',
   'Compare products by design, intended use, available options, and fit for your project.': 'text.productCategoryDescription',

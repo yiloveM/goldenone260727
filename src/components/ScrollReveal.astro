@@ -27,6 +27,7 @@
     const setupScrollReveal = () => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const targets = [...document.querySelectorAll(revealSelector)]
+        .filter(element => !element.closest('.product-option-gallery--strip'))
         .filter(element => !element.hasAttribute('data-scroll-reveal-ready'));
       if (!targets.length) return;
 

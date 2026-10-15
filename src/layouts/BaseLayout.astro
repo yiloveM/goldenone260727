@@ -18,6 +18,7 @@ import {
   type Locale,
   alternateUrls,
   getLocaleFromPathname,
+  getPageCopy,
   isActiveLocale,
   localeMeta,
   locales,
@@ -319,8 +320,8 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
               <small>{localizedIndustry}</small>
             </span>
           </a>
-          <p class="footer-brand-summary" dir={localeInfo.dir}>{siteInfo.description}</p>
-          <div class="footer-socials" aria-label={`${siteInfo.name} social media`}>
+          <p class="footer-brand-summary" dir={localeInfo.dir}>{pageLocale === 'es' ? getPageCopy(pageLocale).about.description : siteInfo.description}</p>
+          <div class="footer-socials" aria-label={pageLocale === 'es' ? `Redes sociales de ${siteInfo.name}` : `${siteInfo.name} social media`}>
             {socialLinks.map(link => (
               <a class="social-button" href={link.href} target="_blank" rel="noopener" title={link.name} aria-label={`${dictionary.common.visitOn} ${link.name}: ${siteInfo.name}`}>
                 <span aria-hidden="true"><img src={link.icon} alt="" loading="lazy" decoding="async" width="20" height="20" /></span>
@@ -356,7 +357,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         </div>
       </div>
       <div class="container footer-bottom">
-        <span class="footer-copyright">Copyright {new Date().getFullYear()} {siteInfo.name}. {dictionary.footer.copyright}</span>
+        <span class="footer-copyright">&copy; {new Date().getFullYear()} {siteInfo.name}. {dictionary.footer.copyright}</span>
         <span class="footer-positioning">{dictionary.footer.clearPools}</span>
       </div>
     </footer>

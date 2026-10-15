@@ -77,7 +77,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
   <main class="product-detail-page">
     <section class="product-detail-intro">
       <div class="container">
-        <nav class="product-detail-breadcrumbs" aria-label="Breadcrumb" dir="ltr">
+        <nav class="product-detail-breadcrumbs" aria-label={locale === 'es' ? 'Ruta de navegación' : ui[locale].nav.products} dir="ltr">
           <a href={`/${locale}/products/`}>{ui[locale].nav.products}</a>
           <span aria-hidden="true">/</span>
           <a href={categoryPath(product.data.category, locale)}>{productCategoryName}</a>
@@ -138,7 +138,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
       </div>
     </section>
 
-    <nav class="product-detail-jump-nav" aria-label={`${localized.title}: sections`}>
+    <nav class="product-detail-jump-nav" aria-label={`${localized.title}: ${locale === 'es' ? 'secciones' : pages.product.overviewEyebrow}`}>
       <div class="container product-detail-jump-links">
         <a href="#product-overview">{pages.product.overviewEyebrow}</a>
         <a href="#product-specifications">{pages.product.specsEyebrow}</a>
