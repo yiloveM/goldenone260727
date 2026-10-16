@@ -510,7 +510,8 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
     </script>
     <script is:inline>
       const initMarqueeDrag = ({ shell, track, duration = 42, direction = 'rtl' }) => {
-        if (track.children.length < 2) return;
+        const centerWhenFit = shell.hasAttribute('data-marquee-center-fit');
+        if (track.children.length < 2 && !centerWhenFit) return;
         if (shell.dataset.marqueeReady === 'true') return;
         shell.dataset.marqueeReady = 'true';
         const directionSign = direction === 'ltr' ? 1 : -1;
@@ -531,6 +532,10 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         const dragThreshold = 8;
         const friction = 0.94;
         const mobileCarouselQuery = window.matchMedia('(max-width: 780px)');
+        const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const viewport = shell.querySelector('.product-detail-media-carousel__viewport');
+        const originals = Array.from(track.children).filter(item => item.dataset.mediaClone !== 'true');
+        let fits = false;
 
         const getGap = () => {
           const styles = window.getComputedStyle(track);
@@ -551,10 +556,17 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
           return wrapped;
         };
         const setVisualX = value => {
+          if (fits) {
+            visualX = 0;
+            track.style.transform = 'none';
+            return;
+          }
           visualX = wrapVisualX(value);
           track.style.transform = `translate3d(${visualX.toFixed(3)}px, 0, 0)`;
         };
         const tick = timestamp => {
+          rafId = 0;
+          if (fits || (centerWhenFit && reducedMotionQuery.matches)) return;
           if (!lastFrameTime) lastFrameTime = timestamp;
           const elapsed = Math.min(64, timestamp - lastFrameTime);
           lastFrameTime = timestamp;
@@ -575,6 +587,24 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         track.style.animation = 'none';
         setVisualX(0);
         rafId = window.requestAnimationFrame(tick);
+        const updateFit = () => {
+          if (!centerWhenFit || !viewport || !viewport.clientWidth) return;
+          const styles = window.getComputedStyle(track);
+          const padding = (parseFloat(styles.paddingLeft) || 0) + (parseFloat(styles.paddingRight) || 0);
+          const contentWidth = originals.reduce((width, item) => width + item.getBoundingClientRect().width, 0)
+            + Math.max(0, originals.length - 1) * getGap() + padding;
+          const wasFit = fits;
+          fits = contentWidth <= viewport.clientWidth + 1;
+          shell.classList.toggle('is-centered', fits);
+          if (fits) velocity = 0;
+          if (wasFit !== fits) lastFrameTime = 0;
+          setVisualX(fits ? 0 : visualX);
+          if (!fits && !reducedMotionQuery.matches && !rafId) rafId = window.requestAnimationFrame(tick);
+        };
+        const fitObserver = centerWhenFit && viewport ? new ResizeObserver(updateFit) : null;
+        fitObserver?.observe(viewport);
+        updateFit();
+        reducedMotionQuery.addEventListener('change', updateFit);
         track.addEventListener('dragstart', event => event.preventDefault());
 
         shell.querySelector('[data-marquee-prev]')?.addEventListener('click', event => {
@@ -604,7 +634,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
         });
 
         shell.addEventListener('pointerdown', event => {
-          if (!event.isPrimary) return;
+          if (!event.isPrimary || fits) return;
           pointerActive = true;
           lastFrameTime = 0;
           hasDragged = false;
@@ -663,7 +693,10 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
           suppressClick = false;
         }, true);
         window.addEventListener('resize', () => setVisualX(visualX));
-        window.addEventListener('pagehide', () => window.cancelAnimationFrame(rafId), { once: true });
+        window.addEventListener('pagehide', () => {
+          window.cancelAnimationFrame(rafId);
+          fitObserver?.disconnect();
+        }, { once: true });
       };
 
       document.querySelectorAll('[data-brand-rail-shell], [data-marquee-shell]').forEach(shell => {

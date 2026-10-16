@@ -1,6 +1,7 @@
 ---
 import PublicImage from './public/PublicImage.astro';
 import { getLocaleFromPathname, localizePath, ui } from '../data/i18n';
+import { categoryProcessImages } from '../data/campaignImages';
 
 interface DetailImage {
   image: string;
@@ -11,12 +12,14 @@ interface DetailImage {
 interface Props {
   detailImages?: DetailImage[];
   title: string;
+  category: string;
 }
 
 type FeatureKind = 'examples' | 'customization' | 'finishes' | 'dimensions' | 'edges' | 'attachments' | 'packaging' | 'construction' | 'references';
 type OptionGroupKind = 'plating' | 'edge' | 'additional';
 
-const { detailImages = [], title } = Astro.props;
+const { detailImages = [], title, category } = Astro.props;
+const processImages = categoryProcessImages(category);
 const locale = getLocaleFromPathname(Astro.url.pathname);
 const spanish = locale === 'es';
 const common = ui[locale].common;
@@ -184,11 +187,6 @@ const copy = spanish
       },
     };
 
-const processIconPaths: Record<string, string> = {
-  idea: 'M4 5h16v14H4zM7 15l3-3 3 2 3-4 2 3M8 9h.01',
-  review: 'M4 12l5 5L20 6M4 4h10M4 20h16',
-  produce: 'M3 8l9-5 9 5-9 5-9-5Zm3 3v6l6 4 6-4v-6',
-};
 
 const classifyImage = (item: DetailImage): FeatureKind => {
   const identity = `${item.image} ${item.title || ''}`.toLowerCase();
@@ -347,11 +345,7 @@ const productCarouselCards = (productCards.length > 1 ? [...productCards, ...pro
         <ol class="product-custom-design-process__steps">
           {copy.process.steps.map((step, index) => (
             <li>
-              <span class="product-custom-design-process__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d={processIconPaths[step.icon]} />
-                </svg>
-              </span>
+              {processImages[index] && <PublicImage class="product-custom-design-process__image" src={processImages[index]} alt={`${title}: ${step.title}`} width="960" height="640" loading="lazy" decoding="async" draggable="false" />}
               <span class="product-custom-design-process__number">{String(index + 1).padStart(2, '0')}</span>
               <h3>{step.title}</h3>
               <p>{step.description}</p>
@@ -371,6 +365,7 @@ const productCarouselCards = (productCards.length > 1 ? [...productCards, ...pro
             data-marquee-shell
             data-marquee-duration="64"
             data-marquee-direction="rtl"
+            data-marquee-center-fit
           >
             {productCards.length > 1 && (
               <button
@@ -457,6 +452,7 @@ const productCarouselCards = (productCards.length > 1 ? [...productCards, ...pro
                     data-marquee-shell
                     data-marquee-duration="88"
                     data-marquee-direction="rtl"
+                    data-marquee-center-fit
                     data-product-option-carousel={group.key}
                   >
                     {group.cards.length > 1 && (

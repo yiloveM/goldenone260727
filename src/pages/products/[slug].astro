@@ -199,7 +199,7 @@ const tableHint = 'Drag / scroll to view full table';
       </div>
     </section>
 
-    <ProductMediaGallery detailImages={productDetailImages} title={product.data.title} />
+    <ProductMediaGallery detailImages={productDetailImages} title={product.data.title} category={product.data.category} />
 
     {product.data.applications.length > 0 && (
       <section id="product-applications" class="product-content-band product-content-band--alternate product-application-band">

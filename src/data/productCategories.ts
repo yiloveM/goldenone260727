@@ -30,18 +30,10 @@ export const slugifyCategory = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-const categoryBackgroundImages = [
-  '/images/metal-gifts/lapel-pin-collection-v2.webp',
-  '/images/metal-gifts/medal-collection-v2.webp',
-  '/images/metal-gifts/challenge-coin-collection-v2.webp',
-  '/images/metal-gifts/keychain-collection-v2.webp',
-  '/images/metal-gifts/medals-keychains.webp',
-  '/images/metal-gifts/challenge-coins.webp',
-  '/images/metal-gifts/customization-story-v2.webp',
-  '/images/metal-gifts/custom-lapel-pins.webp',
-  '/images/metal-gifts/hero-metal-gifts.webp',
-  '/images/metal-gifts/hero-collection-v2.webp',
-];
+const categoryBackgroundImage = (name: string) =>
+  name === 'Fridge Magnets'
+    ? '/images/metal-gifts/custom-lapel-pins.webp'
+    : `/r2/Banner/2026-product-design/categories/${slugifyCategory(name)}.webp`;
 
 const representativeSeries: Record<string, string> = {
   'Lapel Pin & Badge': 'soft-enamel-pin',
@@ -77,8 +69,8 @@ export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfi
   displayName: category.name,
   slug: slugifyCategory(category.name),
   description: category.description,
-  image: realCategoryImage(category.name, categoryBackgroundImages[index % categoryBackgroundImages.length]),
-  backgroundImage: categoryBackgroundImages[index % categoryBackgroundImages.length],
+  image: realCategoryImage(category.name, categoryBackgroundImage(category.name)),
+  backgroundImage: categoryBackgroundImage(category.name),
   imageAlt: `${category.name} category`,
   accent: index === 0 ? 'Core offering' : index === 1 ? 'Project capability' : 'Lifecycle support',
   highlights: category.highlights,

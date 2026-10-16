@@ -12,6 +12,7 @@ import { getCategoryMeta, slugifyCategory } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
+import { campaignRoot } from '../data/campaignImages';
 
 interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
@@ -39,14 +40,14 @@ const conversionHeroSlides = [
     points: [pages.home.conversionSlide1Point1, pages.home.conversionSlide1Point2, pages.home.conversionSlide1Point3],
   },
   {
-    image: '/images/metal-gifts/banner-quality-assurance.webp',
+    image: `${campaignRoot}/home/finish-and-detail.webp`,
     alt: pages.home.conversionSlide2Alt,
     title: pages.home.conversionSlide2Title,
     description: pages.home.conversionSlide2Description,
     points: [pages.home.conversionSlide2Point1, pages.home.conversionSlide2Point2, pages.home.conversionSlide2Point3],
   },
   {
-    image: '/images/metal-gifts/banner-global-collaboration.webp',
+    image: `${campaignRoot}/home/custom-projects.webp`,
     alt: pages.home.conversionSlide3Alt,
     title: pages.home.conversionSlide3Title,
     description: pages.home.conversionSlide3Description,
@@ -79,7 +80,7 @@ const homeStructuredData = [
             src={slide.image}
             alt=""
             width="1920"
-            height="1280"
+            height="1080"
             loading={index === 0 ? 'eager' : 'lazy'}
             fetchpriority={index === 0 ? 'high' : undefined}
             decoding="async"

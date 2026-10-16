@@ -19,6 +19,7 @@ interface LocalizedCategory {
   href: string;
   highlights: string[];
   image: string;
+  backgroundImage: string;
   imageAlt: string;
   name: string;
   products: ProductEntry[];
@@ -67,7 +68,7 @@ const categoryStructuredData = [
 <BaseLayout title={`${categoryName}`} description={seoDescription} image={category.image} structuredData={categoryStructuredData} locale={locale}>
   <main>
     <section class="category-hero">
-      <div class="category-hero-bg" style={`--category-hero-image: url('${category.image}');`}></div>
+      <div class="category-hero-bg" style={`--category-hero-image: url('${category.backgroundImage}');`} aria-hidden="true"></div>
       <div class="container category-hero-inner">
         <div class="category-hero-copy" dir="ltr">
           <span class="eyebrow">{category.accent}</span>

@@ -236,7 +236,7 @@ const tableHint = (common as Record<string, string>).dragTable || 'Drag / scroll
       </div>
     </section>
 
-    <ProductMediaGallery detailImages={productDetailImages} title={localized.title} />
+    <ProductMediaGallery detailImages={productDetailImages} title={localized.title} category={product.data.category} />
 
     {localized.applications.length > 0 && (
       <section id="product-applications" class="product-content-band product-content-band--alternate product-application-band">
