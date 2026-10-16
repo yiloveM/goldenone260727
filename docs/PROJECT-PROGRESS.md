@@ -44,6 +44,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 - 内置 image_gen 参考客户实物图生成最终34图；本地 `don't push/R2-upload-20261017/R2/` 内 `home/`、`products/`、`company/` 按原路径从本客户桶根上传，约4 MB。`Source-PNG/`、`image-prompts.txt`、`files.json` 留本地，不推 Git。本轮不写 R2，不加入旧图兜底；未上传前新位置可能缺图，不把本地模拟验收当 CDN 已生效。原分类 Banner 沿用10-16包；冰箱贴无独立实物参考，维持原处理。
 - 最终完整构建/Keystatic 包、绑定类型、0类型错误/警告（18原提示）、11表单/6 JSON-LD回归、53功能契约、公开视觉/类名、38产品及38译稿SEO通过。843 HTML 的34个新图路径均有交付文件；44次英西首页/联系页/九类产品桌面与手机检查无加载错误、脚本异常或横向溢出；补验横幅切换、减弱动态和无脚本联系页。未提交询盘、写D1或发邮件。旧 `check:template` 仍有两条 `validateFormCaptcha` 字面标记误报，相关后端/审计未改；不以此冒充全部工程审计通过。
 - 交付自己的 main，实际推送/Actions回执随后追加；Turnstile仍OFF，站长暂缓配置不催办，README用法未变。回退在本客户 main 定向 revert 本条对应提交并沿原 Actions 发布；保留后来 CMS 修改，不回滚D1、Secret或R2，不重写历史。
+- 发布回执：工程 `55f935a0e6f0a7ba1649d980e7ea268f868b6f79` 已推本客户 main；[Actions 38945476775](https://github.com/yiloveM/goldenone260727/actions/runs/38945476775) success，Worker版本 `9497c1d0-c5f5-40b2-8416-0a7740a4f5f4`。线上英西16次桌面/手机页面回读均200，新路径已生效，无脚本异常/横向溢出；签名验证码只读审计通过，未真实提交。新图抽查仍404，待站长手动上传，不是CDN图片验收通过。此回执仅docs [skip ci]，不再次部署。
 
 ## 2026-10-16 - 特性居中、产品场景图与紧凑间距
 
