@@ -12,7 +12,7 @@ import { getCategoryMeta, slugifyCategory } from '../data/productCategories';
 import { collectionStructuredData, organizationStructuredData, websiteStructuredData } from '../data/seo';
 import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
-import { campaignRoot } from '../data/campaignImages';
+import { siteImages } from '../data/backgroundImages';
 
 interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
@@ -23,6 +23,7 @@ const allCategories = brandShowcase.map(item => {
   const category = translateCategoryMeta(getCategoryMeta(item.title), locale);
   return {
     ...item,
+    image: category.image,
     title: category.displayName || category.name,
     label: category.description,
     keywords: category.highlights,
@@ -40,14 +41,14 @@ const conversionHeroSlides = [
     points: [pages.home.conversionSlide1Point1, pages.home.conversionSlide1Point2, pages.home.conversionSlide1Point3],
   },
   {
-    image: `${campaignRoot}/home/finish-and-detail.webp`,
+    image: siteImages.homeContext.qualityHero,
     alt: pages.home.conversionSlide2Alt,
     title: pages.home.conversionSlide2Title,
     description: pages.home.conversionSlide2Description,
     points: [pages.home.conversionSlide2Point1, pages.home.conversionSlide2Point2, pages.home.conversionSlide2Point3],
   },
   {
-    image: `${campaignRoot}/home/custom-projects.webp`,
+    image: siteImages.homeContext.cooperationHero,
     alt: pages.home.conversionSlide3Alt,
     title: pages.home.conversionSlide3Title,
     description: pages.home.conversionSlide3Description,
@@ -159,7 +160,7 @@ const homeStructuredData = [
           <a class="briefing-rhythm__cta" href="#free-design">{pages.home.startFreeDesign} <span aria-hidden="true">&#8594;</span></a>
         </div>
         <figure class="briefing-rhythm__visual">
-          <img src="/images/metal-gifts/custom-design-process-placeholder.webp" alt={pages.home.processImageAlt} width="1440" height="1080" loading="lazy" decoding="async" />
+          <img src={siteImages.homeContext.process} alt={pages.home.processImageAlt} width="1440" height="960" loading="lazy" decoding="async" />
         </figure>
       </div>
     </section>
@@ -170,7 +171,7 @@ const homeStructuredData = [
           <span class="metal-kicker">{pages.home.artworkEyebrow}</span>
           <h2 id="design-upload-title">{pages.home.artworkTitle}</h2>
           <p>{pages.home.artworkDescription}</p>
-          <figure><img src="/images/metal-gifts/challenge-coin-collection-v2.webp" alt={pages.home.artworkImageAlt} width="1456" height="1092" loading="lazy" decoding="async" /></figure>
+          <figure><img src={siteImages.homeContext.artwork} alt={pages.home.artworkImageAlt} width="1440" height="960" loading="lazy" decoding="async" /></figure>
         </div>
         <ArtworkBriefForm />
       </div>
@@ -180,7 +181,7 @@ const homeStructuredData = [
 
     <section class="material-edit metal-section" aria-labelledby="material-edit-title">
       <div class="metal-shell material-edit__grid">
-        <figure><img src="/images/metal-gifts/customization-story-v2.webp" alt={pages.home.formatsImageAlt} width="1600" height="900" loading="lazy" decoding="async" /></figure>
+        <figure><img src={siteImages.homeContext.materials} alt={pages.home.formatsImageAlt} width="1600" height="900" loading="lazy" decoding="async" /></figure>
         <div><span class="metal-kicker">{pages.home.formatsEyebrow}</span><h2 id="material-edit-title">{pages.home.formatsTitle}</h2><p>{pages.home.formatsDescription}</p><dl><div><dt>{pages.home.formTerm}</dt><dd>{pages.home.formDescription}</dd></div><div><dt>{pages.home.surfaceTerm}</dt><dd>{pages.home.surfaceDescription}</dd></div><div><dt>{pages.home.presentationTerm}</dt><dd>{pages.home.presentationDescription}</dd></div></dl><a class="material-edit__link" href={productHref}>{pages.home.browseCatalog} <span aria-hidden="true">&#8594;</span></a></div>
       </div>
     </section>

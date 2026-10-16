@@ -35,33 +35,36 @@ const categoryBackgroundImage = (name: string) =>
     ? '/images/metal-gifts/custom-lapel-pins.webp'
     : `/r2/Banner/2026-product-design/categories/${slugifyCategory(name)}.webp`;
 
-const representativeSeries: Record<string, string> = {
-  'Lapel Pin & Badge': 'soft-enamel-pin',
-  Medal: 'sports-medal',
-  'Challenge Coin': '2d-challenge-coin',
-  'Key Chain': 'leather-keychain',
-  'Golf Accessories & Tools': 'divot-tool',
-  'Belt Buckle': 'belt-buckle',
-  'Metal & Wooden Plaque': 'metal-wooden-plaque',
-  'Fridge Magnets': 'fridge-magnet',
-  'More Metal Crafts': 'bottle-opener',
-  'Promotion Gift': 'pending',
+const representativeSeries: Record<string, { id: string; imageIndex?: number }> = {
+  'Lapel Pin & Badge': { id: '3d-lapel-pin' },
+  Medal: { id: 'sports-medal', imageIndex: 2 },
+  'Challenge Coin': { id: '3d-challenge-coin' },
+  'Key Chain': { id: 'leather-keychain' },
+  'Golf Accessories & Tools': { id: 'divot-tool', imageIndex: 1 },
+  'Belt Buckle': { id: 'belt-buckle', imageIndex: 2 },
+  'Metal & Wooden Plaque': { id: 'metal-wooden-plaque' },
+  'Fridge Magnets': { id: 'fridge-magnet' },
+  'More Metal Crafts': { id: 'bottle-opener' },
+  'Promotion Gift': { id: 'pending' },
 };
 
 type ProductCatalogMedia = (typeof productMediaCatalog.media)[number] & {
   display?: { publicUrl?: string };
 };
 const mediaById = new Map(
-  (productMediaCatalog.media as ProductCatalogMedia[]).map(item => [item.id, item.display?.publicUrl || item.publicUrl])
+  (productMediaCatalog.media as ProductCatalogMedia[]).map(item => [item.id, item])
 );
 const realCategoryImage = (categoryName: string, fallback: string) => {
-  const seriesId = representativeSeries[categoryName];
+  const choice = representativeSeries[categoryName];
+  const seriesId = choice?.id;
   const catalogCategory = productMediaCatalog.categories.find(category =>
     category.series.some(series => series.id === seriesId)
   );
   const series = catalogCategory?.series.find(item => item.id === seriesId);
+  const cutouts = (series?.mediaIds || []).map(id => mediaById.get(id)).filter(item => item?.display?.publicUrl);
+  const selected = cutouts[choice?.imageIndex || 0] || cutouts[0];
   const mediaId = series?.mediaIds[0] || catalogCategory?.sharedMediaIds[0];
-  return (mediaId && mediaById.get(mediaId)) || fallback;
+  return selected?.display?.publicUrl || (mediaId && mediaById.get(mediaId)?.publicUrl) || fallback;
 };
 
 export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfile.productArchitecture.categoryPlans.map((category, index) => ({

@@ -519,6 +519,26 @@ main:not(.metal-home) > .page-banner + .section:not(.interior-section)::before {
   min-width: 0;
 }
 
+.contact-page-section .contact-direct-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.contact-direct-card__products {
+  width: 100%;
+  margin: auto 0 0;
+  padding-top: 26px;
+}
+
+.contact-direct-card__products img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: contain;
+}
+
 .contact-page-section input,
 .contact-page-section textarea,
 .contact-page-section select {

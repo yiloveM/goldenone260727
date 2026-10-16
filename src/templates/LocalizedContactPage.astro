@@ -6,6 +6,7 @@ import { pageImages, siteInfo } from '../data/site';
 import { breadcrumbStructuredData, organizationStructuredData, siteUrl } from '../data/seo';
 import { translateTechnicalText, ui } from '../data/i18n';
 import { getLocalizedPageCopy, type NonEnglishLocale } from './localizedPageHelpers';
+import { siteImages } from '../data/backgroundImages';
 
 interface Props {
   locale: NonEnglishLocale;
@@ -84,6 +85,9 @@ const contactStructuredData = [
             {hasDistinctFactoryAddress && <>{pages.contact.factoryAddress}: <bdi dir="ltr">{siteInfo.factoryAddress}</bdi></>}
           </p>
           {siteInfo.whatsapp && <a class="btn primary" href={siteInfo.whatsapp} target="_blank" rel="noopener" style="margin-top:20px;">{pages.contact.whatsapp}</a>}
+          <figure class="contact-direct-card__products">
+            <img src={siteImages.homeContext.contactCollection} alt={locale === 'es' ? 'Pins, medallas, monedas, llaveros y regalos metálicos personalizados de Golden One' : 'Golden One custom pins, medals, coins, keychains and metal gifts'} width="1600" height="1000" loading="lazy" decoding="async" />
+          </figure>
         </aside>}
       </div>
     </section>

@@ -1,5 +1,6 @@
 const local = (name: string) => `/images/metal-gifts/${name}.webp`;
 const campaign = (name: string) => `/r2/Banner/2026-product-design/${name}.webp`;
+const context = (name: string) => `/r2/home/design-context-20261017/${name}.webp`;
 
 export const siteImages = {
   brand: {
@@ -8,8 +9,8 @@ export const siteImages = {
     icon: '/favicon-goldenone-32.png',
   },
   homeHero: {
-    rippleDesktop: campaign('home/custom-metal-gifts'),
-    rippleMobile: campaign('home/custom-metal-gifts'),
+    rippleDesktop: context('artwork-and-custom-products'),
+    rippleMobile: context('artwork-and-custom-products'),
     center: local('lapel-pin-collection-v2'),
     floatingProducts: [
       local('lapel-pin-collection-v2'),
@@ -17,6 +18,14 @@ export const siteImages = {
       local('medal-collection-v2'),
       local('keychain-collection-v2'),
     ],
+  },
+  homeContext: {
+    qualityHero: context('quality-and-finish-review'),
+    cooperationHero: context('custom-project-discussion'),
+    process: context('artwork-to-production'),
+    artwork: context('share-your-design'),
+    materials: context('materials-and-finishes'),
+    contactCollection: '/r2/company/goldenone-product-collection-20261017.webp',
   },
   homeBackgrounds: {
     productWorldsIntro: local('lapel-pin-collection-v2'),
