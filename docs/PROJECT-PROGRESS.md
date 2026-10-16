@@ -42,7 +42,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 
 - C 类客户前台调整；仅本客户 main。保留产品数据/slug、英西文案、后台/表单/发布链和云端资源。站长再次确认 Turnstile 未配置，继续 OFF/原四位码，不要求配置或修改 README。
 - 特性组完整放得下时只显示一组原图并居中、隐藏无用箭头；放不下时保留循环/拖动，切标签、缩放和手机响应重新测量。缩小全站模块间距，取消 Banner 强制分行与过窄标题宽度；首页桌面图保留完整组合。流程三卡换成所属大类的设计/规格/成品场景照片，英西共用真实产品图与本地化标签。
-- 使用内置 image_gen、客户实物图生成 12 张场景原图，导出 39 个 WebP：3 张首页、9 张分类 Banner、27 张流程图，约 4 MB。本地最终文件在 `don't push/R2-upload-20261016/R2/`，内部 `Banner/`、`products/` 从本客户桶根保留路径上传；`Source-PNG/` 保留原图，`image-prompts.txt` 为生成提示，`files.json` 为本次交付清单，均不推 Git。站长明确不要旧图兜底：直接接新 URL，上传前暂缺图，不声称线上图片已生效。冰箱贴无独立真实照片，已询问站长，保留现有分类背景、该产品三步骤暂不新增图片，不用徽章伪造冰箱贴。
+- 使用内置 image_gen、客户实物图生成 12 张场景原图，导出 39 个 WebP：3 张首页、9 张分类 Banner、27 张流程图，约 5.5 MB。本地最终文件在 `don't push/R2-upload-20261016/R2/`，内部 `Banner/`、`products/` 从本客户桶根保留路径上传；`Source-PNG/` 保留原图，`image-prompts.txt` 为生成提示，`files.json` 为本次交付清单，均不推 Git。站长明确不要旧图兜底：直接接新 URL，上传前暂缺图，不声称线上图片已生效。冰箱贴无独立真实照片，已询问站长，保留现有分类背景、该产品三步骤暂不新增图片，不用徽章伪造冰箱贴。
 - 本地完整构建/Keystatic 包通过；类型 0 错误/警告（18 原提示），843 HTML / 4699 JSON-LD / 0 错误；11 表单、6 JSON-LD 回归、53 功能契约、绑定类型/公开视觉/类名/38 产品与38译稿 SEO 通过。45 次页面/尺寸检查与30特性组无异常；英西、360/390 手机、1920 桌面、键盘、缩放再居中、无脚本和减弱动态通过。未 POST 询盘、发邮件或写 D1/R2。旧 `check:template` 仍有两条 `validateFormCaptcha` 字面标记缺失（Turnstile 已统一校验，相关文件本轮无变更），本轮不越界改工程审计；本机 Worker 偶发退出后重试已通过。
 - 回退：在本客户 main 定向 revert 本条对应工程提交，沿现有 Actions 发布；不重写历史，不动后来 CMS 数据或 R2/Secret。手动上传未完成及冰箱贴照片为后续事项，实际发布回执随后追加。
 - 发布回执：工程 `bebac3d16eea1f7c485e64ee3ddd57c225891ac2` 已推本客户 main；[Actions 38922856116](https://github.com/yiloveM/goldenone260727/actions/runs/38922856116) success，Worker `goldenone` 版本 `dddff03b-c53c-4458-a9a0-db86222248a1`。英西16次桌面/手机线上回读均200、无溢出/脚本异常，少图居中已生效；原 signed CAPTCHA GET 审计通过，无真实提交。新图抽查404，确实仍待站长上传，不是线上图片验收通过。本地最终39个引用都有对应文件；此回执仅 docs [skip ci]，不再部署。
