@@ -46,6 +46,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 - 38 单元回归及 53 浏览器组（28 通用、11 客户、14 控制）通过；包括实际 38 产品副本逐字段/正文/图组写回，三类产品 UI 保存/重启/续编，评价关闭/保留/重开、店铺评价防重复/失败重试及旧隐藏字段，语言开/空/重开，媒体/PDF/表格、翻译/审批、发布失败恢复、会话失效后输入保留和授权重试。实际 Keystatic schema 读取原值；前台原组件在 ON/OFF/空数据和18个桌面/手机/RTL组合下通过，artwork 附件与 Contact us/询价车/Escape 及受控下载两态通过。所有云服务、Manager 登录、GitHub/邮件及 Turnstile SDK 为隔离模拟，不向真实 D1/后台提交测试内容。
 - 完整构建：357 文件零错误/警告（27 提示），843 HTML / 4699 JSON-LD / 570 Product / 零审计错误，840 公开 HTML 无 Manager CSS；53 功能合同/模板检查通过，397 保护文件哈希不变，运行依赖不变。README 仅补草稿续编与代码位置，八章/折叠/Resend 内容保持。部署前英西8页语义快照及16次桌面/手机只读访问通过，原签名 CAPTCHA 审计通过；最终发布及线上回执随后补充。
 - 无数据库迁移、新字段/资源/密钥配置，不采用 CAP-0008；测试仅调用原运行时建表函数初始化内存库。回退在本客户 main 定向 revert 本条对应独立工程提交，沿既有 Actions 发布；保留后来 CMS、Secret、D1/R2，不 reset、不跨客户推送。Turnstile 仍 OFF/站长暂缓，下载仍 OFF/空白名单；不催配、不擅改。
+- 发布回执：工程 `458e4c8c9439905d06f89cda3f02ad34f2939e14` 已推自己的 main；[Actions 39073046072](https://github.com/yiloveM/goldenone260727/actions/runs/39073046072) completed/success，Worker `goldenone` 版本 `e6308eeb-f3dc-45a4-a12e-3b6fb808c04d`。CI 355 文件零错误/警告，843 HTML/4699 JSON-LD/零错误、Keystatic 浏览器包通过。发布后英西8页标题/文案/链接/图片/SEO与发布前及本地构建一致，16次桌面/手机访问200、无脚本异常/横向溢出、首屏无确认坏图；Contact us 原表单与直接联系入口、公开私有路径404通过，实际 Manager JS/CSS 哈希与测试包一致。验证码只读审计仍为 signed-captcha，无真实表单/管理员写入、邮件或 Turnstile 质询。母版仅记录备份 `2b907f56101385490c6b22d40294f98754d33958`，无 Actions/部署。精确工程回退：本客户 `git revert 458e4c8c9439905d06f89cda3f02ad34f2939e14`；本回执仅 docs `[skip ci]`，不再发布。
 
 ## 2026-10-17 - 真实代表产品与定制场景配图
 

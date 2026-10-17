@@ -50,6 +50,16 @@ continuation and code locations only, with its eight chapters/folds/Resend text
 unchanged. CAND-0007 reuse is recorded in the existing mother ledger; no mother
 runtime or customer-wide upgrade is implied.
 
+Delivery: source `458e4c8c9439905d06f89cda3f02ad34f2939e14` received by own main;
+Actions `39073046072` completed/success, Worker
+`e6308eeb-f3dc-45a4-a12e-3b6fb808c04d`. Actual Manager JS/CSS hashes match local
+build; eight public semantic comparisons and 16 desktop/mobile visits preserve
+buyer content/layout/SEO; private public-host routes remain 404. No real form/
+Manager write or Turnstile service acceptance. Full final evidence/deferrals in
+PROJECT-PROGRESS, not a new state table. Scoped source revert is the commit above;
+receipt documents use `[skip ci]`. Mother record backup `2b907f5` has no runtime
+change, CI run or deployment.
+
 ## Status at 2026-09-21
 
 No new engineering capability was implemented or fully inventoried during this
