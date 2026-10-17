@@ -1,0 +1,32 @@
+<section class="section" data-panel="reviews">
+        <div class="grid">
+          <aside class="panel">
+            <div class="panel-head">
+              <div><h2>客户评价</h2><span id="reviewSystemStatus">评价展示设置由系统统一管理，本页面可维护评价内容。</span></div>
+              <button class="button secondary" id="newReviewButton" type="button">新建评价草稿</button>
+            </div>
+            <div class="toolbar is-row">
+              <button class="button secondary" id="reviewRefreshButton" type="button">刷新评价</button>
+              <span class="status" id="reviewListStatus">评价列表未加载。</span>
+            </div>
+            <div class="blog-list" id="reviewList"></div>
+          </aside>
+          <section class="panel">
+            <div class="panel-head"><div><h2>评价草稿编辑器</h2><span>保存后先进入待审核列表；点击“应用到网站”后更新正式评价。</span></div></div>
+            <form class="form" id="reviewForm">
+              <input id="reviewId" type="hidden" />
+              <div class="field"><label for="reviewBuyerLabel">评价人</label><input id="reviewBuyerLabel" required /></div>
+              <div class="field"><label for="reviewRating">星级</label><select id="reviewRating"><option value="5">5 星</option><option value="4">4 星</option><option value="3">3 星</option><option value="2">2 星</option><option value="1">1 星</option></select></div>
+              <div class="field is-wide"><label for="reviewQuote">评价原文</label><textarea id="reviewQuote" required></textarea></div>
+              <div class="field"><label for="reviewDate">评价日期（选填）</label><input id="reviewDate" type="date" /></div>
+              <div class="field"><label>前台状态</label><span class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示该评价</span></span></div>
+            </form>
+            <div class="actions">
+              <button class="button" id="saveReviewDraftButton" type="button">保存评价草稿</button>
+              <button class="button secondary" id="deleteReviewDraftButton" type="button">生成删除草稿</button>
+              <span class="status" id="reviewStatus">请选择一条评价或新建草稿。</span>
+            </div>
+            <div class="drafts" id="reviewDraftList"></div>
+          </section>
+        </div>
+      </section>

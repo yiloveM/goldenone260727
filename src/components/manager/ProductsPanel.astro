@@ -1,0 +1,215 @@
+---
+interface Props {
+  managerReviewSystemEnabled: boolean;
+}
+const { managerReviewSystemEnabled } = Astro.props;
+---
+
+<section class="section is-active" data-panel="products">
+        <div class="grid">
+          <aside class="panel manager-view is-visible" id="productBrowserView">
+            <header class="product-manager-header">
+              <div>
+                <h2>产品内容工作台</h2>
+                <p>按分类和关键词快速找到产品；点击产品图或产品名称进入编辑，操作列只处理预览和上线状态。</p>
+              </div>
+              <div class="product-manager-side">
+                <div class="product-manager-summary" aria-label="产品状态概览">
+                  <span><strong id="productTotalCount">0</strong><small>全部产品</small></span>
+                  <span><strong id="productOnlineCount">0</strong><small>已上线</small></span>
+                  <span><strong id="productOfflineCount">0</strong><small>已下线</small></span>
+                </div>
+                <button class="button secondary" id="newProductButton" type="button">新建产品草稿</button>
+              </div>
+            </header>
+            <div class="product-manager-toolbar">
+              <label>
+                <span>产品分类</span>
+                <select id="categoryFilter">
+                  <option value="">所有分类</option>
+                </select>
+              </label>
+              <label>
+                <span>产品名称关键词</span>
+                <input id="searchInput" type="search" placeholder="输入产品名称或系列" />
+              </label>
+            </div>
+            <div class="product-manager-meta">
+              <strong id="productCategoryMeta">全部分类</strong>
+              <span id="productBrowserStatus">正在加载产品...</span>
+            </div>
+            <div class="manager-product-list" id="productList"></div>
+            <div class="product-manager-pager" id="productPagination" aria-label="产品分页"></div>
+          </aside>
+
+          <section class="panel manager-view" id="productEditorView">
+            <div class="panel-head">
+              <div>
+                <h2>产品草稿</h2>
+                <span>支持产品基础字段、主图、关键参数和详情页表格。</span>
+              </div>
+              <button class="button secondary" id="productBackButton" type="button">返回产品列表</button>
+            </div>
+
+            <form class="form" id="productForm">
+              <div class="field">
+                <label for="title">产品名称</label>
+                <input id="title" name="title" required />
+              </div>
+              <div class="field">
+                <label for="productSlug">产品页面标识</label>
+                <input id="productSlug" name="productSlug" readonly />
+              </div>
+              <div class="field">
+                <label for="offeringType">内容类型</label>
+                <select id="offeringType" name="offeringType" disabled>
+                  <option value="physical-product">实体产品（Product / ProductGroup）</option>
+                  <option value="service">服务（Service）</option>
+                  <option value="solution">工程解决方案（Service）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="modelStrategy">型号结构</label>
+                <select id="modelStrategy" name="modelStrategy" disabled>
+                  <option value="single-model">单个可售型号</option>
+                  <option value="series">系列产品 / 多型号参数表</option>
+                  <option value="configurable">按项目或配置下单</option>
+                  <option value="not-applicable">服务不适用型号</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="category">产品分类</label>
+                <select id="category" name="category"></select>
+              </div>
+              <div class="field">
+                <label for="series">系列 / 型号</label>
+                <input id="series" name="series" />
+              </div>
+              <div class="field">
+                <label for="sortOrder">权重</label>
+                <input id="sortOrder" name="sortOrder" type="number" min="1" step="1" required />
+              </div>
+              <div class="field">
+                <label>前台上线</label>
+                <span class="toggle">
+                  <input id="published" name="published" type="checkbox" />
+                  <span>显示该产品</span>
+                </span>
+              </div>
+              <div class="field is-wide">
+                <label for="image">产品主图链接（首张）</label>
+                <div class="input-action">
+                  <input id="image" name="image" placeholder="可从图片池选择或粘贴图片链接" />
+                  <button class="button secondary" data-image-field="image" data-image-title="选择产品主图" type="button">选择图片</button>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>产品主图组 / 轮播主图</strong>
+                    <button class="mini-button" data-action="gallery:add" type="button">添加主图</button>
+                  </div>
+                  <p class="field-help">首张产品图会作为产品缩略图；这里可继续添加多个主图，用于产品详情页顶部轮播。</p>
+                  <div class="builder-list" id="galleryList"></div>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <label for="description">简短描述</label>
+                <textarea id="description" name="description" required></textarea>
+              </div>
+              <div class="field is-wide">
+                <label for="productContent">详细内容</label>
+                <textarea id="productContent" name="productContent" style="min-height: 420px;" placeholder="这里对应产品详情页的详细内容正文。可以粘贴图片池链接或 Markdoc 内容。"></textarea>
+              </div>
+              <div class="field is-wide">
+                <label>首页推荐</label>
+                <span class="toggle">
+                  <input id="featured" name="featured" type="checkbox" />
+                  <span>推荐显示在重点产品区域</span>
+                </span>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>详情页宣传图 / 特性说明图</strong>
+                    <button class="mini-button" data-action="detail:add" type="button">添加详情图</button>
+                  </div>
+                  <p class="field-help">用于产品详情页正文展示工艺、卖点、结构或应用场景。</p>
+                  <div class="builder-list" id="detailImageList"></div>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>应用场景</strong>
+                    <button class="mini-button" data-action="applications:add" type="button">添加应用场景</button>
+                  </div>
+                  <div class="builder-list" id="applicationsList"></div>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>关键产品参数</strong>
+                    <button class="mini-button" data-action="specs:add" type="button">添加参数</button>
+                  </div>
+                  <p class="field-help">例如 Flow Rate、Filter Area、Valve Connection。单位和型号不要随意改写。</p>
+                  <div class="builder-list" id="specsList"></div>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>产品亮点</strong>
+                    <button class="mini-button" data-action="highlights:add" type="button">添加亮点</button>
+                  </div>
+                  <div class="builder-list" id="highlightsList"></div>
+                </div>
+              </div>
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>常见问题</strong>
+                    <button class="mini-button" data-action="faqs:add" type="button">添加 FAQ</button>
+                  </div>
+                  <div class="builder-list" id="faqsList"></div>
+                </div>
+              </div>
+              {managerReviewSystemEnabled && <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>产品评价</strong>
+                    <button class="mini-button" data-action="reviews:add" type="button">添加评价</button>
+                  </div>
+                  <div class="builder-list" id="productReviewList"></div>
+                  <details>
+                    <summary>产品总体评分（选填）</summary>
+                    <div class="form">
+                      <div class="field"><label for="aggregateRatingValue">总评分</label><input id="aggregateRatingValue" type="number" min="1" max="5" step="0.01" /></div>
+                      <div class="field"><label for="aggregateRatingCount">评分人数</label><input id="aggregateRatingCount" type="number" min="0" step="1" /></div>
+                    </div>
+                  </details>
+                </div>
+              </div>}
+              <div class="field is-wide">
+                <div class="builder">
+                  <div class="builder-head">
+                    <strong>型号参数表</strong>
+                    <button class="mini-button" data-action="tables:add" type="button">添加参数表</button>
+                  </div>
+                  <p class="field-help">支持多表头、跨行、跨列、公制和英制单位。管理员只填表格内容，不需要写代码。</p>
+                  <div class="builder-list" id="specTablesList"></div>
+                </div>
+              </div>
+            </form>
+
+            <div class="actions">
+              <button class="button" id="saveDraftButton" type="button">保存草稿</button>
+              <button class="button secondary" id="reloadButton" type="button">刷新草稿</button>
+              <span class="status" id="statusText">请选择一个产品。</span>
+            </div>
+
+            <div class="drafts" id="draftList"></div>
+          </section>
+        </div>
+      </section>

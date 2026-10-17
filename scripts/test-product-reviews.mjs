@@ -145,7 +145,8 @@ test('Keystatic owns classification, Manager normalization keeps old missing key
 });
 
 test('the browser and save endpoint enforce the owner policy without editing public pages', async () => {
-  const manager = await readFile(path.join(root, 'src/pages/manager/index.astro'), 'utf8');
+  const { readManagerSources } = await import('./manager-source.mjs');
+  const manager = readManagerSources(root).text;
   assert.match(manager, /id="offeringType"[^>]*disabled/);
   assert.match(manager, /id="modelStrategy"[^>]*disabled/);
   assert.match(manager, /productEditorFields\.map/);

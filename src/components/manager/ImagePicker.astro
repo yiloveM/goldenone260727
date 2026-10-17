@@ -1,0 +1,22 @@
+<div class="image-picker-overlay" id="imagePicker" aria-hidden="true">
+      <section class="image-picker-dialog" aria-modal="true" role="dialog" aria-labelledby="imagePickerTitle">
+        <div class="panel-head">
+          <div>
+            <h2 id="imagePickerTitle">选择图片</h2>
+            <span>从图片池选择文件夹或图片，选择后自动填入当前字段。</span>
+          </div>
+          <button class="button secondary" id="imagePickerCloseButton" type="button">关闭</button>
+        </div>
+        <div class="image-picker-toolbar">
+          <button class="button secondary" id="imagePickerBackButton" type="button">上一级</button>
+          <button class="button secondary" id="imagePickerRefreshButton" type="button">刷新</button>
+          <button class="button" id="imagePickerUploadButton" type="button">上传图片</button>
+          <input id="imagePickerUploadInput" type="file" accept="image/*" multiple hidden />
+          <span class="path" id="imagePickerPath">根目录</span>
+        </div>
+        <div class="image-picker-grid" id="imagePickerGrid"></div>
+        <div class="image-picker-status">
+          <span class="status" id="imagePickerStatus">图片池未加载。</span>
+        </div>
+      </section>
+    </div>

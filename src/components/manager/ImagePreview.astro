@@ -1,0 +1,25 @@
+<div class="image-preview-overlay" id="imagePreview" aria-hidden="true">
+      <section class="image-preview-dialog" aria-modal="true" role="dialog" aria-labelledby="imagePreviewTitle">
+        <div class="panel-head">
+          <div>
+            <h2 id="imagePreviewTitle">图片预览</h2>
+            <span>查看当前图片，确认后可选择、复制或打开原图。</span>
+          </div>
+          <button class="button secondary" id="imagePreviewCloseButton" type="button">关闭</button>
+        </div>
+        <div class="image-preview-body">
+          <div class="image-preview-stage">
+            <img id="imagePreviewImage" alt="" />
+          </div>
+          <div class="image-preview-meta">
+            <strong id="imagePreviewName">图片</strong>
+            <code id="imagePreviewUrl"></code>
+          </div>
+        </div>
+        <div class="image-preview-actions">
+          <button class="button" id="imagePreviewUseButton" type="button">使用这张图片</button>
+          <button class="button secondary" id="imagePreviewCopyButton" type="button">复制链接</button>
+          <a class="button secondary" id="imagePreviewOpenLink" href="#" target="_blank" rel="noreferrer">打开原图</a>
+        </div>
+      </section>
+    </div>

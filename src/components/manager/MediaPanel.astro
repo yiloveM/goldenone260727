@@ -1,0 +1,22 @@
+<section class="section" data-panel="images">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>媒体资源</h2>
+              <span>查看文件夹、上传图片或 PDF、复制链接、插入 PDF 引用、删除或移动文件。</span>
+            </div>
+            <span class="path" id="assetPath">根目录</span>
+          </div>
+          <div class="toolbar is-row">
+            <button class="button secondary" id="assetBackButton" type="button">上一级</button>
+            <button class="button secondary" id="assetRefreshButton" type="button">刷新</button>
+            <button class="button secondary" id="assetNewFolderButton" type="button">新建文件夹</button>
+            <button class="button" id="assetUploadButton" type="button">上传媒体</button>
+            <button class="button secondary" id="assetCutButton" type="button">剪切选中</button>
+            <button class="button secondary" id="assetPasteButton" type="button">粘贴到当前文件夹</button>
+            <input id="assetUploadInput" type="file" accept="image/*,application/pdf,.pdf" multiple hidden />
+            <span class="status" id="assetStatus">媒体资源未加载。</span>
+          </div>
+          <div class="asset-grid" id="assetGrid"></div>
+        </section>
+      </section>

@@ -1,0 +1,64 @@
+<section class="section" data-panel="translation">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>AI 自动翻译助手</h2>
+              <span>把英文产品详情页和英文技术文章翻译成其它语言，AI 只生成待审核草稿，管理员审核后才会发布。</span>
+            </div>
+          </div>
+          <div class="translation-guide">
+            <strong>管理员按这个顺序操作：</strong>
+            <ol>
+              <li>先选“要翻译什么内容”和“目标语言”。</li>
+              <li>不填页面标识时，会按“要翻译什么内容”批量生成草稿。</li>
+              <li>填写页面标识时，只翻译对应的一个页面；选“产品和文章”会自动判断内容类型。</li>
+              <li>点击“提交后台 AI 翻译任务”。任务提交后可以关闭当前页面，后台会继续处理。</li>
+              <li>等待后台任务完成后，到“产品翻译草稿”或“文章翻译草稿”逐个检查，确认后打开“审核后发布”并保存。</li>
+            </ol>
+          </div>
+          <form class="form" id="translationForm">
+            <div class="field">
+              <label for="translationSourceType">生成范围</label>
+              <select id="translationSourceType">
+                <option value="all">产品和文章</option>
+                <option value="products">只生成产品</option>
+                <option value="blog">只生成文章</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="translationSlug">只生成指定页面，可留空</label>
+              <input id="translationSlug" placeholder="例如 vx-modular-control-cabinet" />
+            </div>
+            <div class="field">
+              <label>覆盖已有草稿</label>
+              <span class="toggle">
+                <input id="translationOverwrite" type="checkbox" />
+                <span>重新生成已有草稿</span>
+              </span>
+              <p class="field-help">默认不要勾选。勾选后会覆盖同一内容和语言的已有翻译草稿并重新生成；大量重复生成会增加处理用量。</p>
+            </div>
+            <div class="field is-wide">
+              <div class="locale-head">
+                <label>目标语言</label>
+                <span class="locale-bulk-controls" aria-label="目标语言批量选择">
+                  <label>
+                    <input id="translationLocaleSelectAll" type="checkbox" checked />
+                    <span>全选</span>
+                  </label>
+                  <label>
+                    <input id="translationLocaleInvert" type="checkbox" />
+                    <span>反选</span>
+                  </label>
+                </span>
+              </div>
+              <div class="locale-grid" id="localeGrid"></div>
+            </div>
+          </form>
+          <div class="actions">
+            <button class="button" id="translationSubmitButton" type="button">提交后台 AI 翻译任务</button>
+            <button class="button secondary" id="translationStatusButton" type="button">刷新任务状态</button>
+            <span class="status" id="translationStatus">未提交任务。</span>
+          </div>
+          <div class="status-box" id="translationResult"></div>
+        </section>
+      </section>

@@ -4,6 +4,52 @@ Repository identity: `yiloveM/goldenone260727`. This customer-local register
 separates engineering candidates, mother-template adoption, and brand/content/
 visual work. Its absence of an entry does not prove a capability is missing.
 
+## CAP-0009 / Revision 1 - Customized Manager adoption (2026-10-18)
+
+Owner approved the exact Golden One proposal with `确认修改能力`. Customer main
+baseline `615edc6513864805f41e96a1378370b6bc4155f3`; mother source
+`031d5e055193ada5171daf38c1b5125ab17f3d8f`. Applied, customer-customized, not full
+mother parity. Current configuration and release receipt: PROJECT-PROGRESS.
+
+Before: one 6,906-line inline page. After: same portal, 13 private panels, private
+CSS and nine feature scripts; saved product/article drafts resume the same D1
+record, save buttons reject duplicate clicks, image/table editing fixes retained.
+Customer theme key, editorial author, CDN configuration, store-review draft
+editing and PDF-link behavior preserved. Adopted CAND-0007's PDF focus recovery,
+current-owner-policy draft display and actual runtime-schema test initialization;
+the mother has not integrated that candidate. Keystatic navigation now exposes
+its existing product policy singleton; no new fields, default or switch values.
+
+Closure: Manager entry/components/scripts/CSS; connected-source audit helper and
+two existing audits; existing review test; native owner navigation; dev-only
+`playwright@1.62.1`, its lock entries and permanent browser regressions; existing
+AGENTS/README/records. The two stale CAPTCHA audit markers now follow the real
+`verifyPublicForm`; no API or security behavior was changed. Fixtures initialize
+an in-memory database through the existing runtime helper (not CAP-0008 adoption)
+and apply real write-back scripts only to generated customer copies. Their store
+review upsert respects the existing endpoint's same-draft-ID contract.
+
+Compatibility: 397 protected source/configuration/workflow file hashes unchanged;
+38 real products round-trip, preserving all original metadata and feature-image
+ordering. Public visual/content, industry profile/site/SEO, artwork/Contact us,
+API/auth, D1 schema, resources, Resend and publishing are unchanged. Existing
+profile already supplies site.ts; no brand migration needed. Runtime dependencies
+unchanged. Local evidence: 38 unit regressions, 28 generic + 11 customer + 14
+controls browser groups; actual Keystatic reader, ON/OFF/empty/re-enable,
+desktop/mobile/RTL, failure recovery, draft reload and source isolation. Full
+build: 357 files, zero errors/warnings (27 existing/deprecation hints); 843 HTML,
+4699 JSON-LD, zero errors; 840 public HTML free of Manager CSS. Live service
+success is separate: SDK/mail/GitHub/Manager authentication are simulated in UI
+tests; no real form/admin writes. Delivery receipt follows in progress.
+
+No database/cloud migration. Recovery: identify this entry's scoped source
+commit in progress, revert it on this customer's main through its existing
+Actions, preserving later CMS commits, Secrets and D1/R2. Do not copy the mother
+workflow or roll any other customer back. README changes describe draft
+continuation and code locations only, with its eight chapters/folds/Resend text
+unchanged. CAND-0007 reuse is recorded in the existing mother ledger; no mother
+runtime or customer-wide upgrade is implied.
+
 ## Status at 2026-09-21
 
 No new engineering capability was implemented or fully inventoried during this

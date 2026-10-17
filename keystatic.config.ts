@@ -128,7 +128,7 @@ export default config({
   ui: {
     brand: { name: 'Golden One 内容管理' },
     navigation: {
-      '站点设置': ['analyticsDashboard', 'siteFoundation', 'catalogDownloads', 'siteLanguages', 'customerReviews', 'formVerification'],
+      '站点设置': ['analyticsDashboard', 'siteFoundation', 'productEditorSettings', 'catalogDownloads', 'siteLanguages', 'customerReviews', 'formVerification'],
       '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },

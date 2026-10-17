@@ -658,6 +658,8 @@ npm run build
 4. 图片池可上传、移动、删除和选择 R2 文件；删除前确认没有内容引用。
 5. Golden One 产品中的金属礼品型号、工艺、参数、图库和艺术稿相关字段必须保留。
 
+**继续编辑草稿：**打开产品或文章，在草稿列表点击“继续编辑”，修改后保存会更新同一份草稿。应用到网站内容后，再点击“发布网站更新”统一发布；保存按钮处理期间不能重复提交。
+
 ### AI 翻译与审核
 
 1. 目标语言来自站长在 Keystatic 勾选的语言，不需要管理员填写 AI Key。
@@ -708,7 +710,7 @@ npm run build
 | `src/lib/runtime-secret.ts` | HKDF 派生运行时密钥 |
 | `src/lib/admin-portals.ts` | 后台 Host、UUID 和内部访问校验 |
 | `src/lib/admin-portal-rewrite.ts` | Keystatic URL 重写与 Manager 防重复 UUID |
-| `src/pages/manager/index.astro` | Manager 内容工作台 |
+| `src/pages/manager/index.astro` | Manager 内容工作台入口；面板在 `src/components/manager/`、功能脚本在 `src/scripts/manager/`、私有样式在 `src/styles/manager.css` |
 | `src/components/admin/AnalyticsDashboard.tsx` | 两套后台共用分析 UI |
 | `src/lib/analytics/d1.ts` | D1 分析聚合 |
 | `src/lib/analytics/capture.ts` | 无 Cookie 访问采集与保留期 |

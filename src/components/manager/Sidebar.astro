@@ -1,0 +1,58 @@
+---
+interface Props {
+  managerOwner: string;
+  managerReviewSystemEnabled: boolean;
+  managerAnalyticsEnabled: boolean;
+}
+const { managerOwner, managerReviewSystemEnabled, managerAnalyticsEnabled } = Astro.props;
+---
+
+<aside class="sidebar">
+          <div class="brand-mark">
+            <a href="/" aria-label="返回网站首页">
+              <strong>{managerOwner}</strong>
+              <span>内容管理</span>
+            </a>
+          </div>
+          <section class="connection-panel" id="connectionPanel" hidden>
+            <div class="connection-copy">
+              <strong id="connectionTitle"></strong>
+              <span id="connectionDetail"></span>
+            </div>
+          </section>
+          <div class="theme-switch" aria-label="显示模式">
+            <button class="theme-switch__trigger" id="themeMenuButton" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span id="themeMenuLabel">跟随系统</span>
+              <span class="theme-switch__chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="theme-switch__menu" id="themeMenu" role="menu" hidden>
+              <button data-theme-option="light" type="button" role="menuitem">浅色</button>
+              <button data-theme-option="dark" type="button" role="menuitem">深色</button>
+              <button data-theme-option="system" type="button" role="menuitem">跟随系统</button>
+            </div>
+          </div>
+          <div class="user-pill" id="managerEmail" hidden></div>
+          <nav class="tabs" aria-label="Manager sections">
+            <div class="nav-group">
+              <span class="nav-group-label">内容</span>
+              <button class="tab is-active" data-tab="products" type="button">产品管理</button>
+              <button class="tab" data-tab="product-order" type="button">产品排序</button>
+              <button class="tab" data-tab="blog" type="button">博客</button>
+              {managerReviewSystemEnabled ? <button class="tab" data-tab="reviews" type="button">客户评价</button> : null}
+              <button class="tab" data-tab="translation" type="button">AI 翻译助手</button>
+              <button class="tab" data-tab="product-drafts" type="button">产品翻译草稿</button>
+              <button class="tab" data-tab="blog-drafts" type="button">文章翻译草稿</button>
+              <button class="tab" data-tab="publish" type="button">发布网站更新</button>
+            </div>
+            <div class="nav-group">
+              <span class="nav-group-label">媒体</span>
+              <button class="tab" data-tab="images" type="button">媒体资源</button>
+            </div>
+            {managerAnalyticsEnabled ? (
+              <div class="nav-group">
+                <span class="nav-group-label">数据</span>
+                <a class="tab tab-link" id="managerAnalyticsLink" href="#">网站访问分析</a>
+              </div>
+            ) : null}
+          </nav>
+        </aside>

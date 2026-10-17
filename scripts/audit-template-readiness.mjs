@@ -2,6 +2,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 import { loadWranglerVars } from './load-wrangler-vars.mjs';
+import { readManagerSources } from './manager-source.mjs';
 
 const root = process.cwd();
 const production = process.argv.includes('--production');
@@ -287,8 +288,8 @@ const structuralChecks = [
   ['src/pages/manager/analytics.astro', ['industryProfile', 'managerOwner', '<strong>{managerOwner}</strong>']],
   ['src/lib/form-captcha.ts', ['getFormCaptchaSecret', 'createFormCaptcha', 'validateFormCaptcha']],
   ['src/lib/public-form-submissions.ts', ['public_form_submissions', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachment_name']],
-  ['src/pages/api/contact.ts', ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'validateFormCaptcha']],
-  ['src/pages/api/download.ts', ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'validateFormCaptcha']],
+  ['src/pages/api/contact.ts', ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'verifyPublicForm']],
+  ['src/pages/api/download.ts', ['handleDownloadRequest', 'CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'verifyPublicForm']],
   ['package.json', ['oldsite:crawl', 'oldsite:prepare', 'oldsite:audit', 'preview:deploy', 'check:preview', 'check:visual', 'check:class-names', 'undici']],
   ['scripts/crawl-authorized-oldsite.mjs', ["from 'undici'", 'ProxyAgent', '--authorized', 'route-map.json', 'assets-manifest.json']],
   ['scripts/prepare-oldsite-r2.mjs', ['r2-upload-manifest.json', 'upload.ps1', 'r2ObjectKey', 'seoKeyBasis']],
@@ -300,7 +301,7 @@ const structuralChecks = [
 ];
 for (const [file, terms] of structuralChecks) {
   try {
-    const contents = await source(file);
+    const contents = file === 'src/pages/manager/index.astro' ? readManagerSources(root).text : await source(file);
     for (const term of terms) if (!contents.includes(term)) add('error', file, `Required behavior marker missing: ${term}`);
   } catch {
     // The missing file error above is enough context.
@@ -308,7 +309,7 @@ for (const [file, terms] of structuralChecks) {
 }
 
 try {
-  const managerUi = await source('src/pages/manager/index.astro');
+  const managerUi = readManagerSources(root).text;
   for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
     if (managerUi.includes(forbidden)) add('error', 'src/pages/manager/index.astro', `Manager must not store or request a browser bearer token: ${forbidden}`);
   }

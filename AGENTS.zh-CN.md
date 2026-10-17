@@ -134,6 +134,14 @@ factsVerified 可依据相应范围的确认，搜索展示资格另作技术判
 
 ## 指令分工与站长策略
 
+Manager 已拆分：入口 `src/pages/manager/index.astro`，面板 `src/components/manager/`，
+脚本 `src/scripts/manager/`，私有样式 `src/styles/manager.css`。审计用
+`scripts/manager-source.mjs` 读取实际引用闭包，不只检查入口。改后台后运行
+`npm run test:manager`、`npm run test:manager:browser`，用隔离浏览器/SQLite、
+客户产品副本及实际写回脚本验证；不得向真实后台/云端写测试内容。
+保留特性图顺序、艺术稿附件、Contact us 和站长开关；公开页面不导入后台样式。
+模拟成功不代表真实登录、Turnstile、邮件或部署已验收。
+
 AGENTS 管本站边界；两阶段提示词选任务；流程/Skill 给步骤；README 教人使用。
 进度记当前状态和粗粒度占位范围，能力账本记版本，母版映射绑定独立仓库，
 不复制记录。全新复制站保留母版完整已批准基线（含关闭功能）；

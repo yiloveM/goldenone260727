@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, relative, sep } from 'node:path';
+import { readManagerSources } from './manager-source.mjs';
 
 const projectRoot = process.cwd();
 const errors = [];
@@ -377,7 +378,7 @@ function auditProject(root, label) {
       addError(`${label}: ${contract.area} is missing ${contract.file}`);
       continue;
     }
-    const text = readText(file);
+    const text = contract.file === 'src/pages/manager/index.astro' ? readManagerSources(root).text : readText(file);
     const missing = contract.markers.filter(marker => !text.includes(marker));
     if (missing.length) {
       addError(`${label}: ${contract.area} is missing markers in ${contract.file}: ${missing.join(', ')}`);
@@ -389,7 +390,7 @@ function auditProject(root, label) {
   for (const file of requiredFiles) {
     if (!existsSync(resolve(root, file))) addError(`${label}: required functionality file is missing: ${file}`);
   }
-  const managerUi = readText(resolve(root, 'src/pages/manager/index.astro'));
+  const managerUi = readManagerSources(root).text;
   for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
     if (managerUi.includes(forbidden)) addError(`${label}: Manager must not store or request a browser bearer token: ${forbidden}`);
   }

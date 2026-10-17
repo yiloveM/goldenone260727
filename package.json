@@ -36,6 +36,8 @@
     "check:seo": "node scripts/audit-product-seo.mjs",
     "check:jsonld": "node scripts/audit-jsonld.mjs",
     "test:jsonld": "node --test scripts/test-json-ld.mjs",
+    "test:manager": "node --test scripts/test-manager-source.mjs",
+    "test:manager:browser": "node scripts/test-manager-browser.mjs && node scripts/test-goldenone-manager.mjs && node scripts/test-goldenone-controls.mjs",
     "check:rich-results": "node scripts/audit-product-seo.mjs --rich-results",
     "check:merchant-listings": "node scripts/audit-product-seo.mjs --merchant-listings",
     "preview:astro": "node scripts/run-astro.mjs preview",
@@ -64,6 +66,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "playwright": "1.62.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "parse5": "7.3.0",

@@ -222,6 +222,16 @@ success/replay; simulated acceptance and GET 200 are not real service acceptance
 
 ## Required verification
 
+Manager implementation is modular: `src/pages/manager/index.astro` imports
+`src/components/manager/`, `src/scripts/manager/` and private `src/styles/manager.css`.
+Audit its actual connected sources with `scripts/manager-source.mjs`, not only
+the entry file. For Manager changes run `npm run test:manager` and
+`npm run test:manager:browser`: isolated browser/SQLite fixtures exercise the
+real customer product copies and write-back scripts, never live CMS/cloud data.
+Keep feature-image order, artwork attachments, Contact us and owner switches;
+public components/styles must not import Manager CSS. Mock service success is
+not real login, Turnstile, email or deployment acceptance.
+
 After meaningful public, content-schema, or deployment changes, run:
 
 ```powershell
