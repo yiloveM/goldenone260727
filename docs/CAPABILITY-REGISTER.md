@@ -18,6 +18,10 @@
   dependency, owner setting, Secret or database migration. README is usage only.
 - Recovery: scoped revert of own source through own main, retaining later CMS
   edits and stored drafts; no cloud-data rollback. Other clients stay independent.
+- Release receipt: main e039db8edc00ed1545bcf0f50281f548f39f0934,
+  Actions 39112142341 standard build/deployment success, Worker
+  fee0fc41-9967-4a9c-a065-74b1f80bc834. New Manager JS/CSS and public
+  homepage/private-path isolation checked read-only; no real admin/data writes.
 
 Repository identity: `yiloveM/goldenone260727`. This customer-local register
 separates engineering candidates, mother-template adoption, and brand/content/

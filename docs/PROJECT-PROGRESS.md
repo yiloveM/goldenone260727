@@ -13,7 +13,7 @@ and mappings while unfinished, without adding a permanent media ledger.
 
 ## 当前状态
 
-本轮 Manager 图片修复（2026-10-18）：仅采用母版 `7f3da78395ce0fbd3bbc7bcb93a843ac7c2fcbe6` 的完整预览与首图同步，基线 `6439f8c9be77e597807be865a8c5694f1ac83868`，本站源码 `5ba0c64ef3636a66778d22a5881b2c841e9ba198`。35 单元、33 通用＋11 客户＋14 控制组及 53 契约通过；38 产品旧封面/特性图顺序兼容，未批量写产品。原开关/页面/媒体/资源/Resend/artwork/发布链不改；待原 main CI 与只读回执，无新配置要求。回退见 CAP-0009 rev2，旧记录保留为历史。
+本轮 Manager 图片修复（2026-10-18）：仅采用母版 `7f3da78395ce0fbd3bbc7bcb93a843ac7c2fcbe6` 的完整预览与首图同步，基线 `6439f8c9be77e597807be865a8c5694f1ac83868`，本站源码 `5ba0c64ef3636a66778d22a5881b2c841e9ba198`。35 单元、33 通用＋11 客户＋14 控制组及 53 契约通过；38 产品旧封面/特性图顺序兼容，未批量写产品。原开关/页面/媒体/资源/Resend/artwork/发布链不改；已由 main `e039db8edc00ed1545bcf0f50281f548f39f0934` 发布，[Actions 39112142341](https://github.com/yiloveM/goldenone260727/actions/runs/39112142341) 标准构建/部署 success，Worker `fee0fc41-9967-4a9c-a065-74b1f80bc834`；新 Manager JS/CSS、首页及公开后台/API 隔离已只读核对，未登录真实后台或写测试内容，无新配置要求。回退见 CAP-0009 rev2，旧记录保留为历史。
 
 更新：2026-10-18（+08:00）。本轮前基线：`615edc6513864805f41e96a1378370b6bc4155f3`。
 范围：`yiloveM/goldenone260727` 的 `main`；仅获准 Manager CAP-0009 移植、必要审计与回归。公开样式/内容、原功能开关、资源及发布链保持；其它行保留原验证日期及站长暂缓，不代表本轮全部重验。
