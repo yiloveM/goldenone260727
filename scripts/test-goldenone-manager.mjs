@@ -80,7 +80,10 @@ try {
       await page.locator('#title').fill(normalized.title + ' test');
       await page.locator('#saveDraftButton').click(); await waitSaved();
       const draft = backend.productDrafts().find(item => item.productSlug === slug);
-      for (const key of ['specTables', 'specs', 'galleryImages', 'detailImages', 'applications', 'highlights', 'faqs']) assert.deepEqual(draft.payload[key], normalized[key], slug + ':' + key);
+      for (const key of ['specTables', 'specs', 'detailImages', 'applications', 'highlights', 'faqs']) assert.deepEqual(draft.payload[key], normalized[key], slug + ':' + key);
+      const gallery = [...new Set([normalized.image, ...normalized.galleryImages].filter(Boolean))];
+      assert.deepEqual(draft.payload.galleryImages, gallery);
+      assert.equal(draft.payload.image, gallery[0] || '');
       await page.reload(); await page.locator('#searchInput').fill(normalized.title);
       await page.locator(`.manager-product-title[data-slug="${slug}"]`).click();
       await page.locator(`[data-product-draft-edit="${draft.id}"]`).click();
@@ -91,7 +94,9 @@ try {
       await page.waitForFunction(() => document.getElementById('statusText').textContent.includes('已提交'));
       const saved = await readFile(resolve(output, 'write-back/src/content/products', slug + '.mdoc'), 'utf8');
       const data = YAML.parse(saved.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)[1]);
-      for (const key of ['specTables', 'specs', 'galleryImages', 'detailImages', 'highlights']) assert.deepEqual(data[key], normalized[key]);
+      for (const key of ['specTables', 'specs', 'detailImages', 'highlights']) assert.deepEqual(data[key], normalized[key]);
+      assert.deepEqual(data.galleryImages, gallery);
+      assert.equal(data.image, gallery[0] || '');
       assert.match(saved, new RegExp(normalized.content.split('\n').find(line => line.trim() && !line.startsWith('#')).slice(0, 25).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

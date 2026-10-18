@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { buildManagerFixture, managerBackend } from './manager-browser-fixture.mjs';
+import { checkManagerImages } from './manager-image-browser-checks.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const base = resolve(root, '.sandbox/manager-browser');
@@ -298,7 +299,10 @@ try {
     assert.equal(saved.reviews[0].buyerLabel, 'Fixture buyer');
     await page.locator('[data-review-id]').first().click();
     await page.locator('#deleteReviewDraftButton').click(); await waitText('reviewStatus', '删除草稿已保存');
-    await page.locator('[data-review-draft-apply]').last().click(); await waitText('reviewStatus', '更新已提交');
+    const deletion = backend.db.prepare('SELECT id, payload_json FROM manager_review_drafts').all()
+      .find(row => JSON.parse(row.payload_json).operation === 'delete');
+    assert.ok(deletion, 'Select the actual deletion draft, not its time-dependent list position.');
+    await page.locator(`[data-review-draft-apply="${deletion.id}"]`).click(); await waitText('reviewStatus', '更新已提交');
     saved = JSON.parse(await readFile(resolve(output, 'write-back/src/data/customer-reviews.json'), 'utf8'));
     assert.equal(saved.reviews.length, 0);
     assert.equal(await page.locator('[data-panel="reviews"] input[type="checkbox"]').count(), 1);
@@ -404,6 +408,7 @@ try {
       await physical.close();
     } finally { await physicalServer.stop(); }
   });
+  await checkManagerImages({ page, backend, check, output });
   assert.deepEqual(faults, []); assert.deepEqual(forbidden, []);
   assert.ok(backend.requests.every(item => item.path.startsWith('/api/manager/')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ checks, requests: backend.requests, cloudWrites: 'NONE', realAuthentication: 'NOT_TESTED', output }, null, 2));

@@ -100,6 +100,9 @@ export function initializeManager(config) {
   });
 
   context.$('productForm').addEventListener('input', event => context.syncProductFormInput(event.target));
+  context.$('productForm').addEventListener('change', event => {
+    if (event.target.id === 'image') context.setProductMainImage(event.target.value);
+  });
 
   context.$('productForm').addEventListener('click', event => {
     const button = event.target.closest('[data-action]');

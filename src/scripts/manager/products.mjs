@@ -1,4 +1,22 @@
 export function installProducts(context) {
+  // Legacy galleries render the separate cover first on public product pages.
+  const editableGalleryImages = product => [...new Set([product.image, ...(Array.isArray(product.galleryImages) ? product.galleryImages : [])]
+    .map(value => String(value ?? '').trim()).filter(Boolean))];
+
+  const syncProductMainImage = () => {
+    const first = context.state.formData.galleryImages.find(value => String(value ?? '').trim());
+    context.$('image').value = String(first ?? '').trim();
+    context.updateImageFieldPreview('image');
+  };
+
+  const setProductMainImage = value => {
+    const images = context.state.formData.galleryImages;
+    if (images.length) images[0] = value;
+    else if (String(value ?? '').trim()) images.push(value);
+    syncProductMainImage();
+    renderSingleTextList('galleryList', 'galleryImages', '产品主图链接');
+  };
+
   const fillCategoryOptions = () => {
     const categoryFilter = context.$('categoryFilter');
     const orderCategoryFilter = context.$('orderCategoryFilter');
@@ -136,7 +154,7 @@ export function installProducts(context) {
     if (context.$('aggregateRatingCount')) context.$('aggregateRatingCount').value = product.aggregateRatingCount ?? current?.aggregateRatingCount ?? 0;
     context.state.formData = {
       reviews: context.cloneArray(product.reviews ?? current?.reviews),
-      galleryImages: context.cloneArray(product.galleryImages),
+      galleryImages: editableGalleryImages(product),
       detailImages: context.cloneArray(product.detailImages),
       applications: context.cloneArray(product.applications),
       specs: context.cloneArray(product.specs),
@@ -144,6 +162,7 @@ export function installProducts(context) {
       highlights: context.cloneArray(product.highlights),
       faqs: context.cloneArray(product.faqs),
     };
+    syncProductMainImage();
   };
 
   const renderSingleTextList = (id, key, placeholder) => {
@@ -531,28 +550,31 @@ export function installProducts(context) {
     context.setStatus('orderStatus', '排序草稿已保存，请在产品内容页检查后应用到网站内容。');
   };
 
-  const getPayload = () => ({
-    ...Object.fromEntries(context.productEditorFields.map(({ name, kind }) => {
-      const field = context.$(name);
-      return [name, kind === 'checkbox' ? field.checked : kind === 'number' ? Number(field.value || 9999) : kind === 'text' ? field.value.trim() : field.value];
-    })),
-    ...(context.managerReviewSystemEnabled ? {
-      reviews: context.state.formData.reviews,
-      aggregateRatingValue: context.$('aggregateRatingValue').value.trim(),
-      aggregateRatingCount: Number(context.$('aggregateRatingCount').value || 0),
-    } : {}),
-    productSlug: context.$('productSlug').value.trim().toLowerCase(),
-    content: context.getRichTextValue('productContent').trim(),
-    offeringType: context.$('offeringType').value,
-    modelStrategy: context.$('modelStrategy').value,
-    galleryImages: context.state.formData.galleryImages,
-    detailImages: context.state.formData.detailImages,
-    applications: context.state.formData.applications,
-    specs: context.state.formData.specs,
-    specTables: context.state.formData.specTables,
-    highlights: context.state.formData.highlights,
-    faqs: context.state.formData.faqs,
-  });
+  const getPayload = () => {
+    syncProductMainImage();
+    return {
+      ...Object.fromEntries(context.productEditorFields.map(({ name, kind }) => {
+        const field = context.$(name);
+        return [name, kind === 'checkbox' ? field.checked : kind === 'number' ? Number(field.value || 9999) : kind === 'text' ? field.value.trim() : field.value];
+      })),
+      ...(context.managerReviewSystemEnabled ? {
+        reviews: context.state.formData.reviews,
+        aggregateRatingValue: context.$('aggregateRatingValue').value.trim(),
+        aggregateRatingCount: Number(context.$('aggregateRatingCount').value || 0),
+      } : {}),
+      productSlug: context.$('productSlug').value.trim().toLowerCase(),
+      content: context.getRichTextValue('productContent').trim(),
+      offeringType: context.$('offeringType').value,
+      modelStrategy: context.$('modelStrategy').value,
+      galleryImages: editableGalleryImages({ galleryImages: context.state.formData.galleryImages }),
+      detailImages: context.state.formData.detailImages,
+      applications: context.state.formData.applications,
+      specs: context.state.formData.specs,
+      specTables: context.state.formData.specTables,
+      highlights: context.state.formData.highlights,
+      faqs: context.state.formData.faqs,
+    };
+  };
 
   const syncProductFormInput = target => {
     if (target.dataset.productReview !== undefined) {
@@ -567,6 +589,7 @@ export function installProducts(context) {
     if (target.dataset.list) {
       context.state.formData[target.dataset.list][Number(target.dataset.index)] = target.value;
       if (target.dataset.list === 'galleryImages') {
+        syncProductMainImage();
         const preview = target.closest('.form-row')?.querySelector('[data-inline-image-preview]');
         if (preview) {
           const value = target.value.trim();
@@ -635,7 +658,10 @@ export function installProducts(context) {
     if (action === 'gallery:add') context.state.formData.galleryImages.push('');
     if (action === 'reviews:add') context.state.formData.reviews.push({ buyerLabel: '', rating: '5', quote: '', date: '', published: true });
     if (action === 'reviews:remove') context.state.formData.reviews.splice(index, 1);
-    if (action === 'galleryImages:remove') context.state.formData.galleryImages.splice(index, 1);
+    if (action === 'galleryImages:remove') {
+      context.state.formData.galleryImages.splice(index, 1);
+      syncProductMainImage();
+    }
     if (action === 'detail:add') context.state.formData.detailImages.push({ image: '', title: '', caption: '' });
     if (action === 'detail:remove') context.state.formData.detailImages.splice(index, 1);
     if (action === 'applications:add') context.state.formData.applications.push('');
@@ -717,5 +743,5 @@ export function installProducts(context) {
     await loadDrafts();
     context.setStatus('statusText', data.requestId ? '内容更新已提交，请稍后刷新查看。' : '内容更新已提交。');
   };
-  Object.assign(context, { fillCategoryOptions, filteredProducts, filteredOrderProducts, renderProducts, setProductPage, renderProductOrder, setFormData, renderSingleTextList, renderSpecs, renderDetailImages, renderFaqs, renderSpecTables, renderSpecTable, renderProductReviews, renderProductBuilders, showProductBrowser, showProductEditor, selectProduct, startNewProduct, renderDrafts, loadProducts, loadDrafts, loadDraftsSafely, productToPayload, saveOrderDrafts, getPayload, syncProductFormInput, ensureRowWidth, handleProductAction, saveDraft, applyDraft });
+  Object.assign(context, { editableGalleryImages, syncProductMainImage, setProductMainImage, fillCategoryOptions, filteredProducts, filteredOrderProducts, renderProducts, setProductPage, renderProductOrder, setFormData, renderSingleTextList, renderSpecs, renderDetailImages, renderFaqs, renderSpecTables, renderSpecTable, renderProductReviews, renderProductBuilders, showProductBrowser, showProductEditor, selectProduct, startNewProduct, renderDrafts, loadProducts, loadDrafts, loadDraftsSafely, productToPayload, saveOrderDrafts, getPayload, syncProductFormInput, ensureRowWidth, handleProductAction, saveDraft, applyDraft });
 }

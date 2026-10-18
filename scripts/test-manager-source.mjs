@@ -1,14 +1,78 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import YAML from 'yaml';
+import { installProducts } from '../src/scripts/manager/products.mjs';
 import { readManagerSources } from './manager-source.mjs';
 import { serializeJsonLd } from '../src/lib/json-ld.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manager = readManagerSources(root);
+
+const imageEditor = () => {
+  const fields = new Map();
+  const context = {
+    $: id => {
+      if (!fields.has(id)) fields.set(id, { value: '', innerHTML: '' });
+      return fields.get(id);
+    },
+    state: { products: [], formData: {} },
+    productEditorPolicy: { offeringType: 'physical-product', modelStrategy: 'series' },
+    cloneArray: value => structuredClone(Array.isArray(value) ? value : []),
+    updateImageFieldPreview: () => {}, escapeHtml: value => String(value ?? ''),
+    thumbnailMarkup: () => '',
+  };
+  installProducts(context);
+  return context;
+};
+
+test('image editor reconciles legacy covers without changing source arrays or public image order', () => {
+  const editor = imageEditor();
+  for (const product of [
+    { image: 'cover', galleryImages: ['second', 'third'] },
+    { image: 'cover', galleryImages: ['cover', 'second', 'cover'] },
+    { image: 'cover' }, { galleryImages: ['first', '', 'second'] }, {},
+  ]) {
+    const before = structuredClone(product);
+    editor.setFormData(product);
+    assert.deepEqual(editor.state.formData.galleryImages, [...new Set([product.image, ...(product.galleryImages || [])].filter(Boolean))]);
+    assert.equal(editor.$('image').value, editor.state.formData.galleryImages[0] || '');
+    assert.deepEqual(product, before);
+  }
+});
+
+test('changing and deleting covers never resurrects a removed image or discards the remaining gallery', () => {
+  const editor = imageEditor();
+  editor.setFormData({ image: 'cover', galleryImages: ['second', 'third'] });
+  editor.setProductMainImage('replacement');
+  assert.deepEqual(editor.state.formData.galleryImages, ['replacement', 'second', 'third']);
+  editor.state.formData.galleryImages.splice(0, 1); editor.syncProductMainImage();
+  assert.equal(editor.$('image').value, 'second');
+  editor.state.formData.galleryImages = ['', '  ', 'third']; editor.syncProductMainImage();
+  assert.equal(editor.$('image').value, 'third');
+  editor.state.formData.galleryImages = []; editor.syncProductMainImage();
+  assert.equal(editor.$('image').value, '');
+  editor.setProductMainImage(''); assert.deepEqual(editor.state.formData.galleryImages, []);
+  editor.setProductMainImage('new'); assert.deepEqual(editor.state.formData.galleryImages, ['new']);
+});
+
+test('every actual product cover remains first when opening the compatible Manager editor', () => {
+  const editor = imageEditor();
+  const folder = resolve(root, 'src/content/products');
+  for (const name of readdirSync(folder).filter(value => value.endsWith('.mdoc'))) {
+    const source = readFileSync(resolve(folder, name), 'utf8').replace(/^\uFEFF/, '');
+    const product = YAML.parse(source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)[1]);
+    const before = JSON.stringify(product);
+    editor.setFormData(product);
+    const expected = [...new Set([product.image, ...(product.galleryImages || [])].map(value => String(value ?? '').trim()).filter(Boolean))];
+    assert.deepEqual(editor.state.formData.galleryImages, expected, name);
+    assert.equal(editor.$('image').value, expected[0] || '', name);
+    assert.equal(JSON.stringify(product), before, name + ' mutated');
+  }
+});
 
 test('Manager source audits follow connected components, CSS and all feature scripts', () => {
   assert.equal([...manager.files.keys()].filter(path => path.endsWith('.astro')).length, 14);

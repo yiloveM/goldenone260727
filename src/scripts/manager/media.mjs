@@ -215,10 +215,12 @@ export function installMedia(context) {
   const pickImage = url => {
     if (context.state.imagePicker.fieldId) {
       context.$(context.state.imagePicker.fieldId).value = url;
-      updateImageFieldPreview(context.state.imagePicker.fieldId);
+      if (context.state.imagePicker.fieldId === 'image') context.setProductMainImage(url);
+      else updateImageFieldPreview(context.state.imagePicker.fieldId);
     }
     if (context.state.imagePicker.listKey) {
       context.state.formData[context.state.imagePicker.listKey][Number(context.state.imagePicker.detailIndex)] = url;
+      if (context.state.imagePicker.listKey === 'galleryImages') context.syncProductMainImage();
       context.renderProductBuilders();
     }
     if (context.state.imagePicker.richEditorId) {
