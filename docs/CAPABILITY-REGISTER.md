@@ -1,5 +1,24 @@
 # Golden One Capability Register
 
+## CAP-0009 Revision 2 - Full image previews and automatic gallery cover
+
+- 2026-10-18, owner approved this scoped adoption. Mother source
+  7f3da78395ce0fbd3bbc7bcb93a843ac7c2fcbe6, originating in Corner CAND-0009
+  09ad2341c59281dbfbbac5322767ae8c3edfc436. Own baseline 6439f8c9be77e597807be865a8c5694f1ac83868;
+  own source 5ba0c64ef3636a66778d22a5881b2c841e9ba198.
+- Adopted only Manager preview CSS, first-gallery/cover synchronization, help
+  and regression closure. Legacy separate covers enter the gallery first,
+  preserving public ordering. No published-product rewrite or media mutation.
+- 35 source/review/form units, 33 generic browser groups (30 image size/theme
+  cases), 11 real-customer UI and 14 controls groups; all 38 actual product
+  cover/order inputs and write-back copies checked. Original 53 contracts and
+  template/SEO audits pass. Cloud services simulated; live receipt is in progress.
+- Customer feature groups, artwork/PDF/Contact us, public pages, routes, owner
+  switches, auth/API, resources/Resend and release chain unchanged. No new
+  dependency, owner setting, Secret or database migration. README is usage only.
+- Recovery: scoped revert of own source through own main, retaining later CMS
+  edits and stored drafts; no cloud-data rollback. Other clients stay independent.
+
 Repository identity: `yiloveM/goldenone260727`. This customer-local register
 separates engineering candidates, mother-template adoption, and brand/content/
 visual work. Its absence of an entry does not prove a capability is missing.
