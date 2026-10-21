@@ -607,6 +607,12 @@ npm run build
 
 ### AI 翻译
 
+英文文章/产品在各自 `src/content/blog/`、`src/content/products/` 使用
+`<source-slug>.mdoc`；译文在对应 `blogTranslations/`、`productTranslations/` 使用
+`<locale>--<source-slug>.mdoc`，`sourceSlug` 与英文文件名一致。`generatedAt` 是带引号
+的时间文本，合法未知/空历史时间保留。Muse1.4沿用本站真实schema与公开语言，验证
+Keystatic、Manager预览/审核；保存Git与既有发布流程分开处理。
+
 1. 先在 **网站语言** 勾选目标语言。
 2. 在 **AI 翻译助手** 选择产品、文章或指定 slug。
 3. 默认不要勾选覆盖已有草稿；覆盖会重新消耗 API Token。

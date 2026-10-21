@@ -1,5 +1,11 @@
 # Golden One Capability Register
 
+## CAP-0009 revision 3 - Translation text-date compatibility
+
+- 2026-10-22: owner requested factory article/product filename contract alignment against Corner. Existing save/approval serializers now keep schema text timestamps quoted for real Keystatic read-back. This repairs the existing contract; no new field/capability, permission, dependency, resource or release owner. Corner-only metaKeywords/imageMetadata and its full native catalog are not adopted.
+- Closure: src/pages/api/ai/drafts.ts, src/pages/api/manager/ai/drafts.ts, scripts/test-translation-format.mjs and the existing test:manager entry; target-specific original record-format repairs where needed. Real Manager save and Keystatic approval for article/product preserve metadata/body and reopen in actual Keystatic. Git/cloud writes mocked; source/CI/deployment receipts belong in PROJECT-PROGRESS.
+- Baseline cfa0cdb30ba104caf1780318d1f9f54b51b0d3ab; own main/source receipt follows. Recover only this scoped source after checking later CMS edits; retain valid record names/string dates and customer/cloud data. No cross-customer or automatic D1/R2 rollback.
+
 ## CAP-0009 Revision 2 - Full image previews and automatic gallery cover
 
 - 2026-10-18, owner approved this scoped adoption. Mother source

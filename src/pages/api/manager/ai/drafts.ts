@@ -68,7 +68,8 @@ const splitMdocDocument = (content: string) => {
   };
 };
 
-const joinMdocDocument = (data: Record<string, any>, body: string) => `---\n${stringify(data).trimEnd()}\n---\n${body}`;
+// Preserve text timestamps for Keystatic's YAML reader after every edit.
+const joinMdocDocument = (data: Record<string, any>, body: string) => `---\n${stringify(data, { defaultStringType: 'QUOTE_DOUBLE' }).trimEnd()}\n---\n${body}`;
 
 const readDirectory = async (repoFullName: string, branch: string, dir: string, accessToken: string) => {
   const response = await fetch(
