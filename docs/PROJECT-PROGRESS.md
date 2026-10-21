@@ -4,7 +4,7 @@
 
 - 本轮仅对齐站长指定的文章/产品命名与原有写回契约，基线自身main cfa0cdb30ba104caf1780318d1f9f54b51b0d3ab；不重做迁移/建站，不安装定时AI发布器、不回迁Corner完整CAND-0013。40份已有西班牙译文（2文章+38产品）精确改名为locale--sourceSlug并给generatedAt加引号；正文/逻辑元数据/媒体/审核不变。80份真实Keystatic记录全读通；两后台×文章/产品真实处理器隔离往返、原JSON-LD/表单回归通过。标准完整构建54s、843 HTML/4699 JSON-LD零错误，已确认两个产物接口包含最终字符串序列化补丁。
 - CAP-0009 rev3：两个现有翻译保存/审核API显式保留字符串引号，防generatedAt下次编辑变回日期；真实Manager PUT/Keystatic PATCH与Reader重开测试接入原test:manager，测试只用本地夹具/模拟Git，不写生产D1/R2/邮件或调用付费AI。README仅补稳定文件契约，客户配置/功能/语言/品牌/URL/资源及原发布链不变。
-- 源码/推送/CI/生产当前待最终交付回执，不能由本地测试推断上线。BUILDING按原授权自身main/既有site-publish交付；原未提交的远端同步交接7行保留且不随本批暂存。恢复按本轮自身源提交定向处理，先复核后续CMS，保留兼容内容及云数据，不自动回滚其它客户。
+- 源码dd27a2b9849e85e69de624bb1e3ee89cb61b971b已独立收到自身main；既有[site-publish运行](https://github.com/yiloveM/goldenone260727/actions/runs/39672509229)完整源码构建和实际部署步骤均成功，Worker 6a7158e6-25cc-46f8-9494-5501a85fdbee。本机原有Manager浏览器/控件及两后台×文章/产品真实处理器隔离往返、绑定/模板契约通过；以上为本地/CI/Worker证据，未冒称真实登录UI或云业务写入。原站长未提交交接7行仍仅本地保留，不随本批推送。恢复仅按本轮自身源提交定向处理，复核后来CMS，保留兼容内容与云数据，不自动回滚其它客户。此回执docs-only/skip-ci。
 
 
 Record meaningful resumption, release/recovery, capability, or governance state,

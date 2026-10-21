@@ -4,7 +4,7 @@
 
 - 2026-10-22: owner requested factory article/product filename contract alignment against Corner. Existing save/approval serializers now keep schema text timestamps quoted for real Keystatic read-back. This repairs the existing contract; no new field/capability, permission, dependency, resource or release owner. Corner-only metaKeywords/imageMetadata and its full native catalog are not adopted.
 - Closure: src/pages/api/ai/drafts.ts, src/pages/api/manager/ai/drafts.ts, scripts/test-translation-format.mjs and the existing test:manager entry; target-specific original record-format repairs where needed. Real Manager save and Keystatic approval for article/product preserve metadata/body and reopen in actual Keystatic. Git/cloud writes mocked; source/CI/deployment receipts belong in PROJECT-PROGRESS.
-- Baseline cfa0cdb30ba104caf1780318d1f9f54b51b0d3ab; own main/source receipt follows. Recover only this scoped source after checking later CMS edits; retain valid record names/string dates and customer/cloud data. No cross-customer or automatic D1/R2 rollback.
+- Baseline cfa0cdb30ba104caf1780318d1f9f54b51b0d3ab; Own source dd27a2b9849e85e69de624bb1e3ee89cb61b971b received by main; existing CI https://github.com/yiloveM/goldenone260727/actions/runs/39672509229 completed/success including actual build/deploy, Worker 6a7158e6-25cc-46f8-9494-5501a85fdbee. This receipt does not redeploy. Recover only this scoped source after checking later CMS edits; retain valid record names/string dates and customer/cloud data. No cross-customer or automatic D1/R2 rollback.
 
 ## CAP-0009 Revision 2 - Full image previews and automatic gallery cover
 
