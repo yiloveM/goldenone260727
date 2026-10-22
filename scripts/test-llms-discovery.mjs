@@ -11,6 +11,15 @@ import { pathToFileURL } from 'node:url';
 import { createReader } from '@keystatic/core/reader';
 
 const origin='https://fixture.example';
+test('redirect and incomplete metadata pages are safely skipped by the real-route adapter',async()=>{
+  const f=await fixture();f.manifest.discoverStructuredPages=true;
+  const redirect='/retired/',incomplete='/incomplete/';f.routes.push(redirect,incomplete);
+  await mkdir(dirname(file(f.root,redirect)),{recursive:true});await writeFile(file(f.root,redirect),'<!doctype html><meta http-equiv="refresh" content="0;url=/">');
+  await mkdir(dirname(file(f.root,incomplete)),{recursive:true});await writeFile(file(f.root,incomplete),html(incomplete).replace(/<link rel="canonical"[^>]+>/,''));
+  f.manifest.entries.push({path:incomplete,locale:'en',kind:'company',eligible:true});
+  const report=await f.generate();assert.equal(report.skipped.canonical,1);assert.equal(await present(file(f.root,redirect+'index.md')),false);assert.equal(await present(file(f.root,incomplete+'index.md')),false);
+  assert.equal(readPage('<!doctype html><title>Redirect</title>',origin).canonical,'');
+});
 const labels={products:'Products and services',categories:'Categories',articles:'Articles',company:'Company information',resources:'Technical resources',contact:'Business inquiries'};
 const settings={...defaults,enabled:true,multilingual:true,markdown:true};
 const html=(path,title='Precise model 20',lang='en',extra='',body='')=>`<!doctype html><html lang="${lang}"><head><title>${title}</title><meta name="description" content="Published information for commercial buyers: dimensions, models, units and project use."><link rel="canonical" href="${origin}${path}"><link rel="alternate" hreflang="en" href="${origin}/">${extra}</head><body><nav>Navigation only</nav><main><h1>${title}</h1><p>Model X20 operates at 2.5 MPa and 20 °C. The exact dimensions and source information are maintained by the business.</p>${body}<form>Private form values</form><script>alert(1)</script></main><footer>Footer only</footer></body></html>`;
@@ -104,7 +113,7 @@ test('real Keystatic reader accepts settings and keeps new policy owner-only',as
   const f=await fixture(),out=resolve(f.root,'config.mjs');
   await build({entryPoints:['keystatic.config.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true}'},logLevel:'silent'});
   const {default:config}=await import(pathToFileURL(out));const source=await createReader(process.cwd(),config).singletons.aiSeo.read();
-  assert.equal(typeof source.enabled,'boolean');assert.ok(config.ui.navigation['AI & SEO Settings'].includes('aiSeo'));if(config.singletons.articlePublisher)if(config.singletons.articlePublisher)assert.ok(config.singletons.articlePublisher.path.includes('article-publisher-settings'));else assert.equal(config.ui.navigation['AI & SEO Settings'].includes('articlePublisher'),false);else assert.equal(config.ui.navigation['AI & SEO Settings'].includes('articlePublisher'),false);
+  assert.equal(typeof source.enabled,'boolean');assert.ok(config.ui.navigation['AI & SEO Settings'].includes('aiSeo'));if(config.singletons.articlePublisher)assert.ok(config.singletons.articlePublisher.path.includes('article-publisher-settings'));else assert.equal(config.ui.navigation['AI & SEO Settings'].includes('articlePublisher'),false);
 });
 test('real settings reader reopens ON/OFF/empty/re-enabled values and retains localized arrays',async()=>{
   const f=await fixture(),out=resolve(f.root,'settings-reader.mjs');

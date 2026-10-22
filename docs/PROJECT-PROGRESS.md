@@ -4,7 +4,7 @@
 
 - 站长批准完整llms-discovery方案，随后明确三个子项目要开启并验证。来源Corner d6b3995adc125d81da82672e768c549cf16ddd0c，经母版e7ba1e8c485456f94d7422cbcf563dee3efa41c8泛化（CAND-0015/CAP-0013）；本客户自身main基线483adb7e28cbb2f08bf75db45c41fae590f3cedd。总开关、多语言、Markdown已开启，可选合并全文关闭；不改变AI文章生成/付费开关，不安装本站尚未采用的runner。
 - AI & SEO Settings → AI 内容导航为站长配置入口，Manager无全局权限；只读生成状态/原发布日志、实际CMS资格及构建路由、Markdown镜像和正确MIME、私有报告、确定性输出/过期清理/过滤/失败阻断已接入。保留本客户品牌、业务内容、产品分类、语言权威、公开布局、资源与唯一site-publish。保留本站现有公开语言就绪条件及真实路径助手。
-- 本地验收：20项生成/Reader/权限/ASSETS/状态/编译语义回归、16项明暗及1440/390组件交互、真实workerd批读/五种跳转通过；完整标准构建及逐链接/镜像/原SEO检查通过，实际2语言、108条导航链接及108份Markdown。详细日志在母目录.sandbox/llms-discovery-20261022。具体源提交/远端/CI/公开HTTP回执待补。共用20项生成/Reader/ASSETS/权限/开关/编译语义回归接入原标准构建；CAP-0012 rev2真实workerd批读及五种跳转测试进入test:manager。未做生产登录/业务删除/上传/付费调用，生产业务写入不是验收方式。原站长七行交接保持本地，随本批不推送。
+- 本地验收：21项生成/Reader/权限/ASSETS/状态/编译语义回归、16项明暗及1440/390组件交互、真实workerd批读/五种跳转通过；完整标准构建及逐链接/镜像/原SEO检查通过，实际2语言、108条导航链接及108份Markdown。详细日志在母目录.sandbox/llms-discovery-20261022。Etha迁植发现缺canonical的重定向页，已采用母版兼容补充d96d839318d791b31dbbbca36e23181f86f23438，新增缺元数据回归，现有实际全部导航/镜像再核验无变化。具体源提交/远端/CI/公开HTTP回执待补。共用21项生成/Reader/ASSETS/权限/开关/编译语义回归接入原标准构建；CAP-0012 rev2真实workerd批读及五种跳转测试进入test:manager。未做生产登录/业务删除/上传/付费调用，生产业务写入不是验收方式。原站长七行交接保持本地，随本批不推送。
 - 恢复只定向本批源码/配置，先比较后来CMS；关闭总开关后下一次既有发布收回本能力输出与发现标签，保留正式内容和D1/R2。规范为llmstxt.org的v2提案，不承诺Google排名或AI引用。
 
 ## 2026-10-22 +08:00 - CAP-0012 approved content administration adoption

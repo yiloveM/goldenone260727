@@ -1,6 +1,6 @@
 import { parse } from 'parse5';
 export const walk = node => [node,...(node.childNodes||[]).flatMap(walk)];
-export const attr = (node,name) => node.attrs?.find(item=>item.name===name)?.value || '';
+export const attr = (node,name) => node?.attrs?.find(item=>item.name===name)?.value || '';
 export const text = node => node?.nodeName==='#text'?node.value:(node?.childNodes||[]).map(text).join('');
 export const compact = value => String(value||'').replace(/\s+/gu,' ').trim();
 export const escapeMarkdown = value => compact(value).replace(/[\\`*_{}\[\]<>#|]/g,'\\$&');
