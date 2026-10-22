@@ -1,4 +1,5 @@
 ---
+import { articleCategoryLabel } from '../lib/article-categories.mjs';
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageBanner from '../components/PageBanner.astro';
@@ -63,7 +64,7 @@ const blogStructuredData = collectionStructuredData(
               <a href={blogPath(item.slug, locale)}>
                 {post.data.image && <img src={post.data.image} alt={item.title} loading="lazy" decoding="async" width="1200" height="760" />}
                 <div class="card-body" dir="ltr">
-                  <span class="eyebrow">{item.category} / <bdi dir="ltr">{post.data.publishDate.toLocaleDateString(localeMeta[locale].htmlLang)}</bdi></span>
+                  <span class="eyebrow">{articleCategoryLabel(post.data.category,locale)} / <bdi dir="ltr">{post.data.publishDate.toLocaleDateString(localeMeta[locale].htmlLang)}</bdi></span>
                   <h2>{item.title}</h2>
                   <p>{item.description}</p>
                 </div>

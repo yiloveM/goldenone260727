@@ -84,6 +84,7 @@ export const normalizeProductEditorPayload = (value, normalizers) => {
       normalized[key] = body[key];
     }
   }
+  if (Object.hasOwn(body,'sourceSha')) { if(!/^[a-f0-9]{40}$/.test(body.sourceSha)) throw new Error('Invalid source version.'); normalized.sourceSha=body.sourceSha; }
   if (Object.hasOwn(body, 'content')) normalized.content = text(body.content);
   if (Object.hasOwn(body, 'reviews')) normalized.reviews = validateProductReviews(body.reviews);
   Object.assign(normalized, validateProductRating(body));

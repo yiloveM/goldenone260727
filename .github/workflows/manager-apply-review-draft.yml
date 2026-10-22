@@ -1,65 +1,47 @@
-name: Apply Manager Review Draft
-run-name: Apply manager review draft / ${{ inputs.reviewId }} / ${{ inputs.requestId }}
+name: Apply Manager review draft
 
 on:
   workflow_dispatch:
     inputs:
       requestId:
-        description: 'Internal request id for manager status tracking'
+        description: Manager request ID
         required: true
-        type: string
       draftId:
-        description: 'D1 draft id'
+        description: D1 review draft ID
         required: true
-        type: string
       reviewId:
-        description: 'Review id to update'
+        description: Review record ID
         required: true
-        type: string
       payload:
-        description: 'Base64 encoded review draft payload'
+        description: Base64-encoded review payload
         required: true
-        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: manager-review-draft-${{ github.ref }}
+  group: manager-content-${{ github.ref }}-${{ inputs.draftId }}
   cancel-in-progress: false
 
 jobs:
-  apply-review-draft:
-    name: Apply review draft
+  apply:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
+          node-version-file: .nvmrc
       - name: Apply review draft
+        id: apply
         env:
-          MANAGER_REVIEW_DRAFT_ID: ${{ inputs.draftId }}
-          MANAGER_REVIEW_ID: ${{ inputs.reviewId }}
           MANAGER_REVIEW_DRAFT_PAYLOAD: ${{ inputs.payload }}
+          MANAGER_REVIEW_ID: ${{ inputs.reviewId }}
         run: node scripts/apply-manager-review-draft.mjs
-      - name: Commit review changes
-        run: |
-          CHANGES="$(git status --porcelain -- src/data/customer-reviews.json)"
-          if [ -z "$CHANGES" ]; then
-            echo "No review changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data/customer-reviews.json
-          git commit -m "Apply manager review draft [skip ci]"
-          git push
+      - name: Commit review draft changes
+        env:
+          CONTENT_PATH: ${{ steps.apply.outputs.content_path }}
+        run: node scripts/commit-manager-content.mjs review

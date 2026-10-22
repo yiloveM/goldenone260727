@@ -1,3 +1,5 @@
+import * as fixtureFs from 'node:fs';
+import {createHash as fixtureHash} from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
@@ -197,6 +199,16 @@ const sandbox = async () => {
 };
 
 const runWriteback = (script, cwd, variables) => {
+  if(script==='apply-manager-product-draft.mjs') {
+    const payload=JSON.parse(Buffer.from(variables.MANAGER_PRODUCT_DRAFT_PAYLOAD,'base64').toString('utf8'));
+    if(/^[a-z0-9-]+$/.test(payload.productSlug)) {
+      const file=path.join(cwd,'src/content/products',payload.productSlug+'.mdoc');
+      if(!payload.sourceSha&&fixtureFs.existsSync(file)) {
+        const value=fixtureFs.readFileSync(file,'utf8').replace(/\r\n/g,'\n');payload.sourceSha=fixtureHash('sha1').update(`blob ${Buffer.byteLength(value)}\0${value}`).digest('hex');
+        variables={...variables,MANAGER_PRODUCT_DRAFT_PAYLOAD:Buffer.from(JSON.stringify(payload)).toString('base64')};
+      }
+    }
+  }
   const result = spawnSync(process.execPath, [path.join(root, 'scripts', script)], { cwd, env: { ...process.env, ...variables }, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);
 };

@@ -1,3 +1,4 @@
+import { renderMarkdownPreview } from '../../../lib/translation-preview';
 import type { APIRoute } from 'astro';
 import { getRuntimeEnv } from '../../../lib/runtime-env';
 import { parse } from 'yaml';
@@ -27,7 +28,7 @@ const parseCookies = (request: Request) => {
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
 const getRepoFullName = (env: Env) =>
-  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'yiloveM/goldenone260727';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
 const getBranch = (env: Env) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 const getAccessToken = (request: Request) => parseCookies(request)['keystatic-gh-access-token'] || '';
 
@@ -111,67 +112,6 @@ const safeDraftSlug = (value: string | null) => {
   return /^[a-z0-9-]+--[a-z0-9-]+$/.test(draft) ? draft : '';
 };
 
-const renderMarkdownPreview = (body: string) => {
-  const lines = body.replace(/\r\n/g, '\n').split('\n');
-  const output: string[] = [];
-  let inList = false;
-  let tableRows: string[][] = [];
-
-  const closeList = () => {
-    if (!inList) return;
-    output.push('</ul>');
-    inList = false;
-  };
-  const flushTable = () => {
-    if (!tableRows.length) return;
-    const [head, ...rows] = tableRows;
-    output.push('<div class="preview-table-scroll"><table><thead><tr>');
-    output.push(head.map(cell => `<th>${escapeHtml(cell)}</th>`).join(''));
-    output.push('</tr></thead><tbody>');
-    rows.forEach(row => output.push(`<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`));
-    output.push('</tbody></table></div>');
-    tableRows = [];
-  };
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) {
-      closeList();
-      flushTable();
-      continue;
-    }
-    if (/^\|.+\|$/.test(line) && !/^\|\s*-+/.test(line)) {
-      closeList();
-      tableRows.push(line.slice(1, -1).split('|').map(cell => cell.trim()));
-      continue;
-    }
-    if (/^\|\s*:?-+/.test(line)) continue;
-    flushTable();
-    const heading = line.match(/^(#{1,4})\s+(.+)$/);
-    if (heading) {
-      closeList();
-      const level = Math.min(4, heading[1].length + 1);
-      output.push(`<h${level}>${escapeHtml(heading[2])}</h${level}>`);
-      continue;
-    }
-    const bullet = line.match(/^[-*]\s+(.+)$/);
-    if (bullet) {
-      if (!inList) {
-        output.push('<ul>');
-        inList = true;
-      }
-      output.push(`<li>${escapeHtml(bullet[1])}</li>`);
-      continue;
-    }
-    closeList();
-    output.push(`<p>${escapeHtml(line)}</p>`);
-  }
-
-  closeList();
-  flushTable();
-  return output.join('\n');
-};
-
 const renderKeyValueTable = (rows: Array<{ label?: string; value?: string }> = []) => {
   if (!rows.length) return '';
   return `<div class="preview-table-scroll"><table><tbody>${rows
@@ -226,6 +166,9 @@ const page = ({ title, description, image, body, locale }: {
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <title>${escapeHtml(title)} | Draft preview</title>
     <style>
+      .preview-card a { color: #1762ad; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+      .preview-card a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+      .preview-card img { max-width: 100%; height: auto; }
       :root { color-scheme: light; font-family: Inter, "Noto Sans", Arial, sans-serif; color: #062436; background: #edf8fa; }
       body { margin: 0; background: radial-gradient(circle at 15% 0%, rgba(91, 208, 223, .18), transparent 32%), linear-gradient(180deg, #f8fdfe 0%, #e8f8fb 58%, #f7fcfd 100%); }
       .preview-shell { max-width: 1180px; margin: 0 auto; padding: 28px 18px 64px; }

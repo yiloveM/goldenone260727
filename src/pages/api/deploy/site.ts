@@ -1,3 +1,4 @@
+import { isProductionRelease, readSiteRelease } from '../../../lib/site-release';
 import type { APIRoute } from 'astro';
 import { getBackendTaskToken, getRuntimeEnv } from '../../../lib/runtime-env';
 
@@ -66,7 +67,7 @@ const parseCookies = (request: Request) => {
 
 const getEnvString = (env: Env, key: string) => (typeof env?.[key] === 'string' ? env[key].trim() : '');
 const getRepoFullName = (env: Env) =>
-  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'yiloveM/goldenone260727';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
 const getBranch = (env: Env) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 const getWorkflowFile = (env: Env) => getEnvString(env, 'SITE_PUBLISH_WORKFLOW_FILE') || DEFAULT_WORKFLOW_FILE;
 const getDispatchToken = (env: Env) => getBackendTaskToken(env, 'publish');
@@ -127,7 +128,7 @@ const workflowRunsUrl = (repoFullName: string, workflowFile: string) =>
   `https://github.com/${repoFullName}/actions/workflows/${workflowFile}`;
 
 const runsApiUrl = (repoFullName: string, workflowFile: string, branch: string, perPage = 30) =>
-  `https://api.github.com/repos/${repoFullName}/actions/workflows/${workflowFile}/runs?branch=${encodeURIComponent(branch)}&event=workflow_dispatch&per_page=${perPage}`;
+  `https://api.github.com/repos/${repoFullName}/actions/workflows/${workflowFile}/runs?branch=${encodeURIComponent(branch)}&per_page=${perPage}`;
 
 const jobsApiUrl = (repoFullName: string, runId: number) =>
   `https://api.github.com/repos/${repoFullName}/actions/runs/${runId}/jobs?per_page=20`;
@@ -208,7 +209,7 @@ const getRunStage = (run: WorkflowRun | undefined, jobs: WorkflowJob[] = []): Pu
     const activeStep = getActiveStep(jobs);
     return activeStep ? stepNameToStage(activeStep.name) : 'building';
   }
-  if (run.status === 'completed' && run.conclusion === 'success') return 'success';
+  if (run.status === 'completed' && run.conclusion === 'success') return isProductionRelease(run, jobs) ? 'success' : jobs.length ? 'failed' : 'unknown';
   if (run.status === 'completed') return 'failed';
   return 'unknown';
 };
@@ -466,12 +467,16 @@ export const DELETE: APIRoute = async ({ locals, request }) => {
       accessToken
     );
     const allowedRunIds = new Set((runsResponse.workflow_runs || []).map(run => run.id));
+    const receipt = await readSiteRelease({repo:repoFullName,branch,token:accessToken});
+    const protectedRunIds = new Set((runsResponse.workflow_runs || []).filter(run=>run.status!=='completed'||run.id===receipt.runId).map(run=>run.id));
+    if (!receipt.commit) return new Response('暂时无法核验最近一次成功发布，请稍后再清理记录。', {status:409});
+    if (new Set(runIds).size>20) return new Response('请每次选择不超过20条发布记录。',{status:400});
     const deleted: number[] = [];
     const skipped: number[] = [];
     const errors: Array<{ runId: number; message: string }> = [];
 
     for (const runId of [...new Set(runIds)]) {
-      if (!allowedRunIds.has(runId)) {
+      if (!allowedRunIds.has(runId) || protectedRunIds.has(runId)) {
         skipped.push(runId);
         continue;
       }

@@ -76,7 +76,7 @@ test('every actual product cover remains first when opening the compatible Manag
 
 test('Manager source audits follow connected components, CSS and all feature scripts', () => {
   assert.equal([...manager.files.keys()].filter(path => path.endsWith('.astro')).length, 14);
-  assert.equal([...manager.files.keys()].filter(path => path.endsWith('.mjs')).length, 9);
+  assert.equal([...manager.files.keys()].filter(path => path.endsWith('.mjs')).length, 11);
   assert.ok(manager.files.has('src/styles/manager.css'));
   assert.match(manager.text, /\/api\/manager\/products/);
   assert.match(manager.text, /data-panel="publish"/);

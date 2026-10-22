@@ -1,3 +1,5 @@
+import { requireArticleCategory } from '../src/lib/article-categories.mjs';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import YAML from 'yaml';
@@ -22,6 +24,7 @@ try {
   fail(`Cannot decode manager blog draft payload: ${error instanceof Error ? error.message : String(error)}`);
 }
 
+try { requireArticleCategory(payload.category); } catch { fail('Invalid article category.'); }
 const blogSlug = String(payload.blogSlug || inputSlug || '').trim();
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(blogSlug)) {
   fail(`Invalid blog slug: ${blogSlug}`);
@@ -51,6 +54,8 @@ featured: false
 `;
 }
 
+const sourceSha = text => {const value=text.replace(/\r\n/g,'\n');return createHash('sha1').update(`blob ${Buffer.byteLength(value)}\0${value}`).digest('hex');};
+if(payload.sourceSha && sourceSha(source)!==payload.sourceSha)fail('Article changed; reopen the current article.');
 const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 if (!match) {
   fail(`Blog file is missing frontmatter: ${blogPath}`);
@@ -77,3 +82,5 @@ if (nextSource === source) {
   await fs.writeFile(blogPath, nextSource, 'utf8');
   console.log(`Applied manager blog draft ${draftId} to ${blogPath}.`);
 }
+
+if(process.env.GITHUB_OUTPUT) await fs.appendFile(process.env.GITHUB_OUTPUT, `content_path=src/content/blog/${blogSlug}.mdoc\n`);

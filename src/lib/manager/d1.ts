@@ -1,8 +1,10 @@
+import { requireArticleCategory } from '../article-categories.mjs';
 import type { ManagerEnv } from './access';
 import { validateReviewInput } from '../product-reviews.mjs';
 import { normalizeProductEditorPayload } from '../product-editor.mjs';
 
 export type ManagerProductDraftPayload = {
+  sourceSha?: string;
   productSlug: string;
   title: string;
   description: string;
@@ -35,6 +37,7 @@ export type ManagerProductDraftPayload = {
 };
 
 export type ManagerBlogDraftPayload = {
+  sourceSha?: string;
   blogSlug: string;
   title: string;
   description: string;
@@ -189,12 +192,8 @@ export const ensureManagerSchema = async (db: D1DatabaseLike) => {
       )`
     )
     .run();
-  await db
-    .prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_updated_at ON manager_review_drafts(updated_at DESC)')
-    .run();
-  await db
-    .prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_review_id ON manager_review_drafts(review_id)')
-    .run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_updated_at ON manager_review_drafts(updated_at DESC)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_manager_review_drafts_review_id ON manager_review_drafts(review_id)').run();
 };
 
 export const normalizeProductDraftPayload = (value: unknown): ManagerProductDraftPayload =>
@@ -216,7 +215,7 @@ export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPaylo
 
   const title = String(body.title || '').trim();
   const description = String(body.description || '').trim();
-  const category = String(body.category || '').trim();
+  const category = requireArticleCategory(body.category);
   const image = String(body.image || '').trim();
   const author = String(body.author || 'Golden One Editorial Team').trim();
   const publishDate = String(body.publishDate || new Date().toISOString()).trim();
@@ -237,6 +236,7 @@ export const normalizeBlogDraftPayload = (value: unknown): ManagerBlogDraftPaylo
     publishDate,
     featured: body.featured === true,
     body: content,
+    ...(body.sourceSha && /^[a-f0-9]{40}$/.test(body.sourceSha) ? {sourceSha:body.sourceSha} : {}),
   };
 };
 

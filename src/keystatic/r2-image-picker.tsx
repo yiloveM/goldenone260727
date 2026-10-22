@@ -1,3 +1,4 @@
+import { promptDialog } from '../lib/admin-dialog.mjs';
 import { type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
@@ -35,8 +36,8 @@ type LoadState =
 
 type R2ImagePickerProps = {
   isOpen: boolean;
-  title?: string;
   assetKind?: 'image' | 'document';
+  title?: string;
   onSelect(url: string): void;
   onClose(): void;
 };
@@ -84,27 +85,24 @@ const copyText = async (text: string) => {
     await navigator.clipboard.writeText(text);
     return;
   }
-
-  const input = document.createElement('textarea');
-  input.value = text;
-  input.setAttribute('readonly', '');
-  input.style.position = 'fixed';
-  input.style.opacity = '0';
-  document.body.append(input);
-  input.select();
-  document.execCommand('copy');
-  input.remove();
+  await promptDialog('复制图片链接', text, {readOnly:true});
 };
 
-export function R2ImagePicker({ isOpen, title = '选择图片', assetKind = 'image', onSelect, onClose }: R2ImagePickerProps) {
+export function R2ImagePicker({
+  isOpen,
+  title = '选择图片',
+  assetKind = 'image',
+  onSelect,
+  onClose,
+}: R2ImagePickerProps) {
   const rootRef = useRef<HTMLDialogElement | null>(null);
   const [prefix, setPrefix] = useState('');
   const [cursor, setCursor] = useState<string | undefined>();
   const [state, setState] = useState<LoadState>({ kind: 'idle' });
   const [copiedUrl, setCopiedUrl] = useState('');
 
-  useSyncedSurfaceTheme(rootRef, 'r2');
   const isDocumentPicker = assetKind === 'document';
+  useSyncedSurfaceTheme(rootRef, 'r2');
 
   const loadAssets = useCallback(async (nextPrefix: string, nextCursor?: string, append = false) => {
     const normalizedPrefix = normalizeAdminPrefix(nextPrefix);
@@ -289,9 +287,7 @@ export function R2ImagePicker({ isOpen, title = '选择图片', assetKind = 'ima
                   {isDocumentPicker ? (
                     <span className="r2-picker__pdf-icon" aria-hidden="true">PDF</span>
                   ) : (
-                    <span className="r2-picker__thumb">
-                      <img src={file.url} alt="" loading="lazy" />
-                    </span>
+                    <span className="r2-picker__thumb"><img src={file.url} alt="" loading="lazy" /></span>
                   )}
                   <span className="r2-picker__tile-name" title={file.name}>
                     {file.name}
@@ -552,15 +548,15 @@ export function R2ImagePicker({ isOpen, title = '选择图片', assetKind = 'ima
         .r2-picker__pdf-icon {
           align-items: center;
           background: #0f766e;
-          border-radius: 6px;
-          color: #fff;
-          display: inline-flex;
-          font-size: 13px;
-          font-weight: 800;
+          border: 1px solid #115e59;
+          border-radius: 7px;
+          color: #ffffff;
+          display: flex;
+          font-size: 15px;
+          font-weight: 750;
           height: 94px;
           justify-content: center;
           width: 94px;
-        }
 
         .r2-picker__folder-icon {
           background: linear-gradient(180deg, #fde68a, #facc15);

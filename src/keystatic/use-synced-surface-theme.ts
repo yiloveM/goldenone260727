@@ -62,6 +62,7 @@ const readHostBackground = (element: HTMLElement): Rgb => {
 
 const applyVars = (element: HTMLElement, prefix: ThemePrefix, hostBg: Rgb) => {
   const isDark = luminance(hostBg) < 0.45;
+  element.style.colorScheme = isDark ? 'dark' : 'light';
   const vars = isDark
     ? {
         bg: hostBg,

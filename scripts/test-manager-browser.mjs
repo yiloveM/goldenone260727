@@ -1,3 +1,4 @@
+import { checkAdminWorkflow } from './admin-workflow-browser-checks.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -36,7 +37,8 @@ try {
   });
   context.on('page', current => current.on('pageerror', error => faults.push(error.message)));
   page = await context.newPage();
-  page.on('dialog', dialog => dialog.accept(dialog.type() === 'prompt' ? 'new-folder' : undefined));
+  page.on('dialog', async dialog => { faults.push('Unexpected native browser dialog'); await dialog.dismiss(); });
+  await page.addInitScript(() => { new MutationObserver(() => { if(window.__manualDialogs)return;const dialog=document.querySelector('dialog.bw-dialog[open]');if(!dialog)return;const input=dialog.querySelector('input');if(input)input.value='new-folder';dialog.querySelector('form').requestSubmit(); }).observe(document,{childList:true,subtree:true,attributes:true,attributeFilter:['open']}); });
   await page.goto(server.url);
   await page.waitForFunction(() => document.querySelectorAll('[data-product-select]').length > 0 || document.querySelectorAll('.manager-product-row').length > 0);
   const tab = name => page.locator(`[data-tab="${name}"]`).click();
@@ -146,7 +148,7 @@ try {
     await page.locator('#assetUploadInput').setInputFiles({ name: 'uploaded.png', mimeType: 'image/png', buffer: Buffer.from('fixture-image') });
     await waitText('assetStatus', '已上传'); assert.ok(backend.assets.has('uploaded.png'));
     await page.locator('#assetNewFolderButton').click(); await waitText('assetStatus', '已加载');
-    await page.locator('[data-delete="uploaded.png"]').click(); await waitText('assetStatus', '已加载');
+    await page.locator('[data-delete="uploaded.png"]').click(); await page.locator('[data-delete="uploaded.png"]').waitFor({state:'hidden'}); await waitText('assetStatus', '已加载');
     assert.equal(backend.assets.has('uploaded.png'), false);
   });
   await check('translation selection, draft editing and approval', async () => {
@@ -272,6 +274,7 @@ try {
     await fill('title', 'Continued again'); await page.locator('#saveDraftButton').click(); await waitText('statusText', '草稿已保存');
     assert.equal(backend.productDrafts().length, count);
     await tab('blog'); await page.locator('[data-blog-slug="sample-article"]').click();
+    await page.locator('#blogWorkShowHistory').check();
     await page.locator('[data-blog-draft-edit]').first().click();
     assert.equal(await page.locator('#blogTitle').inputValue(), 'Article with updated copy');
     const articles = backend.db.prepare('SELECT COUNT(*) AS count FROM manager_blog_drafts').get().count;
@@ -305,7 +308,8 @@ try {
     await page.locator(`[data-review-draft-apply="${deletion.id}"]`).click(); await waitText('reviewStatus', '更新已提交');
     saved = JSON.parse(await readFile(resolve(output, 'write-back/src/data/customer-reviews.json'), 'utf8'));
     assert.equal(saved.reviews.length, 0);
-    assert.equal(await page.locator('[data-panel="reviews"] input[type="checkbox"]').count(), 1);
+    assert.equal(await page.locator('#reviewPublished').count(), 1);
+    assert.equal(await page.locator('#reviewWorkShowHistory').count(), 1);
   });
   await check('media folder navigation, cut/paste and API retry work without losing content', async () => {
     await tab('images'); await waitText('assetStatus', '已加载');
@@ -409,6 +413,7 @@ try {
     } finally { await physicalServer.stop(); }
   });
   await checkManagerImages({ page, backend, check, output });
+  await checkAdminWorkflow({page,backend,check,output});
   assert.deepEqual(faults, []); assert.deepEqual(forbidden, []);
   assert.ok(backend.requests.every(item => item.path.startsWith('/api/manager/')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ checks, requests: backend.requests, cloudWrites: 'NONE', realAuthentication: 'NOT_TESTED', output }, null, 2));

@@ -3,16 +3,20 @@
           <div class="panel-head">
             <div>
               <h2>文章翻译草稿</h2>
-              <span>逐条预览文章多语言草稿，也可以勾选多条一键审核。</span>
+              <span>待审核和已审核待发布的内容；发布成功后自动移出待办，请在所有文章按语言管理正式内容。</span>
             </div>
           </div>
           <div class="toolbar is-row">
-            <span class="toggle">
+            <label class="toggle">
               <input id="blogDraftIncludePublished" type="checkbox" />
               <span>显示已审核</span>
-            </span>
+            </label>
+            <label class="toggle"><input id="blogDraftSelectAll" type="checkbox" /><span>全选当前筛选</span></label>
+            <label>语言 <select id="blogDraftLocale"><option value="">全部语言</option></select></label>
+            <label>搜索 <input id="blogDraftSearch" type="search" placeholder="标题或页面标识" /></label>
             <button class="button secondary" id="blogDraftRefreshButton" type="button">刷新草稿</button>
             <button class="button" id="blogDraftApproveButton" type="button">一键审核选中草稿</button>
+            <button class="button danger" id="blogDraftDeleteButton" type="button" disabled>一键删除选中草稿</button>
             <span class="status" id="blogDraftStatus">草稿列表未加载。</span>
           </div>
           <div class="history" id="blogDraftList"></div>

@@ -1,3 +1,4 @@
+import { lockDraftRecord, markRejectedDispatch } from '../../../../../lib/manager/draft-records';
 import type { APIRoute } from 'astro';
 import { getRuntimeEnv, requireManagerAccess } from '../../../../../lib/manager/access';
 import {
@@ -79,6 +80,8 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
   const requestId = createRequestId('manager-blog');
   const actionsUrl = workflowRunsUrl(repoFullName, WORKFLOW_FILE);
 
+  if (!await lockDraftRecord(db,'blog',record,access.email,requestId,actionsUrl)) return new Response('草稿已更新或任务正在执行，请刷新。',{status:409});
+
   try {
     await dispatchWorkflow({
       accessToken: dispatchToken,
@@ -94,25 +97,13 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
       userAgent: 'businessweb-manager-content-portal',
     });
   } catch (error) {
+    await markRejectedDispatch(db,'blog',draftId,requestId,error);
     void githubErrorText(error);
-    return new Response('提交内容更新失败，请稍后重试。', {
+    return new Response('提交结果尚未确认，请先刷新任务记录；不要重复应用。', {
       status: 502,
       headers: { 'cache-control': 'no-store', 'content-type': 'text/plain; charset=utf-8' },
     });
   }
-
-  await db
-    .prepare(
-      `UPDATE manager_blog_drafts
-       SET status = 'queued',
-        updated_by = ?,
-        updated_at = ?,
-        workflow_request_id = ?,
-        workflow_url = ?
-       WHERE id = ?`
-    )
-    .bind(access.email, new Date().toISOString(), requestId, actionsUrl, draftId)
-    .run();
 
   return new Response(
     JSON.stringify({

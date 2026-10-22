@@ -1,3 +1,4 @@
+import { confirmDialog } from '../../lib/admin-dialog.mjs';
 export function installTranslations(context) {
   const translationDraftTabForType = type => (type === 'blog' ? 'blog-drafts' : 'product-drafts');
 
@@ -384,63 +385,68 @@ export function installTranslations(context) {
           empty: '当前没有需要显示的产品翻译草稿',
         };
 
-  const renderTranslationDrafts = (type, drafts) => {
-    const ui = draftUi(type);
-    context.$(ui.list).innerHTML = drafts.length
-      ? drafts
-          .map(
-            draft => `
-              <div class="record translation-record" data-translation-type="${context.escapeHtml(type)}" data-translation-slug="${context.escapeHtml(draft.draftSlug)}">
-                <label>
-                  <input type="checkbox" data-translation-draft="${context.escapeHtml(type)}:${context.escapeHtml(draft.draftSlug)}" />
-                  <span>
-                    <strong>${context.escapeHtml(draft.locale)} · ${context.escapeHtml(draft.title)}</strong>
-                    <small>${context.escapeHtml(draft.typeLabel)} · ${draft.published ? '已审核发布' : '待审核'} · ${context.formatDate(draft.generatedAt)}</small>
-                    <small>源内容：${context.escapeHtml(draft.sourceTitle || draft.sourceSlug)}</small>
-                  </span>
-                </label>
-                <span class="record-actions">
-                  <a class="button secondary" href="${context.escapeHtml(draft.previewUrl)}" data-auth-preview="${context.escapeHtml(draft.previewUrl)}" data-preview-status="${context.escapeHtml(ui.status)}" target="_blank" rel="noreferrer">预览</a>
-                  <button class="button secondary" data-translation-edit="${context.escapeHtml(type)}:${context.escapeHtml(draft.draftSlug)}" type="button">审核编辑</button>
-                </span>
-              </div>
-            `
-          )
-          .join('')
-      : `<div class="notice"><span><strong>${ui.empty}</strong><small>生成多语言草稿完成后再刷新。</small></span></div>`;
+  const draftCache = { blog: [], product: [] };
+  const draftBusy = new Set();
+  const loadSerial = { blog: 0, product: 0 };
+  const visibleTranslationDrafts = type => {
+    const term = context.$(`${type}DraftSearch`).value.trim().toLowerCase();
+    const locale = context.$(`${type}DraftLocale`).value;
+    return draftCache[type].filter(draft => (!locale || draft.locale === locale) && `${draft.title} ${draft.sourceTitle} ${draft.sourceSlug} ${draft.locale}`.toLowerCase().includes(term));
   };
-
+  const selectedTranslationDrafts = type => {
+    const ids = new Set([...context.$(draftUi(type).list).querySelectorAll('input[data-translation-draft]:checked')].map(input => input.dataset.translationDraft.slice(type.length + 1)));
+    return visibleTranslationDrafts(type).filter(draft => ids.has(draft.draftSlug));
+  };
+  const syncTranslationSelection = type => {
+    const visible = visibleTranslationDrafts(type), chosen = selectedTranslationDrafts(type), busy = draftBusy.has(type);
+    const all = context.$(`${type}DraftSelectAll`);
+    all.checked = !!visible.length && chosen.length === visible.length;
+    all.indeterminate = chosen.length > 0 && chosen.length < visible.length;
+    all.disabled = busy || !visible.length;
+    context.$(`${type}DraftApproveButton`).disabled = busy || !chosen.some(draft => !draft.published);
+    context.$(`${type}DraftDeleteButton`).disabled = busy || !chosen.length || chosen.some(draft => !draft.deleteAction);
+    for (const suffix of ['IncludePublished','RefreshButton','Locale','Search']) context.$(`${type}Draft${suffix}`).disabled = busy;
+    context.$(draftUi(type).list).querySelectorAll('button,input').forEach(node => { node.disabled = busy || node.hasAttribute('data-delete-unavailable'); });
+  };
+  const renderTranslationDrafts = (type, drafts = draftCache[type]) => {
+    draftCache[type] = drafts;
+    const ui = draftUi(type);
+    const visible = visibleTranslationDrafts(type);
+    context.$(ui.list).innerHTML = visible.length ? visible.map(draft => `
+      <div class="record translation-record" data-translation-type="${context.escapeHtml(type)}" data-translation-slug="${context.escapeHtml(draft.draftSlug)}">
+        <label><input type="checkbox" data-translation-draft="${type}:${context.escapeHtml(draft.draftSlug)}" aria-label="选择 ${context.escapeHtml(draft.title)}" /><span><strong>${context.escapeHtml(draft.locale)} · ${context.escapeHtml(draft.title)}</strong><small>${draft.published ? '已审核 · 待发布' : '待审核'} · ${context.formatDate(draft.generatedAt)}</small><small>原文：${context.escapeHtml(draft.sourceTitle || draft.sourceSlug)}</small></span></label>
+        <span class="record-actions"><a class="button secondary" href="${context.escapeHtml(draft.previewUrl)}" data-auth-preview="${context.escapeHtml(draft.previewUrl)}" data-preview-status="${ui.status}" target="_blank" rel="noreferrer">预览</a><button class="button secondary" data-translation-edit="${type}:${context.escapeHtml(draft.draftSlug)}" type="button">审核编辑</button><button class="button danger" data-translation-delete="${type}:${context.escapeHtml(draft.draftSlug)}" ${!draft.deleteAction ? 'disabled data-delete-unavailable' : ''} type="button">${draft.deleteAction === 'restore' ? '撤销改稿' : '删除'}</button></span>
+      </div>`).join('') : `<div class="notice"><span><strong>${ui.empty}</strong><small>已上线内容请到${type === 'blog' ? '所有文章' : '产品管理'}中按语言编辑。</small></span></div>`;
+    syncTranslationSelection(type);
+  };
   const loadTranslationDrafts = async type => {
-    const ui = draftUi(type);
+    const serial = ++loadSerial[type], ui = draftUi(type);
     context.setStatus(ui.status, '正在加载翻译草稿...');
-    const includePublished = context.$(ui.include).checked ? 'true' : 'false';
-    const data = await context.requestJson(`/api/manager/ai/drafts?type=${encodeURIComponent(type)}&includePublished=${includePublished}`);
-    context.state.translationDrafts = data.drafts || [];
-    renderTranslationDrafts(type, context.state.translationDrafts);
-    const warning = data.warning ? ` ${data.warning}` : '';
-    context.setStatus(ui.status, `待审核 ${data.counts?.pending || 0} 条，当前显示 ${data.counts?.visible || context.state.translationDrafts.length} 条。${warning}`);
+    const data = await context.requestJson(`/api/manager/ai/drafts?type=${type}&includePublished=${context.$(ui.include).checked}`);
+    if (serial !== loadSerial[type]) return;
+    draftCache[type] = data.drafts || [];
+    const localeSelect = context.$(`${type}DraftLocale`), oldLocale = localeSelect.value;
+    localeSelect.innerHTML = '<option value="">全部语言</option>' + [...new Set(draftCache[type].map(draft => draft.locale))].map(code => `<option value="${context.escapeHtml(code)}">${context.escapeHtml(code)}</option>`).join('');
+    localeSelect.value = [...localeSelect.options].some(item => item.value === oldLocale) ? oldLocale : '';
+    renderTranslationDrafts(type);
+    context.setStatus(ui.status, `待审核 ${data.counts?.pending || 0} 条，已审待发布 ${data.counts?.published || 0} 条，已上线 ${data.counts?.live || 0} 条；当前显示 ${visibleTranslationDrafts(type).length} 条。 ${data.warning || ''}`);
   };
-
-  const approveTranslationDrafts = async type => {
-    const ui = draftUi(type);
-    const drafts = [...document.querySelectorAll(`[data-translation-draft^="${type}:"]:checked`)].map(input =>
-      input.dataset.translationDraft.replace(`${type}:`, '')
-    );
-    if (!drafts.length) {
-      context.setStatus(ui.status, '请先勾选需要审核的草稿。', true);
-      return;
-    }
-    context.setStatus(ui.status, '正在审核选中草稿...');
-    const data = await context.requestJson('/api/manager/ai/drafts', {
-      method: 'PATCH',
-      body: JSON.stringify({ type, drafts }),
-    });
-    if (data.errors?.length) {
-      context.setStatus(ui.status, `审核完成但有 ${data.errors.length} 个错误，请检查草稿。`, true);
-    } else {
-      context.setStatus(ui.status, `已审核 ${data.approved?.length || 0} 个草稿。`);
-    }
-    await loadTranslationDrafts(type);
+  const mutateTranslationDrafts = async (type, action, rows = selectedTranslationDrafts(type)) => {
+    if (draftBusy.has(type)) return;
+    const targets = action === 'approve' ? rows.filter(draft => !draft.published) : rows;
+    if (!targets.length) return;
+    if (action === 'delete' && !await confirmDialog(`请确认以下 ${targets.length} 项：\n${targets.map(draft => `${draft.locale} · ${draft.title} (${draft.draftSlug})：${draft.deleteAction === 'restore' ? '撤销未上线修改，恢复线上版本' : '删除未上线新稿'}`).join('\n')}\n正式线上内容和共享媒体保持。`)) return;
+    draftBusy.add(type); syncTranslationSelection(type);
+    try {
+      await context.requestJson('/api/manager/ai/drafts', { method: action === 'delete' ? 'DELETE' : 'PATCH', body: JSON.stringify({type, confirmed:action === 'delete', drafts:targets.map(({draftSlug,sourceSha}) => ({draftSlug,sourceSha}))}) });
+      await loadTranslationDrafts(type);
+    } finally { draftBusy.delete(type); syncTranslationSelection(type); }
+  };
+  const approveTranslationDrafts = type => mutateTranslationDrafts(type, 'approve');
+  const deleteTranslationDrafts = type => mutateTranslationDrafts(type, 'delete');
+  const toggleAllTranslationDrafts = (type, checked) => {
+    context.$(draftUi(type).list).querySelectorAll('input[data-translation-draft]').forEach(input => { input.checked = checked; });
+    syncTranslationSelection(type);
   };
 
   const setTranslationEditorOpen = open => {
@@ -460,7 +466,7 @@ export function installTranslations(context) {
     const data = draft.data || {};
     const isProduct = draft.type === 'product';
     const editable = draft.editable !== false;
-    context.$('translationEditorTitle').textContent = `${draft.typeLabel}翻译草稿`;
+    context.$('translationEditorTitle').textContent = `${draft.typeLabel}${context.state.translationEditor.returnTab === 'products' || context.state.translationEditor.returnTab === 'blog' ? '译文 · 保存后等待网站发布' : '翻译草稿'}`;
     context.$('translationEditorPreviewLink').href = draft.previewUrl || '#';
     context.$('translationEditorPreviewLink').dataset.authPreview = draft.previewUrl || '';
     context.$('translationEditorPreviewLink').dataset.previewStatus = 'translationEditorStatus';
@@ -493,9 +499,9 @@ export function installTranslations(context) {
     );
   };
 
-  const openTranslationDraftEditor = async (type, draftSlug) => {
+  const openTranslationDraftEditor = async (type, draftSlug, formalReturnTab = '') => {
     const ui = draftUi(type);
-    const returnTab = translationDraftTabForType(type);
+    const returnTab = formalReturnTab || translationDraftTabForType(type);
     context.state.translationEditor = { type, draftSlug, draft: null, returnTab };
     context.setStatus(ui.status, '正在读取翻译草稿...');
     context.setStatus('translationEditorStatus', '正在读取翻译草稿...');
@@ -588,6 +594,7 @@ export function installTranslations(context) {
       body: JSON.stringify({
         type,
         draftSlug,
+        sourceSha: draft.sourceSha,
         data,
         body: context.getRichTextValue('translationEditBody'),
       }),
@@ -599,6 +606,13 @@ export function installTranslations(context) {
   };
 
   const handleTranslationDraftListClick = event => {
+    const deleteButton = event.target.closest('[data-translation-delete]');
+    if (deleteButton) {
+      const [type, id] = deleteButton.dataset.translationDelete.split(':');
+      const draft = draftCache[type]?.find(item => item.draftSlug === id);
+      if(draft) mutateTranslationDrafts(type,'delete',[draft]).catch(error => context.setStatus(draftUi(type).status,error.message,true));
+      return;
+    }
     const editButton = event.target.closest('[data-translation-edit]');
     if (editButton) {
       const [type, draftSlug] = editButton.dataset.translationEdit.split(':');
@@ -651,5 +665,5 @@ export function installTranslations(context) {
     clearInterval(context.state.translationTimer);
     context.state.translationTimer = setInterval(() => pollTranslationStatus().catch(error => context.setStatus('translationStatus', error.message, true)), 8000);
   };
-  Object.assign(context, { translationDraftTabForType, setTranslationFormData, renderTranslationSingleTextList, renderTranslationSpecs, renderTranslationFaqs, renderTranslationSpecTables, renderTranslationProductBuilders, syncTranslationFormInput, handleTranslationAction, renderLocaleOptions, loadTranslationLocales, localeInputs, syncLocaleBulkControls, setAllLocales, invertLocales, selectedLocales, translationOutcomeLabel, translationOutcomeMessage, renderTranslationItems, renderTranslationResult, generatedTranslationDraftTypes, requestedTranslationDraftTypes, refreshCompletedTranslationDrafts, draftUi, renderTranslationDrafts, loadTranslationDrafts, approveTranslationDrafts, setTranslationEditorOpen, closeTranslationEditor, fillTranslationEditor, openTranslationDraftEditor, cleanTranslationStrings, cleanTranslationSpecs, cleanTranslationFaqs, cleanTranslationSpecTables, saveTranslationDraftEditor, handleTranslationDraftListClick, pollTranslationStatus, submitTranslation });
+  Object.assign(context, { translationDraftTabForType, setTranslationFormData, renderTranslationSingleTextList, renderTranslationSpecs, renderTranslationFaqs, renderTranslationSpecTables, renderTranslationProductBuilders, syncTranslationFormInput, handleTranslationAction, renderLocaleOptions, loadTranslationLocales, localeInputs, syncLocaleBulkControls, setAllLocales, invertLocales, selectedLocales, translationOutcomeLabel, translationOutcomeMessage, renderTranslationItems, renderTranslationResult, generatedTranslationDraftTypes, requestedTranslationDraftTypes, refreshCompletedTranslationDrafts, draftUi, visibleTranslationDrafts, syncTranslationSelection, toggleAllTranslationDrafts, deleteTranslationDrafts, renderTranslationDrafts, loadTranslationDrafts, approveTranslationDrafts, setTranslationEditorOpen, closeTranslationEditor, fillTranslationEditor, openTranslationDraftEditor, cleanTranslationStrings, cleanTranslationSpecs, cleanTranslationFaqs, cleanTranslationSpecTables, saveTranslationDraftEditor, handleTranslationDraftListClick, pollTranslationStatus, submitTranslation });
 }

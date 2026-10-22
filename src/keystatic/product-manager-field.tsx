@@ -1,3 +1,4 @@
+import { confirmDeletionPlan } from '../lib/admin-dialog.mjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getKeystaticBasePath } from './keystatic-path';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
@@ -11,6 +12,7 @@ type ProductSummary = {
   image: string;
   sortOrder: number;
   published: boolean;
+  locale?: string; sourceSlug?:string; sourcePath?:string; sourceSha?:string; publicUrl?:string; editPath?:string; lifecycle?:string;
 };
 
 type ProductManagerResponse = {
@@ -28,7 +30,6 @@ type SaveState = {
   message: string;
 };
 
-const fallbackImage = 'https://cdn.example.com/logo1.svg';
 const pageSize = 12;
 
 const getProductEditUrl = (slug: string) => {
@@ -40,6 +41,10 @@ function ProductManagerInput() {
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const [state, setState] = useState<LoadState>({ kind: 'idle' });
   const [products, setProducts] = useState<ProductSummary[]>([]);
+  const [language,setLanguage]=useState('en');
+  const [selected,setSelected]=useState<Set<string>>(new Set());
+  const [deleting,setDeleting]=useState(false);
+  const allRef=useRef<HTMLInputElement|null>(null);
   const [category, setCategory] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -57,7 +62,10 @@ function ProductManagerInput() {
       }
 
       const data = (await response.json()) as ProductManagerResponse;
-      setProducts(data.products);
+      const extra = (data as any).translations || [];
+      setProducts([...data.products.map(product=>({...product,locale:'en'})),...extra]);
+      setSelected(new Set());
+      if((data as any).warning) setSaveState({kind:'error',message:(data as any).warning});
       setState({ kind: 'ready', data });
     } catch (error) {
       setState({
@@ -73,19 +81,21 @@ function ProductManagerInput() {
 
   useEffect(() => {
     setPage(1);
-  }, [category, query]);
+    setSelected(new Set());
+  }, [category, query, language]);
 
   const categories = state.kind === 'ready' ? state.data.categories : [];
   const normalizedQuery = query.trim().toLowerCase();
   const filteredProducts = useMemo(
     () =>
       products.filter(product => {
+        if(language && (product.locale || 'en') !== language) return false;
         const categoryMatches = !category || product.category === category;
         if (!categoryMatches) return false;
         if (!normalizedQuery) return true;
         return [product.title, product.series, product.category].some(value => value.toLowerCase().includes(normalizedQuery));
       }),
-    [category, normalizedQuery, products]
+    [category, normalizedQuery, products, language]
   );
   const sortedProducts = useMemo(
     () => [...filteredProducts].sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title)),
@@ -125,29 +135,15 @@ function ProductManagerInput() {
     void saveQueueRef.current;
   };
 
-  const deleteProduct = async (product: ProductSummary) => {
-    const confirmed = window.confirm(`确定删除产品“${product.title}”吗？此操作会删除该产品内容。`);
-    if (!confirmed) return;
-
-    setSaveState({ kind: 'idle', message: '' });
-
+  const selectedProducts=sortedProducts.filter(product=>selected.has(product.sourcePath || ''));
+  const allSelected=sortedProducts.length>0&&selectedProducts.length===sortedProducts.length;
+  useEffect(()=>{if(allRef.current)allRef.current.indeterminate=selectedProducts.length>0&&!allSelected;},[selectedProducts.length,allSelected]);
+  const deleteProduct = async (product?:ProductSummary) => {
+    const rows=product?[product]:selectedProducts;if(deleting||!rows.length)return;const returnFocus=document.activeElement;setDeleting(true);
     try {
-      const response = await fetch('/api/products/manager', {
-        method: 'DELETE',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ id: product.id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('delete failed');
-      }
-
-      setProducts(current => current.filter(item => item.id !== product.id));
-    } catch {
-      setSaveState({ kind: 'error', message: '删除产品失败，请稍后重试。' });
-    }
+      const response=await fetch('/api/products/deletion',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({selection:rows.map(({sourcePath,sourceSha})=>({sourcePath,sourceSha}))})});if(!response.ok)throw new Error(await response.text());const plan=await response.json();if(!await confirmDeletionPlan(plan,{returnFocus}))return;
+      const deleted=await fetch('/api/products/deletion',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({...plan,confirmed:true})});if(!deleted.ok)throw new Error(await deleted.text());const result=await deleted.json();await loadProducts();setSaveState({kind:'idle',message:result.message});
+    }catch(error){setSaveState({kind:'error',message:error instanceof Error?error.message:'删除未完成，请刷新。'});}finally{setDeleting(false);}
   };
 
   return (
@@ -160,12 +156,13 @@ function ProductManagerInput() {
         </div>
         <div className="product-manager__summary" aria-label="产品状态概览">
           <span><strong>{products.length}</strong><small>全部产品</small></span>
-          <span><strong>{onlineCount}</strong><small>已上线</small></span>
-          <span><strong>{offlineCount}</strong><small>已下线</small></span>
+          <span><strong>{onlineCount}</strong><small>允许公开</small></span>
+          <span><strong>{offlineCount}</strong><small>已设为隐藏</small></span>
         </div>
       </header>
 
       <div className="product-manager__toolbar">
+        <label><span>内容语言</span><select disabled={deleting} value={language} onChange={event=>setLanguage(event.target.value)}><option value="">全部公开语言</option>{[...new Set(products.map(product=>product.locale || 'en'))].map(locale=><option key={locale}>{locale}</option>)}</select></label>
         <label>
           <span>产品分类</span>
           <select value={category} onChange={event => setCategory(event.currentTarget.value)}>
@@ -188,9 +185,10 @@ function ProductManagerInput() {
         </label>
       </div>
 
+      <div className="product-manager__bulk"><label><input ref={allRef} type="checkbox" disabled={deleting||!sortedProducts.length||sortedProducts.some(product=>!product.sourceSha)} checked={allSelected} onChange={event=>setSelected(new Set(event.target.checked?sortedProducts.map(product=>product.sourcePath || ''):[]))} />全选当前筛选（全部分页 {sortedProducts.length} 项）</label><span>已选 {selectedProducts.length} 项</span><button type="button" disabled={deleting||!selectedProducts.length} onClick={()=>setSelected(new Set())}>清空选择</button><button type="button" className="product-manager__danger" disabled={deleting||!selectedProducts.length} onClick={()=>void deleteProduct()}>删除选中产品</button></div>
       {state.kind === 'loading' ? <div className="product-manager__notice">正在加载产品...</div> : null}
       {state.kind === 'error' ? <div className="product-manager__notice product-manager__notice--error">{state.message}</div> : null}
-      {saveState.kind !== 'idle' ? (
+      {saveState.message ? (
         <div className={`product-manager__notice product-manager__notice--${saveState.kind}`}>{saveState.message}</div>
       ) : null}
 
@@ -209,33 +207,33 @@ function ProductManagerInput() {
           <span>操作</span>
         </div>
         {pageProducts.map(product => {
-          const editUrl = getProductEditUrl(product.slug);
+          const editUrl = product.editPath ? `${getKeystaticBasePath().split('/branch/')[0]}${product.editPath}` : getProductEditUrl(product.slug);
 
           return (
             <div key={product.id} className="product-manager__row">
-              <a className="product-manager__image-link" href={editUrl} aria-label={`编辑 ${product.title}`}>
-                <img src={product.image || fallbackImage} alt="" loading="lazy" />
-              </a>
+              <span className="product-manager__media"><input type="checkbox" disabled={deleting||!product.sourceSha} aria-label={`选择 ${product.locale || 'en'} ${product.title}`} checked={selected.has(product.sourcePath || '')} onChange={event=>{const checked=event.target.checked;setSelected(current=>{const next=new Set(current);if(checked)next.add(product.sourcePath || '');else next.delete(product.sourcePath || '');return next;});}} /><a className="product-manager__image-link" href={editUrl} aria-label={`编辑 ${product.title}`}>
+                {product.image ? <img src={product.image} alt="" loading="lazy" /> : <span className="product-manager__empty-image">暂无图片</span>}
+              </a></span>
               <div className="product-manager__row-main">
                 <a className="product-manager__edit-link" href={editUrl}>
                   {product.title}
                 </a>
-                <span>{product.series || '-'}</span>
+                <span>{product.locale || 'en'} · {product.series || '-'}</span>
               </div>
               <span className="product-manager__category">{product.category}</span>
               <span className="product-manager__actions">
-                <label className={`product-manager__publish-check product-manager__publish-check--${product.published ? 'on' : 'off'}`}>
+                {product.locale && product.locale !== 'en' ? <span>{product.lifecycle === 'live' ? '已上线' : '有待发布修改'}</span> : <label className={`product-manager__publish-check product-manager__publish-check--${product.published ? 'on' : 'off'}`}>
                   <input
                     type="checkbox"
                     checked={product.published}
                     onChange={event => updatePublication(product.id, event.currentTarget.checked)}
                   />
-                  <span>{product.published ? '已上线' : '已下线'}</span>
-                </label>
-                <a href={`/products/${product.slug}/`} target="_blank" rel="noreferrer">
+                  <span>{product.published ? '允许公开' : '已设为隐藏'}</span>
+                </label>}
+                <a href={product.publicUrl || `/products/${product.slug}/`} target="_blank" rel="noreferrer">
                   前端查看
                 </a>
-                <button type="button" className="product-manager__danger" onClick={() => deleteProduct(product)}>
+                <button type="button" className="product-manager__danger" disabled={deleting||!product.sourceSha} onClick={() => void deleteProduct(product)}>
                   删除
                 </button>
               </span>
@@ -265,6 +263,12 @@ function ProductManagerInput() {
       {!pageProducts.length && state.kind === 'ready' ? <div className="product-manager__notice">没有匹配的产品。</div> : null}
 
       <style>{`
+        .product-manager__bulk{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border:1px solid var(--pm-border);border-radius:8px;background:var(--pm-panel)}
+        .product-manager__bulk label{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .product-manager__empty-image{display:grid;place-items:center;min-height:72px;font-size:12px;color:var(--pm-muted)}
+        .product-manager__bulk button{border:1px solid var(--pm-border);padding:8px 12px;border-radius:6px;background:var(--pm-panel);color:var(--pm-text)}
+        .product-manager__media{display:flex;align-items:center;gap:8px;min-width:0}.product-manager__media input{width:18px;height:18px;flex:0 0 18px}.product-manager__media .product-manager__image-link{width:72px;height:72px}
+
         .product-manager {
           --pm-table-columns: 104px minmax(320px, 1fr) minmax(180px, 0.42fr) minmax(252px, max-content);
           --pm-bg: #ffffff;
@@ -384,7 +388,7 @@ function ProductManagerInput() {
           border-radius: 8px;
           display: grid;
           gap: 12px;
-          grid-template-columns: minmax(220px, 0.7fr) minmax(300px, 1fr);
+          grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
           padding: 12px;
         }
 
@@ -637,12 +641,12 @@ function ProductManagerInput() {
 
         .product-manager .product-manager__danger {
           border-color: #ffc9c7;
-          color: #a61b1b;
+          color: light-dark(#a61b1b,#fda29b);
         }
 
         .product-manager .product-manager__danger:hover {
-          background: #fff1f0;
-          border-color: #ff7875;
+          background: light-dark(#fff1f0,#4c2023);
+          border-color: light-dark(#ff7875,#fda29b);
         }
 
         .product-manager__pager button,
@@ -659,6 +663,7 @@ function ProductManagerInput() {
         }
 
         @media (max-width: 900px) {
+          .product-manager__table-head {display:none}
           .product-manager {
             max-width: 100%;
             width: 100%;
@@ -683,6 +688,7 @@ function ProductManagerInput() {
             width: auto;
           }
         }
+        .product-manager input[type=checkbox]{box-sizing:border-box;width:18px;height:18px;min-height:0;padding:0;margin:0;flex:0 0 18px;accent-color:#0891b2}
       `}</style>
     </div>
   );

@@ -23,6 +23,7 @@ const { managerReviewSystemEnabled } = Astro.props;
               </div>
             </header>
             <div class="product-manager-toolbar">
+              <label><span>内容语言</span><select id="productLanguageFilter"><option value="en">English</option><option value="">全部公开语言</option></select></label>
               <label>
                 <span>产品分类</span>
                 <select id="categoryFilter">
@@ -119,7 +120,7 @@ const { managerReviewSystemEnabled } = Astro.props;
               </div>
               <div class="field is-wide">
                 <label for="productContent">详细内容</label>
-                <textarea id="productContent" name="productContent" style="min-height: 420px;" placeholder="这里对应产品详情页的详细内容正文。可以粘贴图片池链接或 Markdoc 内容。"></textarea>
+                <textarea id="productContent" name="productContent" style="min-height: 420px;" placeholder="这里对应产品详情页的详细内容正文。可使用上方编辑工具或从媒体资源中插入图片。"></textarea>
               </div>
               <div class="field is-wide">
                 <label>首页推荐</label>

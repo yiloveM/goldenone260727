@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import YAML from 'yaml';
@@ -66,6 +67,10 @@ featured: false
 `;
 }
 
+if (!isNewProduct) {
+  const normalized=source.replace(/\r\n/g,'\n'),actual=createHash('sha1').update(`blob ${Buffer.byteLength(normalized)}\0${normalized}`).digest('hex');
+  if (!payload.sourceSha || payload.sourceSha !== actual) fail('Product changed or this draft predates version checks. Reopen the current product and save again.');
+}
 const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
 if (!match) {
   fail(`Product file is missing frontmatter: ${productPath}`);
@@ -197,3 +202,5 @@ function normalizeSpecTables(value) {
     }))
     .filter(table => table.title || table.columns.length || table.rows.length);
 }
+
+if(process.env.GITHUB_OUTPUT) await fs.appendFile(process.env.GITHUB_OUTPUT, `content_path=src/content/products/${productSlug}.mdoc\n`);

@@ -3,16 +3,19 @@
           <aside class="panel manager-view is-visible" id="blogBrowserView">
             <div class="panel-head">
               <div>
-                <h2>博客</h2>
+                <h2>所有文章</h2>
                 <span id="blogCount">加载中</span>
               </div>
               <button class="button secondary" id="newBlogButton" type="button">新建文章草稿</button>
             </div>
             <div class="toolbar is-row">
+              <label>内容语言 <select id="blogLanguageFilter"><option value="en">English</option><option value="">全部公开语言</option></select></label>
+              <label>文章分类 <select id="blogCategoryFilter"><option value="">全部分类</option><option value="company-news">公司新闻动态</option><option value="technical-articles">技术文章</option><option value="other-articles">其它文章</option></select></label>
               <input id="blogSearchInput" type="search" placeholder="搜索文章标题或分类" />
               <button class="button secondary" id="blogRefreshButton" type="button">刷新文章</button>
             </div>
             <div class="blog-list" id="blogList"></div>
+            <p class="status" id="blogCatalogStatus" role="status"></p>
           </aside>
 
           <section class="panel manager-view" id="blogEditorView">
@@ -21,7 +24,7 @@
                 <h2>文章草稿</h2>
                 <span>支持文章标题、封面、摘要、分类、发布日期和正文。</span>
               </div>
-              <button class="button secondary" id="blogBackButton" type="button">返回博客列表</button>
+              <button class="button secondary" id="blogBackButton" type="button">返回所有文章列表</button>
             </div>
             <form class="form" id="blogForm">
               <div class="field">
@@ -32,26 +35,26 @@
                 <label for="blogSlug">文章页面标识</label>
                 <input id="blogSlug" readonly />
               </div>
-              <div class="field">
+              <div class="field" id="blogCategoryField">
                 <label for="blogCategory">文章分类</label>
-                <input id="blogCategory" required />
+                <select id="blogCategory" required><option value="company-news">公司新闻动态</option><option value="technical-articles">技术文章</option><option value="other-articles">其它文章</option></select>
               </div>
-              <div class="field">
+              <div class="field" id="blogPublishDateField">
                 <label for="blogPublishDate">发布时间</label>
                 <input id="blogPublishDate" type="datetime-local" required />
               </div>
-              <div class="field">
+              <div class="field" id="blogAuthorField">
                 <label for="blogAuthor">作者</label>
                 <input id="blogAuthor" />
               </div>
-              <div class="field">
+              <div class="field" id="blogFeaturedField">
                 <label>首页推荐</label>
                 <span class="toggle">
                   <input id="blogFeatured" type="checkbox" />
                   <span>推荐显示该文章</span>
                 </span>
               </div>
-              <div class="field is-wide">
+              <div class="field is-wide" id="blogImageField">
                 <label for="blogImage">文章封面链接</label>
                 <div class="input-action">
                   <input id="blogImage" placeholder="可从图片池选择或粘贴图片链接" />
@@ -62,7 +65,7 @@
                 <label for="blogDescription">文章摘要</label>
                 <textarea id="blogDescription" required></textarea>
               </div>
-              <div class="field is-wide">
+              <div class="field is-wide" id="blogBodyField">
                 <label for="blogBody">文章正文</label>
                 <textarea id="blogBody" required style="min-height: 420px;"></textarea>
               </div>
@@ -71,9 +74,9 @@
               <button class="button" id="saveBlogDraftButton" type="button">保存文章草稿</button>
               <button class="button secondary" id="reloadBlogDraftButton" type="button">刷新草稿</button>
               <a class="button secondary" id="viewBlogButton" href="#" target="_blank" rel="noreferrer">前端查看</a>
-              <span class="status" id="blogStatus">请选择一篇文章。</span>
             </div>
             <div class="drafts" id="blogDraftWorkList"></div>
           </section>
         </div>
+        <p class="status" id="blogStatus" role="status">请选择一篇文章。</p>
       </section>

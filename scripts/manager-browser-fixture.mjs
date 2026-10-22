@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import ts from 'typescript';
 import YAML from 'yaml';
+import { createHash } from 'node:crypto';
 import { productDraftReviewFields, retainUneditedProductReviews, enforceProductEditorPolicy } from '../src/lib/product-editor.mjs';
 
 export const testUuid = '11111111-2222-4333-8444-555555555555';
@@ -24,7 +25,7 @@ async function copyTree(source, target) {
 
 export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true) {
   const fixture = resolve(output, label);
-  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/data/customerReviews.ts']) {
+  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
     const source = await readFile(resolve(root, file), 'utf8');
     await write(resolve(fixture, file), file.endsWith('index.astro') ? source.replace("if (config) initializeManager(JSON.parse(config.textContent || '{}'));", "if (config) { initializeManager(JSON.parse(config.textContent || '{}')); initializeManager(JSON.parse(config.textContent || '{}')); }") : source);
   }
@@ -60,12 +61,12 @@ export async function managerBackend(root, output) {
     published: true, featured: false, image: '/fixture-image.svg', galleryImages: [], detailImages: [], applications: [], specs: [], specTables: [], highlights: [], faqs: [],
     reviews: [{ buyerLabel: 'Existing buyer', rating: '4', quote: 'Preserved draft feedback.', published: true }], content: 'Original service body.' });
   const products = Array.from({ length: 14 }, (_, index) => sample(index));
-  const blogs = [{ slug: 'sample-article', title: 'Planning a website', description: 'Planning description.', category: 'Guides', image: '/fixture-image.svg', published: true, publishDate: date, body: 'Article body.' }];
+  const blogs = [{ slug: 'sample-article', title: 'Planning a website', description: 'Planning description.', category: 'technical-articles', image: '/fixture-image.svg', published: true, publishDate: date, body: 'Article body.' }];
   const assets = new Map([['product.png', { name: 'product.png', key: 'product.png', url: '/fixture-image.svg', size: 400, isImage: true }],
     ['catalog.pdf', { name: 'catalog.pdf', key: 'catalog.pdf', url: '/fixture.pdf', size: 200, isDocument: true }]]);
   const folders = new Set(['images/']);
   const translationDrafts = [{ type: 'product', draftSlug: 'es--sample-service', locale: 'es', sourceSlug: 'sample-service', sourceTitle: 'Website design', title: 'Diseño web',
-    typeLabel: '产品', published: false, editable: true, generatedAt: date, previewUrl: `/api/manager/ai/draft-preview?type=product&draft=es--sample-service`,
+    typeLabel: '产品', sourceSha:'1'.repeat(40), deleteAction:'delete', lifecycle:'pending', published: false, editable: true, generatedAt: date, previewUrl: `/api/manager/ai/draft-preview?type=product&draft=es--sample-service`,
     data: { title: 'Diseño web', description: 'Descripción', categoryName: 'Sitios web', series: '', published: false, specs: [], highlights: [], faqs: [] }, body: 'Contenido traducido.' }];
   const requests = [];
   const records = [];
@@ -74,6 +75,10 @@ export async function managerBackend(root, output) {
   await write(resolve(content, 'src/content/products/sample-service.mdoc'), `---\n${YAML.stringify({ ...products[0], customerField: 'preserve' })}---\nOriginal service body.\n`);
   await write(resolve(content, 'src/content/blog/sample-article.mdoc'), `---\n${YAML.stringify({ ...blogs[0], customerField: 'preserve' })}---\nOriginal article body.\n`);
   await write(resolve(content, 'src/data/customer-reviews.json'), '{"enabled":true,"summary":{},"reviews":[]}');
+  const contentSha = async file => { const text=(await readFile(resolve(content,file),'utf8')).replace(/\r\n/g,'\n');return createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0${text}`).digest('hex'); };
+  for(const product of products)Object.assign(product,{locale:'en',sourcePath:`src/content/products/${product.slug}.mdoc`,sourceSha:createHash('sha1').update(product.slug).digest('hex')});
+  products[0].sourceSha=await contentSha(products[0].sourcePath);
+  Object.assign(blogs[0],{locale:'en',sourcePath:'src/content/blog/sample-article.mdoc',sourceSha:await contentSha('src/content/blog/sample-article.mdoc')});
   const applyScript = (script, variables) => {
     const applied = spawnSync(process.execPath, [resolve(root, 'scripts', script)], { cwd: content, encoding: 'utf8', env: { ...process.env, ...variables } });
     if (applied.status !== 0) throw new Error('Fixture write-back failed: ' + applied.stderr);
@@ -95,19 +100,25 @@ export async function managerBackend(root, output) {
     if (!authenticated) throw Object.assign(new Error('登录已过期，请重新登录。'), { status: 403 });
     if (failedApis.delete(pathname)) throw new Error('连接暂时失败，请重试。');
     if (pathname.endsWith('/status')) return { ok: true, manager: { email: 'editor@example.test' }, checks: [] };
+    if (/\/(product|blog)-deletion$/.test(pathname)) {
+      const product=pathname.endsWith('/product-deletion'),list=product?products:blogs;
+      if(method==='POST')return {head:'a'.repeat(40),kind:product?'product':'article',records:list.filter(row=>body.selection.some(item=>item.sourcePath===row.sourcePath)).map(row=>({...row,publicUrl:row.publicUrl||`https://fixture.test/${product?'products':'news'}/${row.slug}.html`}))};
+      const paths=new Set(body.records.map(item=>item.sourcePath));for(let index=list.length-1;index>=0;index--)if(paths.has(list[index].sourcePath))list.splice(index,1);return {removed:paths.size,message:'删除已保存，下次发布后生效。'};
+    }
     if (pathname.endsWith('/products')) return { products, categories: [...new Set(products.map(product => product.category))], editorPolicy: policy };
-    if (pathname.endsWith('/blog')) return { posts: blogs };
+    if (pathname.endsWith('/blog')) return search.has('slug') ? {post:blogs.find(post=>post.slug===search.get('slug'))} : { posts: blogs };
     if (/\/(product|blog)-drafts$/.test(pathname)) {
       const type = pathname.includes('/blog-') ? 'blog' : 'product';
       if (method === 'GET') return { drafts: draftRows(type) };
+      if (method === 'DELETE') { for (const row of body.records) db.prepare(`DELETE FROM manager_${type}_drafts WHERE id=? AND updated_at=?`).run(row.id,row.updatedAt); return {removed:body.records.length}; }
       if (failSave) { failSave = false; throw new Error('保存暂时失败，请重试。'); }
       const old = body.id ? draftRows(type).find(item => item.id === body.id)?.payload : undefined;
       const normalized = type === 'product' ? normalizer.normalizeProductDraftPayload(productDraftReviewFields(body.payload, reviewsEnabled)) : normalizer.normalizeBlogDraftPayload(body.payload);
       const payload = type === 'product' ? retainUneditedProductReviews(enforceProductEditorPolicy(normalized, policy, products.find(item => item.slug === normalized.productSlug)), old) : normalized;
-      const id = body.id || `draft-${type}-${++sequence}`;
+      const id = body.id || `${type}-fixture-${++sequence}`;
       const slug = type === 'product' ? payload.productSlug : payload.blogSlug;
       const updatedAt = new Date(Date.parse(date) + ++writes).toISOString();
-      db.prepare(`INSERT INTO manager_${type}_drafts (id,${type}_slug,${type}_title,payload_json,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET payload_json=excluded.payload_json, ${type}_title=excluded.${type}_title, updated_at=excluded.updated_at`).run(id, slug, payload.title, JSON.stringify(payload), 'editor', 'editor', updatedAt, updatedAt);
+      db.prepare(`INSERT INTO manager_${type}_drafts (id,${type}_slug,${type}_title,payload_json,created_by,updated_by,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET status='draft', payload_json=excluded.payload_json, ${type}_title=excluded.${type}_title, updated_at=excluded.updated_at`).run(id, slug, payload.title, JSON.stringify(payload), 'editor', 'editor', updatedAt, updatedAt);
       return { draft: draftRows(type).find(item => item.id === id) };
     }
     if (/\/(product|blog)-drafts\/[^/]+\/apply$/.test(pathname)) {
@@ -117,11 +128,13 @@ export async function managerBackend(root, output) {
         applyScript('apply-manager-product-draft.mjs', { MANAGER_PRODUCT_DRAFT_PAYLOAD: Buffer.from(JSON.stringify(draft.payload)).toString('base64'), MANAGER_PRODUCT_DRAFT_ID: draft.id });
         const document = await readFile(resolve(content, `src/content/products/${draft.payload.productSlug}.mdoc`), 'utf8');
         const metadata = YAML.parse(document.split(/^---\s*$/m)[1]);
-        Object.assign(products.find(item => item.slug === draft.payload.productSlug) || {}, metadata);
+        const product=products.find(item => item.slug === draft.payload.productSlug); if(product) Object.assign(product,metadata,{sourceSha:await contentSha(`src/content/products/${draft.payload.productSlug}.mdoc`)});
       } else applyScript('apply-manager-blog-draft.mjs', { MANAGER_BLOG_DRAFT_PAYLOAD: Buffer.from(JSON.stringify(draft.payload)).toString('base64'), MANAGER_BLOG_DRAFT_ID: draft.id });
+      db.prepare(`UPDATE manager_${type}_drafts SET status='applied' WHERE id=?`).run(draft.id);
       return { requestId: 'fixture-write-back' };
     }
     if (pathname.endsWith('/review-drafts')) {
+      if (method === 'DELETE') {for(const row of body.records)db.prepare('DELETE FROM manager_review_drafts WHERE id=? AND updated_at=?').run(row.id,row.updatedAt);return {removed:body.records.length};}
       if (method === 'GET') return { settings: { enabled: reviewsEnabled }, reviews: JSON.parse(await readFile(resolve(content, 'src/data/customer-reviews.json'), 'utf8')).reviews, drafts: draftRows('review') };
       const payload = normalizer.normalizeReviewDraftPayload(body.payload);
       const id = body.id || `review-fixture-${++sequence}`;
@@ -146,9 +159,11 @@ export async function managerBackend(root, output) {
     if (pathname.endsWith('/ai/translations')) return { requestId: 'fixture-translation', message: '已提交。' };
     if (pathname.endsWith('/ai/translation-status')) return { requestId: 'fixture-translation', status: 'completed', conclusion: 'success', message: '翻译完成。', result: { generated: [{ type: 'product', locale: 'es', slug: 'sample-service' }], skipped: [], errors: [] } };
     if (pathname.endsWith('/ai/drafts')) {
+      if (method === 'DELETE') {const ids=new Set(body.drafts.map(item=>item.draftSlug));for(let index=translationDrafts.length-1;index>=0;index--)if(ids.has(translationDrafts[index].draftSlug))translationDrafts.splice(index,1);return {removed:body.drafts};}
+
       const type = search.get('type') || body?.type;
       if (method === 'PUT') { const item = translationDrafts.find(item => item.draftSlug === body.draftSlug); Object.assign(item, { data: body.data, title: body.data.title, body: body.body }); return { draft: item }; }
-      if (method === 'PATCH') { for (const item of translationDrafts) if (body.drafts.includes(item.draftSlug)) item.published = true; return { approved: body.drafts, errors: [] }; }
+      if (method === 'PATCH') { for (const item of translationDrafts) if (body.drafts.some(selected=>selected.draftSlug===item.draftSlug)) item.published = true; return { approved: body.drafts, errors: [] }; }
       const draft = translationDrafts.find(item => item.draftSlug === search.get('draft'));
       if (draft) return { draft };
       const drafts = translationDrafts.filter(item => item.type === type && (search.get('includePublished') === 'true' || !item.published));

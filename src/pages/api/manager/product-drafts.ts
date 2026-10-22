@@ -1,3 +1,4 @@
+import { reconcileDraftRecords, deleteDraftRecordRoute, canEditDraftRecord } from '../../../lib/manager/draft-records';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import productEditorSettings from '../../../data/product-editor-settings.json';
@@ -34,7 +35,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
       `SELECT id, product_slug, product_title, payload_json, status, created_by, updated_by,
         created_at, updated_at, applied_at, workflow_request_id, workflow_url
        FROM manager_product_drafts
-       ORDER BY updated_at DESC
+       ORDER BY CASE WHEN status = 'applied' THEN 1 ELSE 0 END, updated_at DESC
        LIMIT 50`
     )
     .all<ProductDraftRecord>();
@@ -42,7 +43,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
   return new Response(
     JSON.stringify({
       manager: { email: access.email },
-      drafts: (drafts.results || []).map(productDraftToResponse),
+      drafts: (await reconcileDraftRecords(db, 'product', drafts.results || [], env)).map(productDraftToResponse),
     }),
     {
       headers: {
@@ -68,10 +69,12 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   let payload;
   let requestedId = '';
+  let expectedUpdatedAt = '';
 
   try {
-    const body = (await request.json()) as { id?: string; payload?: unknown };
+    const body = (await request.json()) as { id?: string; updatedAt?: string; payload?: unknown };
     requestedId = String(body.id || '').trim();
+    expectedUpdatedAt = String(body.updatedAt || '');
     const input = body.payload as { productSlug?: string } | undefined;
     const product = (await getCollection('products')).find(item => item.id.replace(/\.mdoc$/, '') === input?.productSlug);
     payload = normalizeProductDraftPayload(productDraftReviewFields(
@@ -93,8 +96,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
   }
 
   await ensureManagerSchema(db);
-  const now = new Date().toISOString();
+  const now = new Date(Math.max(Date.now(), Date.parse(expectedUpdatedAt) + 1 || 0)).toISOString();
   const id = requestedId || createDraftId(payload.productSlug);
+  if (requestedId && !await canEditDraftRecord(db,'product',requestedId,expectedUpdatedAt)) return new Response('草稿已更新或任务执行中，请刷新。',{status:409});
   if (requestedId) {
     const previous = await db.prepare('SELECT payload_json FROM manager_product_drafts WHERE id = ? AND product_slug = ?')
       .bind(id, payload.productSlug).first<{ payload_json: string }>();
@@ -113,9 +117,10 @@ export const POST: APIRoute = async ({ locals, request }) => {
         payload_json = excluded.payload_json,
         status = 'draft',
         updated_by = excluded.updated_by,
-        updated_at = excluded.updated_at`
+        updated_at = excluded.updated_at
+       WHERE manager_product_drafts.updated_at = ? AND manager_product_drafts.status NOT IN ('queued','dispatching','running')`
     )
-    .bind(id, payload.productSlug, payload.title, payloadJson, access.email, access.email, now, now)
+    .bind(id, payload.productSlug, payload.title, payloadJson, access.email, access.email, now, now, expectedUpdatedAt)
     .run();
 
   const record = await db
@@ -128,6 +133,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     .bind(id)
     .first<ProductDraftRecord>();
 
+  if (record?.updated_at !== now) return new Response('草稿已变化，请刷新后重试。',{status:409});
   return new Response(JSON.stringify({ draft: record ? productDraftToResponse(record) : null }), {
     headers: {
       'cache-control': 'no-store',
@@ -135,3 +141,5 @@ export const POST: APIRoute = async ({ locals, request }) => {
     },
   });
 };
+
+export const DELETE: APIRoute = ({locals,request}) => deleteDraftRecordRoute(locals,request,'product');

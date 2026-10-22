@@ -1,3 +1,4 @@
+import { confirmDialog, promptDialog } from '../../lib/admin-dialog.mjs';
 export function installMedia(context) {
   const normalizeThumbnailUrl = value => {
     const raw = String(value ?? '').trim();
@@ -94,7 +95,7 @@ export function installMedia(context) {
         folder => `
           <button class="asset-card is-folder" data-folder="${context.escapeHtml(folder.prefix)}" type="button">
             <span class="folder-icon" aria-hidden="true"></span>
-            <div class="asset-name" title="${context.escapeHtml(folder.prefix)}">${context.escapeHtml(folder.name)}</div>
+            <div dir="auto" class="asset-name" title="${context.escapeHtml(folder.prefix)}">${context.escapeHtml(folder.name)}</div>
             <div class="asset-meta">文件夹</div>
           </button>
         `
@@ -112,11 +113,11 @@ export function installMedia(context) {
                   ? `<a class="asset-document" href="${context.escapeHtml(file.url)}" target="_blank" rel="noopener" aria-label="Open ${context.escapeHtml(file.name)} PDF">PDF</a>`
                   : `<div class="asset-placeholder">文件</div>`
             }
-            <div class="asset-name" title="${context.escapeHtml(file.key)}">${context.escapeHtml(file.name)}</div>
+            <div dir="auto" class="asset-name" title="${context.escapeHtml(file.key)}">${context.escapeHtml(file.name)}</div>
             <div class="asset-meta">${context.escapeHtml(context.formatBytes(file.size))}</div>
             <div class="asset-tools">
-              <button data-copy="${context.escapeHtml(file.url)}" type="button">复制链接</button>
-              ${file.isDocument ? `<button data-asset-insert-document="${context.escapeHtml(file.url)}" data-asset-document-name="${context.escapeHtml(file.name)}" type="button">Insert PDF</button>` : ''}
+              <button data-copy="${context.escapeHtml(file.url)}" type="button" title="复制文件链接">复制</button>
+              ${file.isDocument ? `<button data-asset-insert-document="${context.escapeHtml(file.url)}" data-asset-document-name="${context.escapeHtml(file.name)}" type="button" title="把文件链接插入当前编辑内容">插入</button>` : ''}
               <button data-delete="${context.escapeHtml(file.key)}" type="button">删除</button>
             </div>
           </div>
@@ -126,16 +127,19 @@ export function installMedia(context) {
     const uploadTile = `
       <button class="asset-card asset-card--upload" data-asset-upload type="button">
         <span class="upload-icon" aria-hidden="true"></span>
-        <div class="asset-name">上传媒体</div>
+        <div dir="auto" class="asset-name">上传媒体</div>
         <div class="asset-meta">当前文件夹</div>
       </button>
     `;
     context.$('assetGrid').innerHTML = uploadTile + folders + files || '<div class="notice"><span><strong>当前文件夹为空</strong><small>可以上传图片、PDF 或新建文件夹。</small></span></div>';
   };
 
+  let assetLoadSerial = 0;
   const loadAssets = async (prefix = context.state.assetPrefix) => {
+    const serial = ++assetLoadSerial;
     context.setStatus('assetStatus', '正在加载媒体资源...');
     const data = await context.requestJson(`/api/manager/r2/assets?prefix=${encodeURIComponent(prefix)}&limit=300`);
+    if (serial !== assetLoadSerial) return;
     context.state.assetPrefix = data.prefix || '';
     context.state.assetFolders = data.folders || [];
     context.state.assetFiles = data.files || [];
@@ -169,7 +173,7 @@ export function installMedia(context) {
             <small>${context.escapeHtml(context.formatBytes(file.size))}</small>
             <div class="image-picker-actions">
               <button class="mini-button" data-picker-select="${context.escapeHtml(file.url)}" type="button">选择</button>
-              <button class="mini-button" data-picker-copy="${context.escapeHtml(file.url)}" type="button">复制链接</button>
+              <button class="mini-button" data-picker-copy="${context.escapeHtml(file.url)}" type="button" title="复制文件链接">复制</button>
             </div>
           </article>
         `
@@ -237,7 +241,7 @@ export function installMedia(context) {
   };
 
   const createFolder = async () => {
-    const name = prompt('请输入新文件夹名称');
+    const name = await promptDialog('请输入新文件夹名称');
     if (!name) return;
     const cleanName = name.trim().replace(/^\/+|\/+$/g, '');
     if (!cleanName) return;
@@ -276,7 +280,7 @@ export function installMedia(context) {
       await navigator.clipboard.writeText(value);
       context.setStatus(statusId, '链接已复制。');
     } catch {
-      prompt('复制这个链接', value);
+      await promptDialog('复制这个链接', value, {readOnly:true});
     }
     if (trigger) {
       trigger.textContent = '已复制';
@@ -289,7 +293,7 @@ export function installMedia(context) {
   };
 
   const deleteAsset = async key => {
-    if (!confirm(`确认删除这个文件？\n${key}`)) return;
+    if (!await confirmDialog(`确认删除这个文件？\n${key}`)) return;
     await context.requestJson('/api/manager/r2/assets', { method: 'DELETE', body: JSON.stringify({ key }) });
     await loadAssets();
   };

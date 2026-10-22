@@ -14,6 +14,7 @@ import ImagePicker from '../../components/manager/ImagePicker.astro';
 import ImagePreview from '../../components/manager/ImagePreview.astro';
 import '../../styles/manager.css';
 import { serializeJsonLd } from '../../lib/json-ld.mjs';
+import siteOriginConfig from '../../data/site-origin.json';
 import productEditorSettings from '../../data/product-editor-settings.json';
 import { productEditorFields, resolveProductEditorPolicy } from '../../lib/product-editor.mjs';
 const productEditorPolicy = resolveProductEditorPolicy(productEditorSettings);
@@ -74,7 +75,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
 
     <ImagePreview />
 
-<script id="manager-config" type="application/json" is:inline set:html={serializeJsonLd({ publicR2AssetBaseUrl, managerReviewSystemEnabled, productEditorFields, productEditorPolicy })}></script>
+<script id="manager-config" type="application/json" is:inline set:html={serializeJsonLd({ publicR2AssetBaseUrl, publicSiteOrigin: siteOriginConfig.productionUrl, managerReviewSystemEnabled, productEditorFields, productEditorPolicy })}></script>
 <script>
   import { initializeManager } from '../../scripts/manager/bootstrap.mjs';
   const config = document.getElementById('manager-config');

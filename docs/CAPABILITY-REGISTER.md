@@ -1,5 +1,12 @@
 # Golden One Capability Register
 
+## CAP-0012 revision 1 - Safe multilingual content administration
+
+- Owner separately approved lifecycle, categories, formal article deletion and formal product controls; explicit controlled backport/adoption after Corner validation. Mother source 07cec5094160370ba79294527d1095f9f9cb52ac, derived from Corner CAND-0014 (a025c5f/9cce435/0492a59). Own baseline b68c63c6a46a509b0a0445084aaa8b7e2b5a12b7; own main source/CI receipt follows in PROJECT-PROGRESS.
+- Both portals share formal public-language lists, current-filter selection, exact-plan atomic deletes, version checks, release/blob-matched translation queue closure, safe preview/links, D1 work-record history/removal and bounded status reconciliation, themed dialogs and PDF layout. Categories use company-news / technical-articles / other-articles, translations inherit English; existing values normalize compatibly on read. Product taxonomy remains customer-owned.
+- Preserve this customer's language authority, routes, business schema/content, author defaults, public layouts, Worker exceptions, resources/secrets/feature settings and original Git-only apply/site-publish ownership. No Corner native JSON models/data or another publish chain. Optional article runner is not installed/enabled by adoption.
+- Local40 Manager+16 Keystatic, actual reader 80, date/link writer round trips,22 lifecycle/19 SQLite/5 bulk/8 identity/5 catalog and complete standard build (843 HTML/4699 JSON-LD) pass. All mutation tests are isolated; production login/business deletion/paid AI NOT VERIFIED. Current evidence/source/deployment is in PROJECT-PROGRESS, not this ledger. Recovery is scoped source after later CMS comparison, preserving valid content and D1/R2; no cross-customer rollback.
+
 ## CAP-0009 revision 3 - Translation text-date compatibility
 
 - 2026-10-22: owner requested factory article/product filename contract alignment against Corner. Existing save/approval serializers now keep schema text timestamps quoted for real Keystatic read-back. This repairs the existing contract; no new field/capability, permission, dependency, resource or release owner. Corner-only metaKeywords/imageMetadata and its full native catalog are not adopted.

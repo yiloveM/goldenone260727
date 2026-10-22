@@ -1,3 +1,4 @@
+import { confirmDialog, promptDialog } from '../lib/admin-dialog.mjs';
 import { type ChangeEvent, type DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
@@ -88,16 +89,7 @@ const copyText = async (text: string) => {
     await navigator.clipboard.writeText(text);
     return;
   }
-
-  const input = document.createElement('textarea');
-  input.value = text;
-  input.setAttribute('readonly', '');
-  input.style.position = 'fixed';
-  input.style.opacity = '0';
-  document.body.append(input);
-  input.select();
-  document.execCommand('copy');
-  input.remove();
+  await promptDialog('复制图片链接', text, {readOnly:true});
 };
 
 const getParentPrefix = (prefix: string) => {
@@ -171,7 +163,7 @@ function R2ImagePoolInput() {
     } catch (error) {
       setState({
         kind: 'error',
-        message: error instanceof Error ? error.message : '无法加载 R2 图片池。',
+        message: error instanceof Error ? error.message : '无法加载 R2 媒体资源。',
       });
     }
   }, []);
@@ -201,7 +193,7 @@ function R2ImagePoolInput() {
   };
 
   const createFolder = async () => {
-    const rawName = window.prompt('新建文件夹名称');
+    const rawName = await promptDialog('新建文件夹名称');
     if (rawName === null) return;
 
     const folderPath = normalizeFolderPath(rawName);
@@ -371,7 +363,7 @@ function R2ImagePoolInput() {
   };
 
   const deleteFile = async (file: R2File) => {
-    if (!window.confirm(`确定删除 ${file.key} 吗？`)) {
+    if (!await confirmDialog(`确定删除 ${file.key} 吗？`)) {
       return;
     }
 
@@ -456,7 +448,7 @@ function R2ImagePoolInput() {
                 onChange={handleFileChange}
               />
               <button type="button" className="r2-pool__primary" onClick={() => fileInputRef.current?.click()}>
-                上传图片
+                上传媒体
               </button>
             </div>
           </div>
@@ -501,7 +493,9 @@ function R2ImagePoolInput() {
                     <img src={file.url} alt={file.name} loading="lazy" />
                   </button>
                 ) : file.isDocument ? (
-                  <span className="r2-pool__pdf-icon" aria-hidden="true">PDF</span>
+                  <a className="r2-pool__pdf-icon" href={file.url} target="_blank" rel="noopener" aria-label={`Open ${file.name}`}>
+                    PDF
+                  </a>
                 ) : (
                   <span className="r2-pool__file-icon" aria-hidden="true" />
                 )}
@@ -524,7 +518,7 @@ function R2ImagePoolInput() {
           </div>
 
           {!folders.length && !files.length ? (
-            <div className="r2-pool__empty">当前文件夹没有文件。可以直接拖拽图片到这里，或点击“上传图片”。</div>
+            <div className="r2-pool__empty">当前文件夹没有文件。可以直接拖拽媒体到这里，或点击“上传媒体”。</div>
           ) : null}
 
           {hasMore ? (
@@ -825,18 +819,6 @@ function R2ImagePoolInput() {
           object-fit: contain;
           width: 100%;
         }
-        .r2-pool__pdf-icon {
-          align-items: center;
-          background: #0f766e;
-          border-radius: 6px;
-          color: #fff;
-          display: inline-flex;
-          font-size: 14px;
-          font-weight: 800;
-          height: 96px;
-          justify-content: center;
-          width: 96px;
-        }
 
         .r2-pool__folder-icon,
         .r2-pool__file-icon {
@@ -870,6 +852,22 @@ function R2ImagePoolInput() {
           height: 76px;
           margin-top: 10px;
           width: 58px;
+        }
+
+        .r2-pool__pdf-icon {
+          align-items: center;
+          background: #0f766e;
+          border: 1px solid #115e59;
+          border-radius: 6px;
+          color: #ffffff;
+          display: flex;
+          font-size: 15px;
+          font-weight: 750;
+          height: 76px;
+          justify-content: center;
+          margin-top: 10px;
+          text-decoration: none;
+          width: 76px;
         }
 
         .r2-pool__tile-check {
@@ -1058,7 +1056,7 @@ function R2ImagePoolInput() {
   );
 }
 
-export const r2ImagePoolField = ({ label = '图片池' } = {}) => ({
+export const r2ImagePoolField = ({ label = '媒体资源' } = {}) => ({
   kind: 'form' as const,
   label,
   Input: R2ImagePoolInput,

@@ -24,3 +24,5 @@ if (payload.operation === 'delete') {
   else data.reviews.push(review);
 }
 await writeFile(file, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+
+if(process.env.GITHUB_OUTPUT) await writeFile(process.env.GITHUB_OUTPUT, 'content_path=src/data/customer-reviews.json\n', {flag:'a'});

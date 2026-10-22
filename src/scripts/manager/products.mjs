@@ -35,8 +35,10 @@ export function installProducts(context) {
   const filteredProducts = () => {
     const term = context.$('searchInput').value.trim().toLowerCase();
     const category = context.$('categoryFilter').value;
-    return context.state.products
+    const language = context.$('productLanguageFilter').value;
+    return [...context.state.products, ...(context.state.formalProductTranslations || [])]
       .filter(product => {
+        if (language && (product.locale || 'en') !== language) return false;
         const matchesTerm = !term || `${product.title} ${product.series} ${product.category}`.toLowerCase().includes(term);
         const matchesCategory = !category || product.category === category;
         return matchesTerm && matchesCategory;
@@ -73,7 +75,7 @@ export function installProducts(context) {
     context.$('productList').innerHTML = pageProducts.length
       ? `
         <div class="manager-product-head">
-          <span>产品图</span>
+          <span>选择 / 产品图</span>
           <span>产品名称</span>
           <span>产品分类</span>
           <span>操作</span>
@@ -82,21 +84,21 @@ export function installProducts(context) {
           .map(
             product => `
               <article class="manager-product-row ${product.slug === context.state.activeSlug ? 'is-active' : ''} ${product.published === false ? 'is-unpublished' : ''}">
-                <button class="manager-product-thumb" data-slug="${context.escapeHtml(product.slug)}" type="button" aria-label="编辑 ${context.escapeHtml(product.title)}">
+                <div class="manager-product-media">${context.formalCheckbox('product',product)}<button class="manager-product-thumb" data-slug="${context.escapeHtml(product.slug)}" data-content-locale="${context.escapeHtml(product.locale || 'en')}" type="button" aria-label="编辑 ${context.escapeHtml(product.title)}">
                   ${context.thumbnailMarkup(product.image, product.title)}
-                </button>
+                </button></div>
                 <div class="manager-product-main">
-                  <button class="manager-product-title" data-slug="${context.escapeHtml(product.slug)}" title="${context.escapeHtml(product.title)}" type="button">${context.escapeHtml(product.title)}</button>
-                  <span class="manager-product-series">${context.escapeHtml(product.series || '未填写系列')}</span>
+                  <button class="manager-product-title" data-slug="${context.escapeHtml(product.slug)}" data-content-locale="${context.escapeHtml(product.locale || 'en')}" title="${context.escapeHtml(product.title)}" type="button">${context.escapeHtml(product.title)}</button>
+                  <span class="manager-product-series">${context.escapeHtml(product.locale || 'en')} · ${context.escapeHtml(product.series || '未填写系列')}</span>
                 </div>
                 <span class="manager-product-category">${context.escapeHtml(product.category || '未分类')}</span>
                 <span class="manager-product-actions">
-                  <label class="manager-product-publish ${product.published ? 'is-on' : ''}">
+                  ${product.locale && product.locale !== 'en' ? `<span class="content-state">${product.lifecycle === 'live' ? '已上线' : '有待发布修改'}</span>` : `<label class="manager-product-publish ${product.published ? 'is-on' : ''}">
                     <input data-product-published="${context.escapeHtml(product.slug)}" type="checkbox" ${product.published ? 'checked' : ''} />
-                    <span>${product.published ? '已上线' : '已下线'}</span>
-                  </label>
-                  <button class="manager-product-edit" data-slug="${context.escapeHtml(product.slug)}" type="button">编辑</button>
-                  <a class="manager-product-view" data-product-view href="/products/${context.escapeHtml(product.slug)}/" target="_blank" rel="noreferrer">前端查看</a>
+                    <span>${product.published ? '允许公开' : '已设为隐藏'}</span>
+                  </label>`}
+                  <button class="manager-product-edit" data-slug="${context.escapeHtml(product.slug)}" data-content-locale="${context.escapeHtml(product.locale || 'en')}" type="button">编辑</button>
+                      <a class="manager-product-view" data-product-view href="${context.escapeHtml(context.publicContentUrl('product', product))}" target="_blank" rel="noreferrer">前端查看</a>${context.formalDeleteButton('product',product)}
                 </span>
               </article>
             `
@@ -111,6 +113,7 @@ export function installProducts(context) {
       <button data-product-page="next" type="button" ${currentPage >= totalPages ? 'disabled' : ''}>下一页</button>
       <button data-product-page="last" type="button" ${currentPage >= totalPages ? 'disabled' : ''}>末页</button>
     `;
+    context.syncFormalSelection('product');
   };
 
   const setProductPage = action => {
@@ -386,6 +389,7 @@ export function installProducts(context) {
     if (!product) return;
     context.state.activeSlug = slug;
     context.state.activeDraftId = draft?.id || '';
+    context.state.activeProductSourceSha = product.sourceSha || '';
     context.state.isNewProduct = Boolean(draft) && !context.state.products.some(item => item.slug === slug);
     context.$('title').value = product.title || '';
     context.$('productSlug').value = product.slug || '';
@@ -410,6 +414,7 @@ export function installProducts(context) {
   };
 
   const startNewProduct = () => {
+    context.state.activeProductSourceSha = '';
     context.state.activeSlug = '';
     context.state.activeDraftId = '';
     context.state.isNewProduct = true;
@@ -456,33 +461,41 @@ export function installProducts(context) {
   const renderDrafts = () => {
     const drafts = context.state.activeSlug
       ? context.state.drafts.filter(draft => draft.productSlug === context.state.activeSlug)
-      : context.state.drafts.slice(0, 10);
-    context.$('draftList').innerHTML = drafts.length
-      ? drafts
+      : context.state.drafts;
+    const visible = drafts.filter(draft=>context.workDraftVisible('product',draft));
+    context.$('draftList').innerHTML = visible.length
+      ? visible
           .map(
             draft => `
-              <div class="draft">
+              <div class="draft work-draft-record">${context.workDraftCheckbox('product',draft)}
                 <span>
                   <strong>${context.escapeHtml(draft.productTitle)}</strong>
-                  <small>${context.escapeHtml(draft.status)} · ${context.formatDate(draft.updatedAt)}</small>
+                  <small>${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small>
                 </span>
-                <button class="button secondary" data-product-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
-                <button class="button secondary" data-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+<span class="record-actions">                <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-product-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
+                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+              ${context.workDraftActions('product',draft)}</span>
               </div>
             `
           )
           .join('')
       : '<div class="draft"><span><strong>暂无草稿</strong><small>保存草稿后会显示在这里。</small></span></div>';
+    context.syncWorkDraftControls('product');
   };
 
   const loadProducts = async () => {
     const data = await context.requestJson('/api/manager/products');
     context.state.products = data.products || [];
+    context.state.formalProductTranslations = data.translations || [];
+    const filter = context.$('productLanguageFilter'), previous = filter.value;
+    filter.innerHTML = '<option value="en">English</option><option value="">全部公开语言</option>' + [...new Set(context.state.formalProductTranslations.map(item => item.locale))].map(code=>`<option value="${context.escapeHtml(code)}">${context.escapeHtml(code)}</option>`).join('');
+    filter.value = [...filter.options].some(option=>option.value===previous) ? previous : 'en';
     context.state.categories = data.categories || [];
     context.$('managerEmail').textContent = data.manager?.email || '已连接';
     fillCategoryOptions();
     renderProducts();
     renderProductOrder();
+    if(data.warning) context.setStatus('productBrowserStatus',data.warning,true);
   };
 
   const loadDrafts = async () => {
@@ -505,6 +518,7 @@ export function installProducts(context) {
     ...(product.reviews === undefined ? {} : { reviews: product.reviews }),
     aggregateRatingValue: product.aggregateRatingValue ?? '',
     aggregateRatingCount: product.aggregateRatingCount ?? 0,
+    ...(product.sourceSha ? {sourceSha:product.sourceSha} : {}),
     productSlug: product.slug,
     title: product.title,
     description: product.description,
@@ -562,6 +576,7 @@ export function installProducts(context) {
         aggregateRatingValue: context.$('aggregateRatingValue').value.trim(),
         aggregateRatingCount: Number(context.$('aggregateRatingCount').value || 0),
       } : {}),
+      ...(context.state.activeProductSourceSha ? {sourceSha:context.state.activeProductSourceSha} : {}),
       productSlug: context.$('productSlug').value.trim().toLowerCase(),
       content: context.getRichTextValue('productContent').trim(),
       offeringType: context.$('offeringType').value,
@@ -729,7 +744,7 @@ export function installProducts(context) {
     context.setStatus('statusText', '正在保存草稿...');
     const data = await context.requestJson('/api/manager/product-drafts', {
       method: 'POST',
-      body: JSON.stringify({ id: context.state.activeDraftId, payload }),
+      body: JSON.stringify({ id: context.state.activeDraftId, updatedAt: context.state.drafts.find(item=>item.id===context.state.activeDraftId)?.updatedAt, payload }),
     });
     context.state.activeDraftId = data.draft?.id || '';
     context.state.activeSlug = payload.productSlug;

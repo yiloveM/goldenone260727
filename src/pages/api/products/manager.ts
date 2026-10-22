@@ -1,3 +1,6 @@
+import { formalContentDeletionRoute } from '../../../lib/manager/formal-content-deletion';
+import { readProductCatalog } from '../../../lib/manager/product-catalog';
+import { keystaticGitAccess } from '../../../lib/keystatic-github';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { productCategoryMeta, sortProductsByPriority } from '../../../data/productCategories';
@@ -29,7 +32,7 @@ const getEnvString = (env: Record<string, unknown> | undefined, key: string) =>
   typeof env?.[key] === 'string' ? env[key].trim() : '';
 
 const getRepoFullName = (env: Record<string, unknown> | undefined) =>
-  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'yiloveM/goldenone260727';
+  getEnvString(env, 'PUBLIC_KEYSTATIC_GITHUB_REPO') || getEnvString(env, 'KEYSTATIC_GITHUB_REPO') || 'your-org/businessweb';
 
 const getBranch = (env: Record<string, unknown> | undefined) => getEnvString(env, 'KEYSTATIC_GITHUB_BRANCH') || DEFAULT_BRANCH;
 
@@ -151,8 +154,9 @@ const getProductSummaries = async () => {
   };
 };
 
-export const GET: APIRoute = async () => {
-  const data = await getProductSummaries();
+export const GET: APIRoute = async ({locals,request}) => {
+  let data: any = await getProductSummaries();
+  try { const env = getRuntimeEnv(locals); const access = await keystaticGitAccess(request,env); if(access) data = {...data,...await readProductCatalog(env,access.token)}; } catch {data.warning='最新产品暂无法同步，当前为部署时目录；删除前必须核验最新版本。';}
 
   return new Response(JSON.stringify(data), {
     headers: {
@@ -305,57 +309,8 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
   });
 };
 
-export const DELETE: APIRoute = async ({ locals, request }) => {
-  const env = getRuntimeEnv(locals);
-  const writeError = await requireWriteAccess(request, env);
-  if (writeError) return writeError;
-
-  const accessToken = getAccessToken(request);
-  const repoFullName = getRepoFullName(env);
-  const branch = getBranch(env);
-
-  let body: { id?: string };
-
-  try {
-    body = (await request.json()) as { id?: string };
-  } catch {
-    return new Response('Bad delete product payload', { status: 400 });
-  }
-
-  const productId = (body.id || '').trim();
-  if (!productId || productId.includes('/') || productId.includes('\\') || !productId.endsWith('.mdoc')) {
-    return new Response('Valid product id is required', { status: 400 });
-  }
-
-  const products = await getCollection('products');
-  const product = products.find(item => item.id === productId);
-  if (!product) {
-    return new Response('Product was not found', { status: 404 });
-  }
-
-  const path = pathForProductId(productId);
-  const file = await githubFetch<{ sha: string }>(
-    `https://api.github.com/repos/${repoFullName}/contents/${encodePath(path)}?ref=${encodeURIComponent(branch)}`,
-    accessToken
-  );
-
-  const deleted = await githubFetch<{ commit: { sha: string } }>(
-    `https://api.github.com/repos/${repoFullName}/contents/${encodePath(path)}`,
-    accessToken,
-    {
-      method: 'DELETE',
-      body: JSON.stringify({
-        message: `Delete product ${product.data.title}`,
-        sha: file.sha,
-        branch,
-      }),
-    }
-  );
-
-  return new Response(JSON.stringify({ deleted: productId, commit: deleted.commit.sha }), {
-    headers: {
-      'cache-control': 'no-store',
-      'content-type': 'application/json; charset=utf-8',
-    },
-  });
+export const DELETE: APIRoute = async ({locals,request}) => {
+  const env=getRuntimeEnv(locals);
+  try {const access=await keystaticGitAccess(request,env);if(!access)return new Response('请先登录有写入权限的账号。',{status:401});return formalContentDeletionRoute(request,access,async head=>(await readProductCatalog(env,access.token,head)).products,'product');}
+  catch{return new Response('无法核验产品删除计划，请刷新产品列表。',{status:502});}
 };

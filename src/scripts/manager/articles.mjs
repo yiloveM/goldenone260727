@@ -1,7 +1,9 @@
+import { articleCategoryLabel, canonicalArticleCategory } from '../../lib/article-categories.mjs';
 export function installArticles(context) {
   const filteredBlogPosts = () => {
     const term = context.$('blogSearchInput').value.trim().toLowerCase();
-    return context.state.blogPosts.filter(post => !term || `${post.title} ${post.category}`.toLowerCase().includes(term));
+    const language = context.$('blogLanguageFilter').value, category = context.$('blogCategoryFilter').value;
+    return context.state.blogPosts.flatMap(post => [post, ...(post.translations || [])]).filter(post => (!language || (post.locale || 'en') === language) && (!category || post.category === category) && (!term || `${post.title} ${post.slug} ${post.category}`.toLowerCase().includes(term)));
   };
 
   const renderBlogPosts = () => {
@@ -18,11 +20,11 @@ export function installArticles(context) {
           ${posts
             .map(
               post => `
-                <article class="blog-list-row ${post.slug === context.state.activeBlogSlug ? 'is-active' : ''}" data-blog-slug="${context.escapeHtml(post.slug)}">
-                  <button class="blog-list-title" title="${context.escapeHtml(post.title)}" type="button">${context.escapeHtml(post.title)}</button>
+                <article class="blog-list-row ${post.slug === context.state.activeBlogSlug ? 'is-active' : ''}" data-blog-slug="${context.escapeHtml(post.slug)}" data-content-locale="${context.escapeHtml(post.locale || 'en')}">
+                  <span class="formal-title">${context.formalCheckbox('blog',post)}<button class="blog-list-title" title="${context.escapeHtml(post.title)}" type="button">${context.escapeHtml(post.title)}</button></span>
                   <span class="blog-list-date">${context.formatDate(post.publishDate)}</span>
-                  <span class="blog-list-category">${context.escapeHtml(post.category || '未分类')}</span>
-                  <a class="blog-list-view" data-blog-view href="/blog/${context.escapeHtml(post.slug)}/" target="_blank" rel="noreferrer">前端查看</a>
+                  <span class="blog-list-category">${context.escapeHtml(post.locale || 'en')} · ${context.escapeHtml(articleCategoryLabel(post.category,'zh'))}</span>
+                  <span class="record-actions"><a class="blog-list-view" data-blog-view href="${context.escapeHtml(context.publicContentUrl('blog', post))}" target="_blank" rel="noreferrer">前端查看</a>${context.formalDeleteButton('blog',post)}</span>
                 </article>
               `
             )
@@ -30,12 +32,17 @@ export function installArticles(context) {
         `
       : '<div class="notice"><span><strong>没有匹配文章</strong><small>请换一个关键词。</small></span></div>';
     context.setStatus('blogStatus', `当前显示 ${posts.length} 篇文章。`);
+    context.syncFormalSelection('blog');
   };
 
   const loadBlogPosts = async () => {
     context.setStatus('blogStatus', '正在加载文章...');
     const data = await context.requestJson('/api/manager/blog');
     context.state.blogPosts = data.posts || [];
+    const filter = context.$('blogLanguageFilter'), previous = filter.value;
+    filter.innerHTML = '<option value="en">English</option><option value="">全部公开语言</option>' + [...new Set(context.state.blogPosts.flatMap(post => post.translations || []).map(item => item.locale))].map(code=>`<option value="${context.escapeHtml(code)}">${context.escapeHtml(code)}</option>`).join('');
+    filter.value = [...filter.options].some(option=>option.value===previous) ? previous : 'en';
+    context.$('blogCatalogStatus').textContent = data.warning || '已读取最新文章目录。';
     renderBlogPosts();
   };
 
@@ -65,16 +72,24 @@ export function installArticles(context) {
     context.$('blogEditorView').classList.add('is-visible');
   };
 
-  const selectBlogPost = (slug, draft) => {
-    const post = draft ? { ...draft.payload, slug } : context.state.blogPosts.find(item => item.slug === slug);
+  let selection = 0;
+  const selectBlogPost = async (slug, draft, locale = 'en') => {
+    const variant = context.state.blogPosts.flatMap(post => [post,...(post.translations || [])]).find(post => post.slug === slug && (post.locale || 'en') === locale);
+    if (!draft && locale !== 'en' && variant?.collection === 'blogTranslations') return context.openTranslationDraftEditor('blog',variant.id,'blog');
+    const pending = ++selection;
+    context.setStatus('blogStatus', '正在读取最新文章...');
+    const post = draft ? { ...draft.payload, slug } : (await context.requestJson(`/api/manager/blog?slug=${encodeURIComponent(slug)}&locale=${encodeURIComponent(locale)}`)).post;
+    if (pending !== selection) return;
     if (!post) return;
     context.state.activeBlogSlug = slug;
     context.state.activeBlogDraftId = draft?.id || '';
     context.state.isNewBlog = Boolean(draft) && !context.state.blogPosts.some(item => item.slug === slug);
+    context.state.activeBlogSourceSha = post.sourceSha || '';
     context.$('blogTitle').value = post.title || '';
     context.$('blogSlug').value = post.slug || '';
     context.$('blogSlug').readOnly = true;
-    context.$('blogCategory').value = post.category || '';
+    context.$('blogCategory').value = canonicalArticleCategory(post.category);
+    context.$('blogCategory').disabled=false;
     context.$('blogPublishDate').value = context.toDateTimeLocal(post.publishDate);
     context.$('blogAuthor').value = post.author || 'Golden One Editorial Team';
     context.$('blogFeatured').checked = post.featured === true;
@@ -82,7 +97,7 @@ export function installArticles(context) {
     context.updateImageFieldPreview('blogImage');
     context.$('blogDescription').value = post.description || '';
     context.setRichTextValue('blogBody', post.body || '');
-    context.$('viewBlogButton').href = `/blog/${post.slug}/`;
+    context.$('viewBlogButton').href = post.publicUrl || context.publicContentUrl('blog', context.state.blogPosts.find(item => item.slug === slug) || post);
     renderBlogPosts();
     renderBlogWorkDrafts();
     showBlogEditor();
@@ -90,13 +105,16 @@ export function installArticles(context) {
   };
 
   const startNewBlog = () => {
+    context.$('blogCategory').disabled=false;
+    ++selection;
+    context.state.activeBlogSourceSha = '';
     context.state.activeBlogSlug = '';
     context.state.activeBlogDraftId = '';
     context.state.isNewBlog = true;
     context.$('blogTitle').value = '';
     context.$('blogSlug').value = '';
     context.$('blogSlug').readOnly = false;
-    context.$('blogCategory').value = '';
+    context.$('blogCategory').value = 'other-articles';
     context.$('blogPublishDate').value = context.toDateTimeLocal(new Date().toISOString());
     context.$('blogAuthor').value = 'Golden One Editorial Team';
     context.$('blogFeatured').checked = false;
@@ -121,6 +139,7 @@ export function installArticles(context) {
     publishDate: context.fromDateTimeLocal(context.$('blogPublishDate').value),
     featured: context.$('blogFeatured').checked,
     body: context.getRichTextValue('blogBody').trim(),
+    ...(context.state.activeBlogSourceSha ? {sourceSha:context.state.activeBlogSourceSha} : {}),
   });
 
   const saveBlogDraft = async () => {
@@ -136,7 +155,7 @@ export function installArticles(context) {
     context.setStatus('blogStatus', '正在保存文章草稿...');
     const data = await context.requestJson('/api/manager/blog-drafts', {
       method: 'POST',
-      body: JSON.stringify({ id: context.state.activeBlogDraftId, payload }),
+      body: JSON.stringify({ id: context.state.activeBlogDraftId, updatedAt: context.state.blogDrafts.find(item=>item.id===context.state.activeBlogDraftId)?.updatedAt, payload }),
     });
     context.state.activeBlogDraftId = data.draft?.id || '';
     context.state.activeBlogSlug = payload.blogSlug;
@@ -147,23 +166,26 @@ export function installArticles(context) {
   const renderBlogWorkDrafts = () => {
     const drafts = context.state.activeBlogSlug
       ? context.state.blogDrafts.filter(draft => draft.blogSlug === context.state.activeBlogSlug)
-      : context.state.blogDrafts.slice(0, 10);
-    context.$('blogDraftWorkList').innerHTML = drafts.length
-      ? drafts
+      : context.state.blogDrafts;
+    const visible = drafts.filter(draft=>context.workDraftVisible('blog',draft));
+    context.$('blogDraftWorkList').innerHTML = visible.length
+      ? visible
           .map(
             draft => `
-              <div class="draft">
+              <div class="draft work-draft-record">${context.workDraftCheckbox('blog',draft)}
                 <span>
                   <strong>${context.escapeHtml(draft.blogTitle)}</strong>
-                  <small>${context.escapeHtml(draft.status)} · ${context.formatDate(draft.updatedAt)}</small>
+                  <small>en · ${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small>
                 </span>
-                <button class="button secondary" data-blog-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
-                <button class="button secondary" data-blog-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+<span class="record-actions">                <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-blog-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
+                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-blog-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+              ${context.workDraftActions('blog',draft)}</span>
               </div>
             `
           )
           .join('')
       : '<div class="draft"><span><strong>暂无文章草稿</strong><small>保存文章草稿后会显示在这里。</small></span></div>';
+    context.syncWorkDraftControls('blog');
   };
 
   const applyBlogDraft = async draftId => {

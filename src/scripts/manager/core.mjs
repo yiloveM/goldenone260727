@@ -60,7 +60,7 @@ export function installCore(context) {
       faqs: [],
     },
     richEditorSelection: null,
-    themeChoice: localStorage.getItem('goldenone-manager-theme') || 'system',
+    themeChoice: localStorage.getItem('businessweb-manager-theme') || 'system',
     formData: {
       reviews: [],
       galleryImages: [],
@@ -79,7 +79,21 @@ export function installCore(context) {
 
   const $ = id => document.getElementById(id);
 
+  const publicContentUrl = (kind, item) => {
+    const origin = new URL(String(context.publicSiteOrigin || '').trim() || location.origin);
+    if (item?.publicUrl) {
+      try {
+        const supplied = new URL(item.publicUrl, origin);
+        if (supplied.origin === origin.origin && supplied.protocol === origin.protocol) return supplied.href;
+      } catch { /* Older or invalid API metadata uses the canonical route below. */ }
+    }
+    const slug = String(item?.slug || '');
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) return '#';
+    return new URL(kind === 'blog' ? `/blog/${slug}/` : `/products/${slug}/`, origin).href;
+  };
+
   const analyticsLink = $('managerAnalyticsLink');
+  Object.assign(context, { publicContentUrl });
 
   const escapeHtml = value =>
     String(value ?? '')
@@ -176,7 +190,7 @@ export function installCore(context) {
   const applyTheme = choice => {
     const safeChoice = ['light', 'dark', 'system'].includes(choice) ? choice : 'system';
     state.themeChoice = safeChoice;
-    localStorage.setItem('goldenone-manager-theme', safeChoice);
+    localStorage.setItem('businessweb-manager-theme', safeChoice);
     document.documentElement.dataset.theme = resolveTheme(safeChoice);
     $('themeMenuLabel').textContent = themeLabels[safeChoice] || themeLabels.system;
     document.querySelectorAll('[data-theme-option]').forEach(button => {

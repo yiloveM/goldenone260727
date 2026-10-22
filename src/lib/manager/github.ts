@@ -39,7 +39,7 @@ export const githubFetch = async <T>(
   });
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw Object.assign(new Error(await response.text()), { status: response.status });
   }
 
   if (response.status === 204) return undefined as T;

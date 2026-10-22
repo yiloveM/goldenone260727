@@ -1,3 +1,5 @@
+import { installFormalContent } from './formal-content.mjs';
+import { installWorkDrafts } from './work-drafts.mjs';
 import { installCore } from './core.mjs';
 import { installMedia } from './media.mjs';
 import { installRichText } from './rich-text.mjs';
@@ -13,7 +15,6 @@ export function initializeManager(config) {
   if (instances.has(document)) return instances.get(document);
   const context = { ...config };
   instances.set(document, context);
-  localStorage.removeItem('goldenone-manager-token');
   // Cross-feature callbacks resolve through context after every installer runs.
   installCore(context);
   installMedia(context);
@@ -23,6 +24,8 @@ export function initializeManager(config) {
   installArticles(context);
   installReviews(context);
   installPublishing(context);
+  installWorkDrafts(context);
+  installFormalContent(context);
   const bootstrapManager = async () => {
     await context.loadProducts();
     await context.loadDraftsSafely();
@@ -71,6 +74,8 @@ export function initializeManager(config) {
 
   context.$('orderSaveButton').addEventListener('click', () => context.saveOrderDrafts().catch(error => context.setStatus('orderStatus', error.message, true)));
 
+  context.$('blogLanguageFilter').addEventListener('change',context.renderBlogPosts);
+  context.$('productLanguageFilter').addEventListener('change',()=>{context.state.productPage=1;context.renderProducts();});
   context.$('blogSearchInput').addEventListener('input', context.renderBlogPosts);
 
   context.$('blogForm').addEventListener('input', event => {
@@ -80,11 +85,10 @@ export function initializeManager(config) {
   context.$('blogRefreshButton').addEventListener('click', () => Promise.all([context.loadBlogPosts(), context.loadBlogDrafts()]).catch(error => context.setStatus('blogStatus', error.message, true)));
 
   context.$('newBlogButton').addEventListener('click', context.startNewBlog);
-
   context.$('blogList').addEventListener('click', event => {
-    if (event.target.closest('[data-blog-view]')) return;
+    if (event.target.closest('[data-blog-view], input, [data-formal-delete]')) return;
     const row = event.target.closest('[data-blog-slug]');
-    if (row) context.selectBlogPost(row.dataset.blogSlug);
+    if (row) context.selectBlogPost(row.dataset.blogSlug,null,row.dataset.contentLocale || 'en').catch(error => context.setStatus('blogStatus', error.message, true));
   });
 
   context.$('saveBlogDraftButton').addEventListener('click', event => runButtonAction(event.currentTarget, context.saveBlogDraft).catch(error => context.setStatus('blogStatus', error.message, true)));
@@ -94,7 +98,7 @@ export function initializeManager(config) {
   context.$('blogDraftWorkList').addEventListener('click', event => {
     const edit = event.target.closest('[data-blog-draft-edit]');
     const draft = edit && context.state.blogDrafts.find(item => item.id === edit.dataset.blogDraftEdit);
-    if (draft) context.selectBlogPost(draft.blogSlug, draft);
+    if (draft) context.selectBlogPost(draft.blogSlug, draft).catch(error => context.setStatus('blogStatus', error.message, true));
     const button = event.target.closest('[data-blog-apply]');
     if (button) runButtonAction(button, () => context.applyBlogDraft(button.dataset.blogApply)).catch(error => context.setStatus('blogStatus', error.message, true));
   });
@@ -112,7 +116,11 @@ export function initializeManager(config) {
   context.$('productList').addEventListener('click', event => {
     if (event.target.closest('[data-product-view]') || event.target.closest('[data-product-published]')) return;
     const row = event.target.closest('[data-slug]');
-    if (row) context.selectProduct(row.dataset.slug);
+    if (row) {
+      const locale = row.dataset.contentLocale || 'en';
+      if(locale === 'en') context.selectProduct(row.dataset.slug);
+      else context.openTranslationDraftEditor('product',`${locale}--${row.dataset.slug}`,'products').catch(error=>context.setStatus('productBrowserStatus',error.message,true));
+    }
   });
 
   context.$('productList').addEventListener('change', event => {
@@ -402,6 +410,13 @@ export function initializeManager(config) {
     );
   });
 
+  for (const type of ['product','blog']) {
+    const fail = error => context.setStatus(`${type}DraftStatus`,error.message,true);
+    context.$(`${type}DraftSelectAll`).addEventListener('change', event => context.toggleAllTranslationDrafts(type,event.target.checked));
+    context.$(`${type}DraftDeleteButton`).addEventListener('click', () => context.deleteTranslationDrafts(type).catch(fail));
+    context.$(`${type}DraftList`).addEventListener('change', () => context.syncTranslationSelection(type));
+    for (const [suffix,event] of [['Search','input'],['Locale','change']]) context.$(`${type}Draft${suffix}`).addEventListener(event, () => context.renderTranslationDrafts(type));
+  }
   context.$('productDraftRefreshButton').addEventListener('click', () => context.loadTranslationDrafts('product').catch(error => context.setStatus('productDraftStatus', error.message, true)));
 
   context.$('productDraftApproveButton').addEventListener('click', () => context.approveTranslationDrafts('product').catch(error => context.setStatus('productDraftStatus', error.message, true)));

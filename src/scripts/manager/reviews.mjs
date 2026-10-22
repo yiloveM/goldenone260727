@@ -33,14 +33,16 @@ export function installReviews(context) {
           </button>`).join('')
       : '<div class="draft"><span><strong>暂无正式评价</strong><small>可以新建评价草稿。</small></span></div>';
     context.$('reviewListStatus').textContent = `共 ${context.state.reviews.length} 条正式评价`;
-    context.$('reviewDraftList').innerHTML = context.state.reviewDrafts.length
-      ? context.state.reviewDrafts.map(draft => `
-          <div class="draft">
-            <span><strong>${context.escapeHtml(draft.buyerLabel || draft.reviewId)}</strong><small>${context.escapeHtml(draft.status)} · ${context.formatDate(draft.updatedAt)}</small></span>
-            <button class="button secondary" data-review-draft-edit="${context.escapeHtml(draft.id)}" type="button">编辑</button>
-            <button class="button secondary" data-review-draft-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站</button>
+    context.$('reviewDraftList').innerHTML = context.state.reviewDrafts.filter(draft=>context.workDraftVisible('review',draft)).length
+      ? context.state.reviewDrafts.filter(draft=>context.workDraftVisible('review',draft)).map(draft => `
+          <div class="draft work-draft-record">${context.workDraftCheckbox('review',draft)}
+            <span><strong>${context.escapeHtml(draft.buyerLabel || draft.reviewId)}</strong><small>${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small></span>
+<span class="record-actions">            <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-review-draft-edit="${context.escapeHtml(draft.id)}" type="button">编辑</button>
+            <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-review-draft-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站</button>
+            ${context.workDraftActions('review',draft)}</span>
           </div>`).join('')
       : '<div class="draft"><span><strong>暂无评价草稿</strong><small>保存后会显示在这里。</small></span></div>';
+    context.syncWorkDraftControls('review');
   };
 
   const loadReviews = async () => {
@@ -56,7 +58,7 @@ export function installReviews(context) {
     context.setStatus('reviewStatus', operation === 'delete' ? '正在生成删除草稿...' : '正在保存评价草稿...');
     const data = await context.requestJson('/api/manager/review-drafts', {
       method: 'POST',
-      body: JSON.stringify({ id: context.state.activeReviewDraftId, payload }),
+      body: JSON.stringify({ id: context.state.activeReviewDraftId, updatedAt: context.state.reviewDrafts.find(item=>item.id===context.state.activeReviewDraftId)?.updatedAt, payload }),
     });
     context.state.activeReviewDraftId = data.draft?.id || '';
     await loadReviews();
@@ -67,7 +69,7 @@ export function installReviews(context) {
     context.setStatus('reviewStatus', '正在提交评价内容更新...');
     const data = await context.requestJson(`/api/manager/review-drafts/${encodeURIComponent(id)}/apply`, { method: 'POST' });
     await loadReviews();
-    context.setStatus('reviewStatus', data.requestId ? '评价更新已提交，处理完成后会自动显示在网站。' : '评价更新已提交。');
+    context.setStatus('reviewStatus', data.requestId ? '评价更新已提交，应用后仍需使用“发布网站更新”上线。' : '评价更新已提交。');
   };
   Object.assign(context, { reviewPayloadFromForm, fillReviewForm, renderReviews, loadReviews, saveReviewDraft, applyReviewDraft });
 }

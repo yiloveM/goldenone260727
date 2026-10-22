@@ -40,7 +40,7 @@ const PREVIEW_HEADERS = {
 };
 
 const isProtectedPublicPath = (pathname: string) =>
-  /^\/(?:manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:analytics(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/manager$|r2\/assets$))/.test(
+  /^\/(?:manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:analytics(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/(manager|deletion)$|blog\/(manager|deletion)$|r2\/assets$))/.test(
     pathname
   );
 

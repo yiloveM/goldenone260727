@@ -1,3 +1,6 @@
+import { promptDialog, adminDialog } from '../../lib/admin-dialog.mjs';
+import { safeContentUrl } from '../../lib/content-links.mjs';
+
 export function installRichText(context) {
   const richEditors = new Map();
 
@@ -18,22 +21,42 @@ export function installRichText(context) {
     return attrs;
   };
 
-  const renderRichInline = value =>
-    context.escapeHtml(value)
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+  const renderRichInline = (value, depth = 0) => {
+    const raw = String(value || '');
+    if (depth > 8) return context.escapeHtml(raw);
+    const styled = text => context.escapeHtml(text)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
+      .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    let result = '', cursor = 0;
+    const starts = /\[([^\]\n]+)\]\(/g;
+    let match;
+    while ((match = starts.exec(raw))) {
+      let index = starts.lastIndex, balance = 1;
+      for (; index < raw.length && balance; index++) {
+        if (raw[index] === '\\') { index++; continue; }
+        if (raw[index] === '(') balance++;
+        if (raw[index] === ')') balance--;
+      }
+      if (balance) continue;
+      const destination = raw.slice(starts.lastIndex, index - 1).replace(/\\([()])/g, '$1');
+      const href = safeContentUrl(destination);
+      result += styled(raw.slice(cursor, match.index));
+      result += href ? `<a href="${context.escapeHtml(href)}">${renderRichInline(match[1], depth + 1)}</a>` : renderRichInline(match[1], depth + 1);
+      cursor = index; starts.lastIndex = index;
+    }
+    return result + styled(raw.slice(cursor));
+  };
 
-  const richImageHtml = ({ src = '', alt = '', caption = '' }) => `
-    <figure data-rich-type="image">
-      <img src="${context.escapeHtml(src)}" alt="${context.escapeHtml(alt)}" loading="lazy" decoding="async" />
+  const richImageHtml = ({ src = '', alt = '', caption = '', markdoc = false }) => `
+    <figure data-rich-type="image" ${markdoc ? 'data-rich-markdoc="image"' : ''}>
+      <img src="${context.escapeHtml(safeContentUrl(src, true))}" alt="${context.escapeHtml(alt)}" loading="lazy" decoding="async" />
       <figcaption>${context.escapeHtml(caption || alt || '')}</figcaption>
     </figure>
   `;
 
   const richDocumentHtml = ({ src = '', title = '' }) =>
-    `<p data-rich-type="document"><a href="${context.escapeHtml(src)}" target="_blank" rel="noopener">${context.escapeHtml(title || 'PDF document')}</a></p>`;
+    `<p data-rich-type="document"><a href="${context.escapeHtml(safeContentUrl(src, true))}" target="_blank" rel="noopener">${context.escapeHtml(title || 'PDF document')}</a></p>`;
 
   const markdownToRichHtml = value => {
     const lines = String(value || '').replace(/\r\n/g, '\n').split('\n');
@@ -105,7 +128,15 @@ export function installRichText(context) {
       if (markdocImage || markdownImage) {
         flushAll();
         const attrs = markdocImage ? parseMarkdocImageAttrs(markdocImage[1]) : { alt: markdownImage[1], src: markdownImage[2] };
-        output.push(richImageHtml({ src: attrs.src, alt: attrs.alt, caption: attrs.caption }));
+        output.push(richImageHtml({ src: attrs.src, alt: attrs.alt, caption: attrs.caption, markdoc: Boolean(markdocImage) }));
+        continue;
+      }
+
+      const markdocDocument = line.match(/^\{%\s*r2Document\s+(.+?)\s*\/%\}$/);
+      if (markdocDocument) {
+        flushAll();
+        const attrs = parseMarkdocImageAttrs(markdocDocument[1]);
+        output.push(richDocumentHtml(attrs).replace('data-rich-type="document"','data-rich-type="document" data-rich-markdoc="document"'));
         continue;
       }
 
@@ -174,6 +205,7 @@ export function installRichText(context) {
     if (element.matches('strong,b')) return `**${text()}**`;
     if (element.matches('em,i')) return `*${text()}*`;
     if (element.matches('code')) return `\`${text()}\``;
+    if (element.matches('a') && !safeContentUrl(element.getAttribute('href'))) return text();
     if (element.matches('a')) return `[${text()}](${element.getAttribute('href') || ''})`;
     if (element.matches('br')) return '\n';
     return text();
@@ -213,11 +245,13 @@ export function installRichText(context) {
       const image = element.querySelector('img');
       if (!image) return '';
       const caption = element.querySelector('figcaption')?.textContent?.trim() || '';
-      const alt = image.getAttribute('alt') || caption || 'Golden One content image';
+      const alt = image.getAttribute('alt') || caption || 'BusinessWeb content image';
+      if (element.dataset.richMarkdoc === 'image') return `{% r2Image src=${JSON.stringify(safeContentUrl(image.getAttribute('src'),true))} alt=${JSON.stringify(alt)}${caption ? ` caption=${JSON.stringify(caption)}` : ''} /%}`;
       return `![${alt.replace(/]/g, '\\]')}](${image.getAttribute('src') || ''})`;
     }
+    if (element.dataset.richMarkdoc === 'document') { const a = element.querySelector('a'); return a ? `{% r2Document src=${JSON.stringify(safeContentUrl(a.getAttribute('href'),true))} title=${JSON.stringify(a.textContent || '')} /%}` : ''; }
     if (tag === 'IMG') {
-      return `![${(element.getAttribute('alt') || 'Golden One content image').replace(/]/g, '\\]')}](${element.getAttribute('src') || ''})`;
+      return `![${(element.getAttribute('alt') || 'BusinessWeb content image').replace(/]/g, '\\]')}](${element.getAttribute('src') || ''})`;
     }
     return richInlineToMarkdown(element).trim();
   };
@@ -264,7 +298,9 @@ export function installRichText(context) {
   const syncRichEditorToTextarea = editorId => {
     const editor = richEditors.get(editorId);
     if (!editor) return;
+    if (editor.sourceMode || editor.lastHtml === editor.surface.innerHTML) return;
     editor.textarea.value = richHtmlToMarkdown(editor.surface);
+    editor.lastHtml = editor.surface.innerHTML;
   };
 
   const setRichTextValue = (editorId, value) => {
@@ -273,6 +309,7 @@ export function installRichText(context) {
     if (textarea) textarea.value = value || '';
     if (!editor) return;
     editor.surface.innerHTML = markdownToRichHtml(value);
+    editor.lastHtml = editor.surface.innerHTML;
   };
 
   const getRichTextValue = editorId => {
@@ -290,7 +327,7 @@ export function installRichText(context) {
   };
 
   const insertRichEditorImage = (editorId, url) => {
-    insertHtmlInRichEditor(editorId, richImageHtml({ src: url, alt: 'Golden One content image', caption: '' }));
+    insertHtmlInRichEditor(editorId, richImageHtml({ src: url, alt: 'BusinessWeb content image', caption: '' }));
   };
 
   const insertRichEditorDocument = (editorId, url, title) => {
@@ -392,10 +429,20 @@ export function installRichText(context) {
     });
   };
 
-  const runRichEditorCommand = (editorId, command, value = '') => {
+  const runRichEditorCommand = async (editorId, command, value = '') => {
     const editor = richEditors.get(editorId);
     if (!editor) return;
     restoreRichSelection(editorId);
+    if (command === 'source') {
+      if (!editor.sourceMode) syncRichEditorToTextarea(editorId);
+      else { editor.surface.innerHTML = markdownToRichHtml(editor.textarea.value); editor.lastHtml = editor.surface.innerHTML; }
+      editor.sourceMode = !editor.sourceMode;
+      editor.textarea.classList.toggle('is-rich-source', !editor.sourceMode);
+      editor.surface.hidden = editor.sourceMode;
+      editor.wrapper.querySelectorAll('[data-rich-command], [data-rich-format]').forEach(button => { if (button.dataset.richCommand !== 'source') button.disabled = editor.sourceMode; });
+      return;
+    }
+    if (editor.sourceMode) return;
     if (command === 'formatBlock') document.execCommand('formatBlock', false, `<${String(value || 'P').toLowerCase()}>`);
     if (command === 'bold') document.execCommand('bold');
     if (command === 'italic') document.execCommand('italic');
@@ -407,9 +454,12 @@ export function installRichText(context) {
     if (command === 'unorderedList') document.execCommand('insertUnorderedList');
     if (command === 'orderedList') document.execCommand('insertOrderedList');
     if (command === 'link') {
-      const url = prompt('请输入链接地址');
-      if (url) document.execCommand('createLink', false, url.trim());
+      const selection = window.getSelection();
+      const node = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
+      const url = await promptDialog('请输入实际链接地址（支持 HTTPS、站内路径、mailto、tel）', node?.closest?.('a')?.getAttribute('href') || '');
+      if (url) { const href = safeContentUrl(url); if (!href) { await adminDialog({title:'链接不可用',message:'链接地址不安全或格式不受支持。',confirmLabel:'返回编辑'}); return; } restoreRichSelection(editorId); document.execCommand('createLink', false, href); }
     }
+    if (command === 'unlink') document.execCommand('unlink');
     if (command === 'separator') document.execCommand('insertHTML', false, '<hr><p><br></p>');
     if (command === 'table') {
       insertHtmlInRichEditor(
@@ -454,7 +504,9 @@ export function installRichText(context) {
           <button data-rich-command="orderedList" type="button" title="Numbered list">1. List</button>
         </span>
         <span class="rich-editor__group">
-          <button data-rich-command="link" type="button" title="Link">Link</button>
+          <button data-rich-command="link" type="button" title="查看或修改链接">Link</button>
+          <button data-rich-command="unlink" type="button" title="取消链接">Unlink</button>
+          <button data-rich-command="source" type="button" title="切换文本编辑，保留原文格式">文本模式</button>
           <button data-rich-command="image" type="button" title="Image">Image</button>
           <button data-rich-command="separator" type="button" title="Divider">Line</button>
         </span>
@@ -472,6 +524,7 @@ export function installRichText(context) {
     const surface = wrapper.querySelector('.rich-editor__surface');
     richEditors.set(editorId, { textarea, wrapper, surface });
     surface.innerHTML = markdownToRichHtml(textarea.value);
+    richEditors.get(editorId).lastHtml = surface.innerHTML;
     surface.addEventListener('input', () => {
       syncRichEditorToTextarea(editorId);
       saveRichSelection(editorId);

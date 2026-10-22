@@ -1,3 +1,5 @@
+import { blogManagerField } from './src/keystatic/blog-manager-field';
+import { articleCategoryField } from './src/keystatic/article-category-field';
 import { collection, config, fields, singleton } from '@keystatic/core';
 import productEditorSettings from './src/data/product-editor-settings.json';
 import { productClassificationFields } from './src/keystatic/product-editor-fields';
@@ -129,11 +131,12 @@ export default config({
     brand: { name: 'Golden One 内容管理' },
     navigation: {
       '站点设置': ['analyticsDashboard', 'siteFoundation', 'productEditorSettings', 'catalogDownloads', 'siteLanguages', 'customerReviews', 'formVerification'],
-      '内容管理': ['productManager', 'productOrder', 'products', 'blog', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
+      '内容管理': ['productManager', 'productOrder', 'products', 'blogManager', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
   },
   singletons: {
+    blogManager: singleton({label:'所有文章',path:'src/keystatic/blog-manager',format:'json',schema:{manager:blogManagerField()}}),
     formVerification: singleton({
       label: '表单人机验证',
       path: 'src/data/form-verification',
@@ -495,7 +498,7 @@ export default config({
         title: fields.slug({ name: { label: '文章标题' } }),
         description: fields.text({ label: 'SEO 描述', multiline: true }),
         publishDate: fields.date({ label: '发布日期' }),
-        category: fields.text({ label: '文章分类' }),
+        category: articleCategoryField(),
         image: r2ImageUrlField({
           label: '封面图 URL',
           pickerTitle: '选择文章封面图',
@@ -589,7 +592,7 @@ export default config({
         published: fields.checkbox({ label: '审核后发布', defaultValue: false }),
         generatedAt: fields.text({ label: '生成时间' }),
         description: fields.text({ label: 'SEO 描述', multiline: true }),
-        category: fields.text({ label: '文章分类' }),
+        category: articleCategoryField(),
         content: fields.markdoc({ label: '翻译正文', components: r2MarkdocComponents }),
       },
     }),

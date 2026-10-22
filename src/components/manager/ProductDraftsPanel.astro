@@ -3,16 +3,20 @@
           <div class="panel-head">
             <div>
               <h2>产品翻译草稿</h2>
-              <span>逐条预览产品多语言草稿，也可以勾选多条一键审核。</span>
+              <span>待审核和已审核待发布的内容；发布成功后自动移出待办，请在产品管理按语言管理正式内容。</span>
             </div>
           </div>
           <div class="toolbar is-row">
-            <span class="toggle">
+            <label class="toggle">
               <input id="productDraftIncludePublished" type="checkbox" />
               <span>显示已审核</span>
-            </span>
+            </label>
+            <label class="toggle"><input id="productDraftSelectAll" type="checkbox" /><span>全选当前筛选</span></label>
+            <label>语言 <select id="productDraftLocale"><option value="">全部语言</option></select></label>
+            <label>搜索 <input id="productDraftSearch" type="search" placeholder="标题或页面标识" /></label>
             <button class="button secondary" id="productDraftRefreshButton" type="button">刷新草稿</button>
             <button class="button" id="productDraftApproveButton" type="button">一键审核选中草稿</button>
+            <button class="button danger" id="productDraftDeleteButton" type="button" disabled>一键删除选中草稿</button>
             <span class="status" id="productDraftStatus">草稿列表未加载。</span>
           </div>
           <div class="history" id="productDraftList"></div>

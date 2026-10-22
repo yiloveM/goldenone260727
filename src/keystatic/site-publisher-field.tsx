@@ -1,3 +1,4 @@
+import { confirmDialog } from '../lib/admin-dialog.mjs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
 
@@ -190,6 +191,7 @@ function SitePublisherInput() {
 
         void loadHistory();
 
+        if (data.stage === 'success') window.dispatchEvent(new CustomEvent('businessweb:published'));
         if (!terminalStages.includes(data.stage)) {
           timer = window.setTimeout(pollStatus, data.stage === 'waiting' || data.stage === 'queued' ? 6000 : 10000);
         }
@@ -238,7 +240,7 @@ function SitePublisherInput() {
   const deleteSelectedRecords = async () => {
     const runIds = [...selectedRecords];
     if (!runIds.length) return;
-    const confirmed = window.confirm(`确定删除选中的 ${runIds.length} 条发布记录吗？`);
+    const confirmed = await confirmDialog(`确定删除选中的 ${runIds.length} 条发布记录吗？`);
     if (!confirmed) return;
 
     setDeleteState({ kind: 'loading', message: '' });

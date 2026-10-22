@@ -1,3 +1,4 @@
+import { siteBuildIdentity } from './scripts/site-build-identity.mjs';
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import markdoc from '@astrojs/markdoc';
@@ -58,7 +59,7 @@ export default defineConfig({
     sessionKVBindingName: 'SESSION',
   }),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [siteBuildIdentity(process.cwd()), tailwindcss()],
     // Keystatic owns this virtual module. Do not let workerd's dependency optimizer prebundle it.
     optimizeDeps: {
       exclude: ['@keystatic/astro', '@keystatic/core'],

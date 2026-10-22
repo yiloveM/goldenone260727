@@ -1,0 +1,41 @@
+import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getKeystaticBasePath } from './keystatic-path';
+import { articleCategoryLabel, articleCategoryOptions } from '../lib/article-categories.mjs';
+import { confirmDeletionPlan } from '../lib/admin-dialog.mjs';
+type Article = { id:string;slug:string;title:string;category:string;collection:string;publicUrl:string;locale:string;sourcePath:string;sourceSha:string;translations:Article[] };
+function BlogManagerInput() {
+  const rootRef=useRef<HTMLDivElement|null>(null);
+  useSyncedSurfaceTheme(rootRef,'tr');
+  const [posts,setPosts]=useState<Article[]>([]),[message,setMessage]=useState(''),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false);
+  const [query,setQuery]=useState(''),[locale,setLocale]=useState('en'),[category,setCategory]=useState(''),[page,setPage]=useState(1),[branch,setBranch]=useState('main'),[selected,setSelected]=useState<Set<string>>(new Set());
+  const selectRef=useRef<HTMLInputElement|null>(null),serial=useRef(0);
+  const load=useCallback(async()=>{const request=++serial.current;setLoading(true);setSelected(new Set());try{const response=await fetch('/api/blog/manager',{cache:'no-store'});if(!response.ok)throw new Error('无法读取文章目录，请检查登录后重试。');const data=await response.json();if(request!==serial.current)return;setPosts(data.posts||[]);setBranch(data.branch||'main');setMessage(data.warning||'');}catch(error){if(request===serial.current)setMessage(error instanceof Error?error.message:'加载失败。');}finally{if(request===serial.current)setLoading(false);}},[]);
+  useEffect(()=>{void load();return()=>{serial.current++;};},[load]);
+  useEffect(()=>{const refresh=()=>void load();window.addEventListener('businessweb:published',refresh);return()=>window.removeEventListener('businessweb:published',refresh);},[load]);
+  const records=useMemo(()=>posts.flatMap(post=>[post,...(post.translations||[])]),[posts]);
+  const filtered=useMemo(()=>records.filter(post=>(!locale||post.locale===locale)&&(!category||post.category===category)&&`${post.title} ${post.slug} ${articleCategoryLabel(post.category,'zh')}`.toLowerCase().includes(query.trim().toLowerCase())),[records,locale,category,query]);
+  const chosen=filtered.filter(post=>selected.has(post.sourcePath));
+  const all=filtered.length>0&&chosen.length===filtered.length;
+  useEffect(()=>{if(selectRef.current)selectRef.current.indeterminate=chosen.length>0&&!all;},[chosen.length,all]);
+  const change=(setter:(value:string)=>void,value:string)=>{setter(value);setSelected(new Set());setPage(1);};
+  const pages=Math.max(1,Math.ceil(filtered.length/20)),current=Math.min(page,pages);
+  const base=getKeystaticBasePath().split('/branch/')[0]+`/branch/${encodeURIComponent(branch)}`;
+  const edit=(post:Article)=>`${base}/collection/${post.collection}/item/${encodeURIComponent(post.id)}`;
+  const remove=async(rows=chosen)=>{if(busy||!rows.length)return;const returnFocus=document.activeElement;setBusy(true);try{
+    const selection=rows.map(({sourcePath,sourceSha})=>({sourcePath,sourceSha}));
+    const response=await fetch('/api/blog/deletion',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({selection})});if(!response.ok)throw new Error(await response.text());const plan=await response.json();if(!await confirmDeletionPlan(plan,{returnFocus}))return;
+    const deleted=await fetch('/api/blog/deletion',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({...plan,confirmed:true})});if(!deleted.ok)throw new Error(await deleted.text());const result=await deleted.json();await load();setMessage(result.message);
+  }catch(error){setMessage(error instanceof Error?error.message:'删除未完成，请刷新。');}finally{setBusy(false);}};
+  return <div ref={rootRef} className="blog-manager">
+    <header><div><h2>所有文章</h2><p>按语言和分类查找正式内容，点击标题编辑。内容保存后通过现有网站发布流程上线。</p></div><button disabled={busy||loading} type="button" onClick={()=>void load()}>刷新文章</button><a href={`${base}/collection/blog/create`}>新建文章</a></header>
+    <div className="blog-manager-toolbar"><label>内容语言<select disabled={busy} value={locale} onChange={event=>change(setLocale,event.target.value)}><option value="">全部公开语言</option>{[...new Set(records.map(post=>post.locale))].map(code=><option key={code}>{code}</option>)}</select></label><label>文章分类<select disabled={busy} value={category} onChange={event=>change(setCategory,event.target.value)}><option value="">全部分类</option>{articleCategoryOptions('zh').map(option=><option key={option.value} value={option.value}>{option.label}</option>)}</select></label><label>搜索文章<input type="search" disabled={busy} value={query} onChange={event=>change(setQuery,event.target.value)} /></label></div>
+    <div className="blog-manager-toolbar"><label><input ref={selectRef} type="checkbox" disabled={busy||loading||!filtered.length} checked={all} onChange={event=>setSelected(new Set(event.target.checked?filtered.map(post=>post.sourcePath):[]))} />全选当前筛选（全部分页 {filtered.length} 项）</label><span>已选 {chosen.length} 项</span><button type="button" disabled={busy||!chosen.length} onClick={()=>setSelected(new Set())}>清空选择</button><button type="button" className="danger" disabled={busy||loading||!chosen.length} onClick={()=>void remove()}>删除选中文章</button></div>
+    {message&&<p role="status">{message}</p>}
+    {loading?<p role="status">正在加载…</p>:filtered.slice((current-1)*20,current*20).map(post=><article key={post.sourcePath}><label><input type="checkbox" disabled={busy} aria-label={`选择 ${post.locale} ${post.title}`} checked={selected.has(post.sourcePath)} onChange={event=>{const checked=event.target.checked;setSelected(old=>{const next=new Set(old);if(checked)next.add(post.sourcePath);else next.delete(post.sourcePath);return next;});}} /></label><div><h3><a href={edit(post)}>{post.title}</a></h3><p>{post.locale} · {articleCategoryLabel(post.category,'zh')} · {post.slug}</p></div><div className="blog-manager-actions"><a href={post.publicUrl} target="_blank" rel="noreferrer">前端查看</a><a href={edit(post)}>编辑</a><button type="button" className="danger" disabled={busy} onClick={()=>void remove([post])}>删除</button></div></article>)}
+    {!loading&&!filtered.length&&<p>没有匹配文章。</p>}
+    <nav aria-label="文章分页"><button type="button" disabled={busy||current<=1} onClick={()=>setPage(current-1)}>上一页</button><span>{current} / {pages}</span><button type="button" disabled={busy||current>=pages} onClick={()=>setPage(current+1)}>下一页</button></nav>
+    <style>{`.blog-manager{box-sizing:border-box;width:100%;max-width:1200px;padding:20px;color:inherit;overflow-wrap:anywhere}.blog-manager header,.blog-manager-toolbar,.blog-manager-actions,.blog-manager nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.blog-manager header>div{flex:1;min-width:220px}.blog-manager-toolbar{padding:12px 0;border-bottom:1px solid #8885}.blog-manager-toolbar label{display:flex;align-items:center;gap:8px}.blog-manager input[type=search],.blog-manager select{box-sizing:border-box;padding:9px;max-width:100%;border:1px solid #8886;border-radius:6px;font:inherit;color:inherit;background:transparent}.blog-manager article{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:14px;border-bottom:1px solid #8885;padding:14px 0}.blog-manager h3{margin:4px 0;font-size:16px}.blog-manager p{margin:4px 0}.blog-manager button{padding:8px 12px;min-height:38px;border:1px solid #8886;border-radius:6px;cursor:pointer;background:transparent;color:inherit;font:inherit}.blog-manager .danger{color:light-dark(#b42318,#fda29b);border-color:currentColor}.blog-manager button:disabled{opacity:.5;cursor:not-allowed}.blog-manager a{color:inherit;text-decoration:underline;text-underline-offset:3px}.blog-manager nav{padding:20px 0}@media(max-width:720px){.blog-manager{padding:12px}.blog-manager article{grid-template-columns:24px minmax(0,1fr)}.blog-manager-actions{grid-column:2}}`}</style>
+  </div>;
+}
+export const blogManagerField=({label='所有文章'}={})=>({kind:'form' as const,label,Input:BlogManagerInput,defaultValue:()=>'',parse:()=>'',serialize:()=>({value:undefined}),validate:(value:string)=>value,reader:{parse:()=>''}});
