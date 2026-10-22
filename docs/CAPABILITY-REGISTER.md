@@ -1,5 +1,15 @@
 # Golden One Capability Register
 
+## CAP-0013 revision 1 - Enabled multilingual AI content discovery
+
+- Source Corner d6b3995adc125d81da82672e768c549cf16ddd0c / mother e7ba1e8c485456f94d7422cbcf563dee3efa41c8; owner exact full-scope capability approval and subsequent explicit enable request. Own main baseline 483adb7e28cbb2f08bf75db45c41fae590f3cedd; final own source, tests, actual enabled output and delivery receipts stay in PROJECT-PROGRESS.
+- Generic scripts/llms-discovery plus existing Astro build consume this site's actual CMS eligibility, public language policy, route helpers and rendered primary content. Scoped llms.txt, safe same-source Markdown, bounded optional full text, deterministic exclusions/limits, stale retirement, actual-resource alternate/describedby and strict MIME; canonical/hreflang/JSON-LD retained. Owner-only aiSeo singleton and status API/UI under AI & SEO Settings, private _llms reports; Manager has no global policy. ON: discovery/multilingual/Markdown; OFF: optional full text.
+- No Corner native JSON, customer copy, resources, taxonomy, language model, credentials, cloud services or new release chain. No article runner installation or paid call. parse5/esbuild pin this site's already locked versions without upgrades; Worker whitespace compaction retains names/data/legal notices. Shared20 regressions plus actual own build/HTTP evidence are required before claiming acceptance. Recovery is scoped source/config after later CMS review; OFF retires generated files on next existing build, no automatic content/cloud rollback.
+
+## CAP-0012 revision 2 - Workerd credentialed Git compatibility
+
+- Existing Git bulk/REST fetch uses manual and explicit 3xx rejection; never forwards credentials to redirects. Real workerd regression covers9-record batch and301/302/303/307/308 rejection in existing test:manager. No schema/auth/release change; own source and runtime evidence in progress.
+
 ## CAP-0012 revision 1 - Safe multilingual content administration
 
 - Owner separately approved lifecycle, categories, formal article deletion and formal product controls; explicit controlled backport/adoption after Corner validation. Mother source 07cec5094160370ba79294527d1095f9f9cb52ac, derived from Corner CAND-0014 (a025c5f/9cce435/0492a59). Own source 0d1d9a71a55551523fb5668a7f372a8f3ca4d865 received by main; actual source build/deploy https://github.com/yiloveM/goldenone260727/actions/runs/39706822573 success. Own baseline and current Worker/public recovery evidence stay in PROJECT-PROGRESS.

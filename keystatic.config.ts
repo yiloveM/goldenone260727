@@ -1,3 +1,4 @@
+import { aiSeoFields } from './src/keystatic/ai-seo-fields';
 import { blogManagerField } from './src/keystatic/blog-manager-field';
 import { articleCategoryField } from './src/keystatic/article-category-field';
 import { collection, config, fields, singleton } from '@keystatic/core';
@@ -130,12 +131,14 @@ export default config({
   ui: {
     brand: { name: 'Golden One 内容管理' },
     navigation: {
-      '站点设置': ['analyticsDashboard', 'siteFoundation', 'productEditorSettings', 'catalogDownloads', 'siteLanguages', 'customerReviews', 'formVerification'],
+      'AI & SEO Settings': ["aiSeo"],
+      '站点设置': ["analyticsDashboard","siteFoundation","productEditorSettings","catalogDownloads","siteLanguages","customerReviews","formVerification"],
       '内容管理': ['productManager', 'productOrder', 'products', 'blogManager', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
       '媒体资源': ['imagePool'],
     },
   },
   singletons: {
+    aiSeo: singleton({label:'AI 内容导航',path:'src/data/ai-seo-settings',format:'json',schema:aiSeoFields()}),
     blogManager: singleton({label:'所有文章',path:'src/keystatic/blog-manager',format:'json',schema:{manager:blogManagerField()}}),
     formVerification: singleton({
       label: '表单人机验证',

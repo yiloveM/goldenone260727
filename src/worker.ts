@@ -1,3 +1,5 @@
+import aiSeoSettings from './data/ai-seo-settings.json';
+import { discoveryResponse } from './lib/ai-discovery-response';
 import astroServer from '@astrojs/cloudflare/entrypoints/server';
 import {
   ADMIN_PORTAL_HEADER,
@@ -40,7 +42,7 @@ const PREVIEW_HEADERS = {
 };
 
 const isProtectedPublicPath = (pathname: string) =>
-  /^\/(?:manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:analytics(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/(manager|deletion)$|blog\/(manager|deletion)$|r2\/assets$))/.test(
+  /^\/(?:_llms(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|api\/(?:analytics(?:\/|$)|manager(?:\/|$)|keystatic(?:\/|$)|ai(?:\/|$)|deploy\/site$|products\/(manager|deletion)$|blog\/(manager|deletion)$|r2\/assets$))/.test(
     pathname
   );
 
@@ -426,10 +428,11 @@ export default {
       const response = notFound();
       return previewRuntime ? securePreviewResponse(response) : response;
     }
-    const response = isDownloadApiPath(url.pathname)
+    const aiResponse=await discoveryResponse(request,(env as WorkerEnv & {ASSETS?:{fetch:(request:Request)=>Promise<Response>}}).ASSETS,aiSeoSettings);
+    const response = aiResponse || (isDownloadApiPath(url.pathname)
       ? await handleDownloadRequest(request, env)
       : (await fetchPublicAsset(request, env)) ||
-        (await fetchAstro(requestForInternalPath(request, url), env, context));
+        (await fetchAstro(requestForInternalPath(request, url), env, context)));
     if (!previewRuntime) {
       context.waitUntil(
         capturePublicPageView(request, response, env).catch(error => {

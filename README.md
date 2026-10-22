@@ -44,6 +44,9 @@ Golden One 是面向海外品牌、活动、奖项、促销品经销商和采购
 ### 3. SEO/GEO 能力
 
 - canonical、`hreflang`、多语言 sitemap、`robots.txt`、`llms.txt` 和机器可读产品目录。
+- 站长在 **Keystatic → AI & SEO Settings → AI 内容导航** 控制总开关、多语言、Markdown、可选合并全文、类别/数量、已核实简介及精确排除路径；Manager 不提供全局设置。保存后使用现有“发布网站更新”。
+- 导航及 Markdown 从同一 CMS 和实际公开页面自动同步；根目录 `/llms.txt`、真实语言目录 `/<语言>/llms.txt`，目录内容版本为 `index.md`。跳过未审核、缺译文、关闭语言、noindex 和私有内容，保留原 canonical/hreflang。可在生成状态查看已发布数量和保存后尚未发布的设置，日志沿用原发布记录。
+- `npm run test:llms` 与 `npm run build` 验证生成；产物在 `dist/client`。关闭后下次发布移除本能力输出和发现链接，不删除内容/媒体。合并全文须开启 Markdown，体积有上限，属于可选文件。llms.txt 帮助主动读取它的工具发现资料，[Google 不用它提高排名](https://developers.google.com/search/docs/fundamentals/ai-optimization-guide)；规范见[llms.txt v2](https://llmstxt.org/)。
 - Organization、ProductGroup/Product、Service、BreadcrumbList、FAQPage 等结构化数据。
 - JSON-LD 先经过类型检查与安全序列化；构建成功后自动检查每个生成页面的结构化数据，不会为询价产品编造价格或评分。
 - 产品、文章、图片替代文本、内链和语言发布状态由同一内容源生成。

@@ -188,8 +188,8 @@ const contracts = [
   },
   {
     area: 'Search discovery outputs',
-    file: 'src/pages/llms.txt.ts',
-    markers: ['Primary resources', 'industryProfile'],
+    file: 'scripts/llms-discovery/generate.mjs',
+    markers: ['generateDiscovery', 'canonical.href', 'locale.htmlLang', 'configSnapshot'],
   },
   {
     area: 'Visual-layer isolation',

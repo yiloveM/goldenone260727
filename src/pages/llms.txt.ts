@@ -1,51 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
-import { buildProductCategories, isProductPublished } from '../data/productCategories';
-import { siteInfo } from '../data/site';
-import { industryProfile, profileKeywords } from '../data/industry-profile';
-import { siteUrl } from '../data/seo';
+import { llmsSourceManifest } from '../lib/llms-source';
 
 export const prerender = true;
 
-export const GET: APIRoute = async ({ site }) => {
-  const origin = siteUrl(site);
-  const products = (await getCollection('products')).filter(isProductPublished);
-  const categories = buildProductCategories(products);
-  const absolute = (path: string) => new URL(path, `${origin}/`).toString();
-
-  const lines = [
-    `# ${siteInfo.name}`,
-    '',
-    `> ${siteInfo.description}`,
-    '',
-    `${siteInfo.name} is an international ${industryProfile.market.industry} website for distributors, brands, event organizers, and sourcing partners.`,
-    '',
-    '## Primary resources',
-    '',
-    `- [Products](${absolute('/products/')}): Product catalog pages with applications, options, and inquiry paths.`,
-    `- [Machine-readable catalog](${absolute('/product-catalog.json')}): Public product, series, application, specification, and model data.`,
-    `- [Insights](${absolute('/blog/')}): Article and guide collection.`,
-    `- [About](${absolute('/about/')}): Company approach and capability information.`,
-    `- [Contact](${absolute('/contact/')}): Inquiry and contact form page.`,
-    '',
-    '## Active categories',
-    '',
-    ...categories.map(category =>
-      `- [${category.displayName || category.name}](${absolute(category.href)}): ${category.description} (${category.count} items).`
-    ),
-    '',
-    '## Content notes',
-    '',
-    `- Core topics: ${profileKeywords().join(', ') || industryProfile.market.industry}.`,
-    '- Product availability, pricing, certifications, warranty, and project suitability are only authoritative when visibly published and verified by the business.',
-    '- Published translations use locale-prefixed URLs and preserve model codes, units, URLs, and contact details.',
-    '',
-  ];
-
-  return new Response(lines.join('\n'), {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-    },
-  });
-};
+// Build-only seed; the mandatory llms-discovery integration replaces/removes it
+// before a successful artifact exists. Never publish this JSON as llms.txt.
+export const GET: APIRoute = async () => Response.json(await llmsSourceManifest());

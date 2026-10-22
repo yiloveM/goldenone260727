@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "multilingual": true,
+  "markdown": true,
+  "llmsFull": false,
+  "maxEntries": 500,
+  "maxFullBytes": 1048576,
+  "include": {
+    "products": true,
+    "categories": true,
+    "articles": true,
+    "company": true,
+    "resources": true,
+    "contact": true
+  },
+  "summaries": [],
+  "excludePaths": []
+}

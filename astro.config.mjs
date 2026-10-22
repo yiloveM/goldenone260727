@@ -1,3 +1,5 @@
+import { llmsDiscovery } from './scripts/llms-discovery/integration.mjs';
+import { compactWorkerChunks } from './scripts/worker-chunks.mjs';
 import { siteBuildIdentity } from './scripts/site-build-identity.mjs';
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
@@ -59,7 +61,7 @@ export default defineConfig({
     sessionKVBindingName: 'SESSION',
   }),
   vite: {
-    plugins: [siteBuildIdentity(process.cwd()), tailwindcss()],
+    plugins: [siteBuildIdentity(process.cwd()), tailwindcss(), compactWorkerChunks()],
     // Keystatic owns this virtual module. Do not let workerd's dependency optimizer prebundle it.
     optimizeDeps: {
       exclude: ['@keystatic/astro', '@keystatic/core'],
@@ -91,6 +93,5 @@ export default defineConfig({
           && !pathname.endsWith('.txt')
           && !pathname.endsWith('.json');
       },
-    }),
-  ],
+    }), llmsDiscovery()],
 });

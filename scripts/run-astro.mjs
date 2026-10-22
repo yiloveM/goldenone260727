@@ -41,6 +41,9 @@ const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error('Usage: node scripts/run-astro.mjs <dev|check|build|preview|verified-build> [...args]');
 
 if (command === 'verified-build') {
+  const discoveryTests = spawnSync(process.execPath, ['--test', resolve(projectRoot, 'scripts', 'test-llms-discovery.mjs'), resolve(projectRoot, 'scripts', 'test-worker-chunks.mjs')], sharedOptions);
+  if (discoveryTests.error) throw discoveryTests.error;
+  if (discoveryTests.status !== 0) process.exit(discoveryTests.status ?? 1);
   const formStatus = spawnSync(process.execPath, ['--test', 'scripts/test-form-verification.mjs'], sharedOptions);
   if (formStatus.error) throw formStatus.error;
   if (formStatus.status !== 0) process.exit(formStatus.status ?? 1);

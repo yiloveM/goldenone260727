@@ -32,11 +32,17 @@ export const githubFetch = async <T>(
 ) => {
   const response = await fetch(url, {
     ...init,
+    // Never forward a credential through a redirect. Workers supports manual/follow.
+    redirect: 'manual',
     headers: {
       ...githubHeaders(accessToken, userAgent),
       ...(init?.headers || {}),
     },
   });
+
+  if (response.status >= 300 && response.status < 400) {
+    throw Object.assign(new Error('内容同步遇到异常跳转，请稍后重试。'), { status: 502 });
+  }
 
   if (!response.ok) {
     throw Object.assign(new Error(await response.text()), { status: response.status });

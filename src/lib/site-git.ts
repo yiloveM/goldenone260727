@@ -37,7 +37,7 @@ export async function readGitBlobs(ctx: GitContext, requested: string[]) {
     const batch=missing.slice(offset,offset+64),variables:Record<string,string>={owner,name};
     const declarations=batch.map((sha,index)=>{variables[`s${index}`]=sha;return `$s${index}:GitObjectID!`;});
     const fields=batch.map((_,index)=>`b${index}:object(oid:$s${index}){... on Blob{oid text byteSize isBinary isTruncated}}`);
-    const response=await githubFetch<any>('https://api.github.com/graphql',ctx.token,{method:'POST',redirect:'error',body:JSON.stringify({query:`query($owner:String!,$name:String!,${declarations.join(',')}){repository(owner:$owner,name:$name){nameWithOwner ${fields.join(' ')}}}`,variables})});
+    const response=await githubFetch<any>('https://api.github.com/graphql',ctx.token,{method:'POST',redirect:'manual',body:JSON.stringify({query:`query($owner:String!,$name:String!,${declarations.join(',')}){repository(owner:$owner,name:$name){nameWithOwner ${fields.join(' ')}}}`,variables})});
     const repo=response.data?.repository;
     if(response.errors?.length||repo?.nameWithOwner?.toLowerCase()!==ctx.repo.toLowerCase())throw new Error('批量内容暂时无法同步，请按语言缩小范围后重试。');
     for(const [index,sha] of batch.entries()){
