@@ -135,7 +135,7 @@ success/replay; simulated acceptance and GET 200 are not real service acceptance
 - Controlled downloads are owner-configurable through Keystatic, server allowlisted, and disabled by default. Never expose a document URL in initial HTML; release it only after CAPTCHA, D1 persistence, and successful Resend delivery.
 - Keystatic JSON singleton paths must omit the `.json` extension. Never create or retain `*.json.json` content files.
 - Preserve current customer feature states. A capability migration may add new disabled options, but must not reset existing language, review, analytics, R2, download, or public-module settings.
-- Manager navigation must hide owner-disabled modules. The Manager main and analytics screens must derive their top-left company label from the same industry-profile owner value.
+- Manager navigation must hide owner-disabled modules. The Manager main and analytics screens derive their company label from the same industry-profile brand name; retain the owner value as maintenance attribution. Site visual switches remain Keystatic-only; Manager changes only opened content positions through the approved draft/review flow.
 - Keep `/keystatic/`, `/manager/`, `/api/`, and `/r2/` out of public indexing.
 - Do not use fabricated prices, availability, reviews, ratings, certifications, manufacturing claims, customer logos, dates, or case studies.
 - While `industry-profile.json` is in `template` or `briefed` lifecycle, clearly recognizable sample email, phone, WhatsApp, and address values may remain visible for frontend visual comparison. Keep them obviously exemplary; do not replace them with realistic but unverified company details.

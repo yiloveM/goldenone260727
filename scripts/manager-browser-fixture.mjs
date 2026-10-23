@@ -23,7 +23,7 @@ async function copyTree(source, target) {
   }
 }
 
-export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true) {
+export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true, profile = {governance:{contentOwner:'Manager regression'}}) {
   const fixture = resolve(output, label);
   for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
     const source = await readFile(resolve(root, file), 'utf8');
@@ -38,7 +38,7 @@ export async function buildManagerFixture(root, output, reviews, policy = testPo
   await write(resolve(fixture, 'src/pages/index.astro'), '<!doctype html><html lang="en"><body><main><h1>Public isolation fixture</h1></main></body></html>');
   await write(resolve(fixture, 'src/data/customer-reviews.json'), JSON.stringify({ enabled: reviews, summary: {}, reviews: [] }));
   await write(resolve(fixture, 'src/keystatic/analytics-dashboard.json'), JSON.stringify({ managerVisible: analytics }));
-  await write(resolve(fixture, 'src/data/industry-profile.json'), '{"governance":{"contentOwner":"Manager regression"}}');
+  await write(resolve(fixture, 'src/data/industry-profile.json'), JSON.stringify(profile));
   await build({ root: fixture, configFile: false, output: 'static', logLevel: 'error',
     vite: { build: { minify: false } }, outDir: resolve(fixture, 'dist'), cacheDir: resolve(fixture, '.astro-cache') });
   return resolve(fixture, 'dist');
@@ -95,11 +95,25 @@ export async function managerBackend(root, output) {
   const draftRows = (type = 'product') => db.prepare(`SELECT * FROM manager_${type}_drafts ORDER BY updated_at DESC, id`).all().map(row =>
     type === 'product' ? normalizer.productDraftToResponse(row) : type === 'blog' ? normalizer.blogDraftToResponse(row) : normalizer.reviewDraftToResponse(row));
   const productDrafts = () => draftRows();
+  const visualDrafts = [], orderGroups = []; let workspace = { known: true, pending: 1, unpublished: 1, message: '审核通过的变更将在下一次网站发布后上线。' }, translationStatus = null;
+  const visualSlots = [{ key:'home.primary',group:'home',title:'首页首屏',path:'/',fallback:'/fixture-image.svg',image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50 },{ key:'pages.about',group:'pages',title:'关于我们',path:'/about/',fallback:'/fixture-image.svg',image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50 }];
   const api = async (pathname, method, body, search) => {
     requests.push({ path: pathname, method, ...(method === 'GET' ? {} : { body }) });
     if (!authenticated) throw Object.assign(new Error('登录已过期，请重新登录。'), { status: 403 });
     if (failedApis.delete(pathname)) throw new Error('连接暂时失败，请重试。');
     if (pathname.endsWith('/status')) return { ok: true, manager: { email: 'editor@example.test' }, checks: [] };
+    if (pathname.endsWith('/workspace')) return workspace;
+    if (pathname.endsWith('/site-visuals')) {
+      if(method==='GET')return{baseSha:'a'.repeat(40),slots:visualSlots,locales:enabledLocales.map(item=>item.value).concat('en'),drafts:visualDrafts};
+      if(method==='POST'){const old=visualDrafts.find(row=>row.id===body.id),row={id:old?.id||`visual-${crypto.randomUUID()}`,baseSha:body.baseSha,updatedAt:new Date().toISOString(),status:'draft',payload:body.payload};if(old)Object.assign(old,row);else visualDrafts.unshift(row);return{draft:row};}
+      if(method==='DELETE'){const index=visualDrafts.findIndex(row=>row.id===body.id);if(index<0||visualDrafts[index].status==='queued')throw new Error('记录仍在处理');visualDrafts.splice(index,1);return{removed:1};}
+      const row=visualDrafts.find(row=>row.id===body.id);row.status='applied';for(const item of row.payload.slots)Object.assign(visualSlots.find(slot=>slot.key===item.key),item);return{applied:true};
+    }
+    if(pathname.endsWith('/product-order')){
+      if(method==='GET')return{groups:orderGroups};
+      if(method==='POST'){const group={id:crypto.randomUUID(),category:body.category,status:'draft',records:body.records.map(item=>({id:item.slug,updatedAt:date,title:item.slug})),values:body.records};orderGroups.push(group);return{...group,message:'排序草稿已保存，请整批审核。'};}
+      const group=orderGroups.find(group=>group.id===body.id);group.status='applied';for(const row of group.values){const product=products.find(item=>item.slug===row.slug);product.sortOrder=row.sortOrder;}return{applied:true};
+    }
     if (/\/(product|blog)-deletion$/.test(pathname)) {
       const product=pathname.endsWith('/product-deletion'),list=product?products:blogs;
       if(method==='POST')return {head:'a'.repeat(40),kind:product?'product':'article',records:list.filter(row=>body.selection.some(item=>item.sourcePath===row.sourcePath)).map(row=>({...row,publicUrl:row.publicUrl||`https://fixture.test/${product?'products':'news'}/${row.slug}.html`}))};
@@ -152,12 +166,12 @@ export async function managerBackend(root, output) {
       if (method === 'DELETE') assets.delete(body.key);
       if (method === 'PATCH') for (const key of body.keys) { const file = assets.get(key); assets.delete(key); assets.set(body.targetPrefix + file.name, { ...file, key: body.targetPrefix + file.name }); }
       if (method === 'POST') for (const file of body.files) assets.set(body.prefix + file.name, { name: file.name, key: body.prefix + file.name, url: '/fixture-image.svg', size: file.size, isImage: true });
-      return { prefix, folders: [...folders].filter(key => key.startsWith(prefix) && key !== prefix).map(key => ({ prefix: key, name: key.slice(prefix.length).replace(/\/$/, '') })),
-        files: [...assets.values()].filter(file => file.key.startsWith(prefix) && !file.key.slice(prefix.length).includes('/')) };
+      const list=[...assets.values()].filter(file=>file.key.startsWith(prefix)&&!file.key.slice(prefix.length).includes('/')),offset=Number(search.get('cursor')||0),limit=Number(search.get('limit')||300),truncated=offset+limit<list.length;
+      return { prefix, folders: [...folders].filter(key => key.startsWith(prefix) && key !== prefix).map(key => ({ prefix: key, name: key.slice(prefix.length).replace(/\/$/, '') })), files:list.slice(offset,offset+limit),truncated,cursor:truncated?String(offset+limit):undefined };
     }
     if (pathname.endsWith('/ai/translation-locales')) return { locales: enabledLocales };
     if (pathname.endsWith('/ai/translations')) return { requestId: 'fixture-translation', message: '已提交。' };
-    if (pathname.endsWith('/ai/translation-status')) return { requestId: 'fixture-translation', status: 'completed', conclusion: 'success', message: '翻译完成。', result: { generated: [{ type: 'product', locale: 'es', slug: 'sample-service' }], skipped: [], errors: [] } };
+    if (pathname.endsWith('/ai/translation-status')) return translationStatus || { requestId: 'fixture-translation', status: 'completed', conclusion: 'success', message: '翻译完成。', result: { generated: [{ type: 'product', locale: 'es', slug: 'sample-service' }], skipped: [], errors: [] } };
     if (pathname.endsWith('/ai/drafts')) {
       if (method === 'DELETE') {const ids=new Set(body.drafts.map(item=>item.draftSlug));for(let index=translationDrafts.length-1;index>=0;index--)if(ids.has(translationDrafts[index].draftSlug))translationDrafts.splice(index,1);return {removed:body.drafts};}
 
@@ -182,6 +196,7 @@ export async function managerBackend(root, output) {
     throw new Error('Unexpected fixture API: ' + method + ' ' + pathname);
   };
   return { requests, db, productDrafts, products, assets, translationDrafts, records,
+    visualDrafts, visualSlots, orderGroups, setWorkspace:value=>{workspace=value;}, setTranslationStatus:value=>{translationStatus=value;},
     setReviews: value => { reviewsEnabled = value; }, failNextSave: () => { failSave = true; },
     failNextApi: path => failedApis.add(path), setPolicy: value => { policy = value; },
     setLocales: value => { enabledLocales = value; }, normalizeProduct: normalizer.normalizeProductDraftPayload,
@@ -194,6 +209,7 @@ export async function managerBackend(root, output) {
           if (pathname.startsWith('/api/manager/')) {
             if (!url.pathname.startsWith(`/${testUuid}/api/manager/`)) { res.writeHead(404); res.end(); return; }
             if (pathname.endsWith('/ai/draft-preview')) { res.setHeader('content-type', 'text/html; charset=utf-8'); res.end('<!doctype html><h1>Translated draft</h1>'); return; }
+            if (pathname.endsWith('/content-preview')) { res.setHeader('content-type', 'text/html; charset=utf-8');res.end('<!doctype html><h1>Saved working draft</h1>');return; }
             const chunks = []; for await (const chunk of req) chunks.push(chunk);
             const buffer = Buffer.concat(chunks);
             let body = buffer.length ? req.headers['content-type']?.includes('multipart/form-data') ? null : JSON.parse(buffer) : null;

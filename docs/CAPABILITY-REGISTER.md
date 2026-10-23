@@ -1,5 +1,14 @@
 # Golden One Capability Register
 
+## CAND-0016 revision 1 — Site visuals and content workspace pilot
+
+- State: implemented / locally verified; production receipt pending in PROJECT-PROGRESS. Owner exact approval of the complete 2026-10-23 Golden One pilot; baseline own main 6ab97601533e04d5d09443242620b67d5dc1d04e. Source is this scoped implementation; actual source SHA and release evidence follow in progress. NOT a mother integrated CAP. Mother ledger registration is deliberately deferred to separately approved stage two; no mother/client propagation in stage one. CAP-0010 remains its original capability.
+- Before: hardcoded Banner, fragmented workspaces, squeezed actions, lost unsaved edits, incomplete media/search and task state. After: declarative site adapter + owner schema, opened-slot content drafts/preview/review with strict fresh-Git policy/CAS, one additive existing-D1 table, legacy-compatible frontend; complete-scope atomic order batches in original drafts; unified task restoration, source/public-language validation, content-focused responsive UI.
+- Closure: src/data/site-visual*, src/lib/site-visuals.mjs, src/keystatic/site-visual-fields.ts, actual home/page/category consumers, src/lib/manager + authenticated API + manager components/scripts/styles; schema.sql and original publish ignore; scripts/test-* and existing readiness/continuity/build entry; README/AGENTS. No new dependencies/resources/credentials, public content rewrite, paid calls or second release chain.
+- Compatibility: 43 old image leaves, product fallback/gallery/metadata/body, business language/module switches, URL/SEO, forms/Resend/downloads/cart, original D1/R2 and private portals preserved. Empty/missing/OFF tested in actual source-copy builds; unsupported home center remains closed. Known closed-language texts survive writes. Sorting writes only sortOrder after whole-scope SHA validation; no partial approval.
+- Acceptance: full Manager suite/49 UI groups, actual schema Reader seven states, handler+SQLite27, visual units9, Keystatic widgets16, standard build and 53 contracts locally pass; production login/read/write/release are separate receipts in progress. Rollback only this scoped source after later CMS review, retain D1/R2; owner can close visual positions and publish to restore original assets.
+
+
 ## CAP-0013 revision 1 - Enabled multilingual AI content discovery
 
 - Source Corner d6b3995adc125d81da82672e768c549cf16ddd0c / mother e7ba1e8c485456f94d7422cbcf563dee3efa41c8 plus optional-metadata compatibility d96d839318d791b31dbbbca36e23181f86f23438; owner exact full-scope capability approval and subsequent explicit enable request. Own main baseline 483adb7e28cbb2f08bf75db45c41fae590f3cedd; own source 6e8b546624bd538c294c3af18121a8cdc200f95c received by main; actual existing site-publish39775054794 build/deploy and33 public checks passed. Full enabled output, Worker and recovery receipts stay in PROJECT-PROGRESS.

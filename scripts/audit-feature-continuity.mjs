@@ -139,7 +139,7 @@ const contracts = [
   {
     area: 'Manager analytics brand parity',
     file: 'src/pages/manager/analytics.astro',
-    markers: ['industryProfile', 'managerOwner', '<strong>{managerOwner}</strong>'],
+    markers: ['industryProfile', 'managerOwner', '<strong>{managerSiteName}</strong>', '站点维护：{managerOwner}'],
   },
   {
     area: 'Manager API routes',
@@ -398,8 +398,8 @@ function auditProject(root, label) {
     addError(`${label}: Manager review navigation must follow the owner-controlled review-system switch.`);
   }
   const managerAnalytics = readText(resolve(root, 'src/pages/manager/analytics.astro'));
-  if (managerAnalytics.includes('<strong>Golden One</strong>') || !managerAnalytics.includes('<strong>{managerOwner}</strong>')) {
-    addError(`${label}: Manager analytics must use the same content-owner brand as the main Manager screen.`);
+  if (managerAnalytics.includes('<strong>Golden One</strong>') || !managerAnalytics.includes('<strong>{managerSiteName}</strong>') || !managerUi.includes('<strong>{managerSiteName}</strong>') || !managerAnalytics.includes('站点维护：{managerOwner}')) {
+    addError(`${label}: Manager analytics must use the same dynamic site brand as the main Manager screen and retain maintenance attribution.`);
   }
 
   const keystaticConfig = readText(resolve(root, 'keystatic.config.ts'));

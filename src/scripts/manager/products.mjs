@@ -1,4 +1,5 @@
 export function installProducts(context) {
+  const desiredVisibility = product => context.state.productVisibilityDrafts.has(product.slug) ? context.state.productVisibilityDrafts.get(product.slug) : product.published;
   // Legacy galleries render the separate cover first on public product pages.
   const editableGalleryImages = product => [...new Set([product.image, ...(Array.isArray(product.galleryImages) ? product.galleryImages : [])]
     .map(value => String(value ?? '').trim()).filter(Boolean))];
@@ -59,8 +60,8 @@ export function installProducts(context) {
   const renderProducts = () => {
     const products = filteredProducts();
     const totalProducts = context.state.products.length;
-    const onlineCount = context.state.products.filter(product => product.published !== false).length;
-    const offlineCount = Math.max(0, totalProducts - onlineCount);
+    const onlineCount = context.state.products.every(product => product.lifecycle) ? context.state.products.filter(product => product.lifecycle === 'live').length : '—';
+    const offlineCount = context.state.products.filter(product => product.published === false).length;
     const totalPages = Math.max(1, Math.ceil(products.length / context.productPageSize));
     const currentPage = Math.min(Math.max(1, context.state.productPage), totalPages);
     context.state.productPage = currentPage;
@@ -94,11 +95,11 @@ export function installProducts(context) {
                 <span class="manager-product-category">${context.escapeHtml(product.category || '未分类')}</span>
                 <span class="manager-product-actions">
                   ${product.locale && product.locale !== 'en' ? `<span class="content-state">${product.lifecycle === 'live' ? '已上线' : '有待发布修改'}</span>` : `<label class="manager-product-publish ${product.published ? 'is-on' : ''}">
-                    <input data-product-published="${context.escapeHtml(product.slug)}" type="checkbox" ${product.published ? 'checked' : ''} />
-                    <span>${product.published ? '允许公开' : '已设为隐藏'}</span>
+                    <input data-product-published="${context.escapeHtml(product.slug)}" type="checkbox" ${desiredVisibility(product) ? 'checked' : ''} />
+                    <span>${context.state.productVisibilityDrafts.has(product.slug) ? '草稿：' : ''}${desiredVisibility(product) ? '发布后显示' : '发布后隐藏'}</span>
                   </label>`}
                   <button class="manager-product-edit" data-slug="${context.escapeHtml(product.slug)}" data-content-locale="${context.escapeHtml(product.locale || 'en')}" type="button">编辑</button>
-                      <a class="manager-product-view" data-product-view href="${context.escapeHtml(context.publicContentUrl('product', product))}" target="_blank" rel="noreferrer">前端查看</a>${context.formalDeleteButton('product',product)}
+                      <a class="manager-product-view" data-product-view href="${context.escapeHtml(context.publicContentUrl('product', product))}" target="_blank" rel="noreferrer">查看网站</a>${context.formalDeleteButton('product',product)}
                 </span>
               </article>
             `
@@ -182,7 +183,7 @@ export function installProducts(context) {
                     ? `<button class="field-image-preview" data-inline-image-preview="${context.escapeHtml(value)}" type="button" title="${context.escapeHtml(value || '当前没有图片')}" ${value ? '' : 'disabled'}>${context.thumbnailMarkup(value, '产品主图')}</button><button class="mini-button" data-image-list="${key}" data-index="${index}" type="button">选择</button>`
                     : '<span></span>'
                 }
-                <button class="mini-button danger" data-action="${key}:remove" data-index="${index}" type="button">删除</button>
+                <span class="gallery-row-controls">${isImageList ? `<span class="content-state">${index === 0 ? '主图' : `图片 ${index+1}`}</span><button class="mini-button" data-action="gallery:up" data-index="${index}" ${index===0?'disabled':''} type="button">上移</button><button class="mini-button" data-action="gallery:down" data-index="${index}" ${index===list.length-1?'disabled':''} type="button">下移</button>` : ''}<button class="mini-button danger" data-action="${key}:remove" data-index="${index}" type="button">删除</button></span>
               </div>
             `
           )
@@ -462,7 +463,7 @@ export function installProducts(context) {
     const drafts = context.state.activeSlug
       ? context.state.drafts.filter(draft => draft.productSlug === context.state.activeSlug)
       : context.state.drafts;
-    const visible = drafts.filter(draft=>context.workDraftVisible('product',draft));
+    const visible = drafts.filter(draft=>!draft.payload?.managerOrderBatch && context.workDraftVisible('product',draft));
     context.$('draftList').innerHTML = visible.length
       ? visible
           .map(
@@ -473,7 +474,7 @@ export function installProducts(context) {
                   <small>${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small>
                 </span>
 <span class="record-actions">                <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-product-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
-                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-apply="${context.escapeHtml(draft.id)}" type="button">审核通过</button>
               ${context.workDraftActions('product',draft)}</span>
               </div>
             `
@@ -491,7 +492,7 @@ export function installProducts(context) {
     filter.innerHTML = '<option value="en">English</option><option value="">全部公开语言</option>' + [...new Set(context.state.formalProductTranslations.map(item => item.locale))].map(code=>`<option value="${context.escapeHtml(code)}">${context.escapeHtml(code)}</option>`).join('');
     filter.value = [...filter.options].some(option=>option.value===previous) ? previous : 'en';
     context.state.categories = data.categories || [];
-    context.$('managerEmail').textContent = data.manager?.email || '已连接';
+    context.$('managerEmail').textContent = '内容管理员 · 已连接';
     fillCategoryOptions();
     renderProducts();
     renderProductOrder();
@@ -561,7 +562,7 @@ export function installProducts(context) {
     context.state.orderChanges.clear();
     await loadDrafts();
     renderProductOrder();
-    context.setStatus('orderStatus', '排序草稿已保存，请在产品内容页检查后应用到网站内容。');
+    context.setStatus('orderStatus', '排序草稿已保存，请在产品内容页检查后审核通过。');
   };
 
   const getPayload = () => {
@@ -669,6 +670,7 @@ export function installProducts(context) {
     const action = actionButton.dataset.action;
     const index = Number(actionButton.dataset.index);
     if (!action) return;
+    if (['gallery:up','gallery:down'].includes(action)) { const next=index+(action==='gallery:up'?-1:1), images=context.state.formData.galleryImages; if(next>=0 && next<images.length) [images[index],images[next]]=[images[next],images[index]]; context.syncProductMainImage(); }
 
     if (action === 'gallery:add') context.state.formData.galleryImages.push('');
     if (action === 'reviews:add') context.state.formData.reviews.push({ buyerLabel: '', rating: '5', quote: '', date: '', published: true });
@@ -750,6 +752,7 @@ export function installProducts(context) {
     context.state.activeSlug = payload.productSlug;
     await loadDrafts();
     context.setStatus('statusText', '草稿已保存。');
+    return data;
   };
 
   const applyDraft = async draftId => {

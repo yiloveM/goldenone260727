@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { openManagerTab } from './manager-test-navigation.mjs';
+export async function checkManagerUx({page,backend,check,output}) {
+  const tab=name=>openManagerTab(page,name),wait=(id,text)=>page.waitForFunction(({id,text})=>document.getElementById(id)?.textContent.includes(text),{id,text});
+  await check('workspace landing and publication guidance distinguish zero changes from unknown',async()=>{
+    backend.setWorkspace({known:true,pending:0,unpublished:0,message:'没有待发布内容。'});await page.reload();await page.locator('html[data-manager-ready=true]').waitFor({state:'attached'});await wait('workspaceUnpublished','0');assert.equal(await page.locator('[data-panel=dashboard]').getAttribute('class'),'section is-active');assert.equal(await page.locator('.publication-guidance').isHidden(),true);
+    backend.setWorkspace({known:false,message:'暂时无法确认。'});await page.locator('#workspaceRefresh').click();await wait('workspaceUnpublished','待确认');assert.equal(await page.locator('.publication-guidance').isVisible(),true);
+    backend.setWorkspace({known:true,pending:1,unpublished:1,message:'有待发布变更。'});
+  });
+  await check('unsaved product changes survive workspace switching and discard needs one cancellable in-app confirmation',async()=>{
+    await page.evaluate(()=>{window.__manualDialogs=true;});await tab('products');await page.locator('#searchInput').fill('');await page.locator('.manager-product-title').first().click();const title=await page.locator('#title').inputValue();await page.locator('#title').fill('Unsaved UX title');await tab('images');await tab('products');assert.equal(await page.locator('#title').inputValue(),'Unsaved UX title');
+    await page.locator('#productBackButton').click();await page.locator('dialog.bw-dialog[open]').waitFor();await page.keyboard.press('Escape');assert.equal(await page.locator('#title').inputValue(),'Unsaved UX title');
+    await page.locator('#productBackButton').click();await page.locator('dialog.bw-dialog[open] button[data-primary]').click();await page.locator('.manager-product-title').first().click();assert.equal(await page.locator('#title').inputValue(),title);await page.evaluate(()=>{window.__manualDialogs=false;});
+  });
+  await check('product main image has one visible gallery entry and editor sections remain keyboard-operable',async()=>{
+    assert.equal(await page.locator('#image').isHidden(),true);assert.equal(await page.locator('#offeringType').isHidden(),true);assert.equal(await page.locator('#galleryList').isVisible(),true);assert.ok(await page.locator('.manager-view.is-visible details.editor-group:not([open])').count()>0);
+    await page.locator('#productEditorView .editor-section-nav button').filter({hasText:'详细内容'}).click();assert.equal(await page.locator('[data-rich-editor=productContent]').isVisible(),true);assert.equal(await page.locator('#viewProductButton').isVisible(),true);
+  });
+  await check('Banner image picker saves one resumable draft and review remains separate from site publishing',async()=>{
+    backend.assets.set('ux-banner.svg',{key:'ux-banner.svg',name:'ux-banner.svg',url:'/fixture-image.svg',isImage:true,size:100});
+    await tab('visuals');await page.locator('[data-visual-slot]').first().waitFor();await page.locator('[data-visual-pick=image]').first().click();await page.locator('#imagePickerSearch').fill('');if(await page.locator('#imagePickerBackButton').isEnabled())await page.locator('#imagePickerBackButton').click();await page.locator('[data-picker-select]').first().click();await page.locator('#visualSave').click();await wait('visualStatus','草稿已保存');assert.equal(backend.visualDrafts.length,1);
+    const before=backend.requests.filter(row=>row.path.endsWith('/deploy/site')&&row.method==='POST').length;
+    await page.locator('[data-visual-approve]').first().click();await wait('visualStatus','审核通过');assert.equal(backend.visualDrafts[0].status,'applied');assert.equal(backend.requests.filter(row=>row.path.endsWith('/deploy/site')&&row.method==='POST').length,before);
+  });
+  await check('media search is honest about partial data and cursor loads files beyond the first 300',async()=>{
+    for(let i=0;i<310;i++)backend.assets.set(`ux-photo-${String(i).padStart(3,'0')}.png`,{key:`ux-photo-${String(i).padStart(3,'0')}.png`,name:`ux-photo-${String(i).padStart(3,'0')}.png`,url:'/fixture-image.svg',size:20,isImage:true});
+    await tab('images');await page.locator('#assetRefreshButton').click();await wait('assetStatus','搜索当前已加载');await page.locator('#assetSearch').fill('ux-photo-309');assert.equal(await page.locator('[data-copy]').count(),0);await page.locator('#assetLoadMore').click();await page.locator('[data-copy]').first().waitFor();assert.equal(await page.locator('#assetLoadMore').isHidden(),true);assert.ok(backend.requests.some(row=>row.path.endsWith('/r2/assets')));await page.locator('#assetSearch').fill('');
+    await page.locator('#assetType').selectOption('document');assert.equal(await page.locator('[data-asset-preview]').count(),0);await page.locator('#assetType').selectOption('');
+  });
+  await check('product ordering uses the complete category scope and a single batch approval',async()=>{
+    await tab('product-order');await page.locator('#orderCategoryFilter').selectOption('Websites');const count=await page.locator('[data-sort-slug]').count();assert.ok(count>1);const first=await page.locator('[data-sort-slug]').first().getAttribute('data-sort-slug');await page.locator('[data-sort-from="1"][data-sort-move="0"]').click();assert.notEqual(await page.locator('[data-sort-slug]').first().getAttribute('data-sort-slug'),first);await page.locator('#orderSaveButton').click();await wait('orderStatus','排序草稿已保存');assert.equal(backend.orderGroups.at(-1).values.length,count);await page.locator('[data-order-approve]').last().click();await wait('orderStatus','排序已审核');
+  });
+  await check('desktop/mobile action labels stay on one line and mobile navigation does not displace content',async()=>{
+    await tab('products');if(await page.locator('#productBackButton').isVisible())await page.locator('#productBackButton').click();await page.locator('#searchInput').fill('');
+    for(const width of [1440,768,390]){await page.setViewportSize({width,height:900});const geometry=await page.locator('.manager-product-actions').first().evaluate(node=>({overflow:document.documentElement.scrollWidth>innerWidth,buttons:[...node.querySelectorAll('button,a')].filter(el=>el.getBoundingClientRect().height).map(el=>({text:el.textContent.trim(),whiteSpace:getComputedStyle(el).whiteSpace,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height}))}));assert.equal(geometry.overflow,false);assert.ok(geometry.buttons.every(button=>button.whiteSpace==='nowrap'&&button.width>0));if(width===390){assert.ok(geometry.buttons.every(button=>button.height>=44));assert.ok(await page.locator('.manager-mobile-header').evaluate(node=>node.getBoundingClientRect().height<90));assert.equal(await page.locator('.sidebar').evaluate(node=>node.inert),true);}}
+    await page.screenshot({path:resolve(output,'ux-products-mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:900});
+  });
+  await check('translation restores an active task after reload, polls at 15 seconds and stops on completion',async()=>{
+    const pollingPage=await page.context().newPage(); await pollingPage.clock.install();
+    backend.setTranslationStatus({requestId:'ai-restored-1234',found:true,status:'in_progress',label:'正在翻译',tasks:[{requestId:'ai-restored-1234',status:'in_progress',label:'正在翻译'}]});
+    await pollingPage.goto(page.url());await openManagerTab(pollingPage,'translation');await pollingPage.waitForFunction(()=>document.getElementById('translationStatus').textContent.includes('正在翻译'));
+    const count=()=>backend.requests.filter(row=>row.path.endsWith('/ai/translation-status')).length,before=count();
+    await pollingPage.clock.fastForward(14000);assert.equal(count(),before);await pollingPage.clock.fastForward(1100);await pollingPage.waitForTimeout(100);assert.equal(count(),before+1);
+    backend.setTranslationStatus({requestId:'ai-restored-1234',found:true,status:'completed',conclusion:'success',label:'翻译完成',tasks:[{requestId:'ai-restored-1234',status:'completed',label:'翻译完成'}]});await pollingPage.clock.fastForward(15100);await pollingPage.waitForFunction(()=>document.getElementById('translationStatus').textContent.includes('翻译完成'));const finished=count();await pollingPage.clock.fastForward(45000);assert.equal(count(),finished);await pollingPage.close();backend.setTranslationStatus(null);
+  });
+  await check('selected English sources submit once each and partial failure retains only the unsubmitted source',async()=>{
+    await tab('products');await page.locator('#searchInput').fill('');await page.locator('.manager-product-row input[data-formal-select]').nth(0).check();await page.locator('.manager-product-row input[data-formal-select]').nth(1).check();await page.locator('#productContentTranslate').click();await page.locator('#localeGrid input').first().check();
+    const before=backend.requests.filter(row=>row.path.endsWith('/ai/translations')&&row.method==='POST').length;backend.failNextApi('/api/manager/ai/translations');await page.locator('#translationSubmitButton').click();await wait('translationStatus','1 篇未提交');assert.equal(backend.requests.filter(row=>row.path.endsWith('/ai/translations')&&row.method==='POST').length,before+2);assert.equal(await page.locator('#translationSourcePicker option[value="@selected"]').innerText(),'列表中选中的 1 篇原文');
+    await page.locator('#translationSubmitButton').click();await wait('translationStatus','状态会自动更新，完成后请审核草稿。');assert.equal(backend.requests.filter(row=>row.path.endsWith('/ai/translations')&&row.method==='POST').length,before+3);assert.equal(await page.locator('#translationSourcePicker option[value="@selected"]').count(),0);
+  });
+}

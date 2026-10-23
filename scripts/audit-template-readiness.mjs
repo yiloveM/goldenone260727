@@ -287,7 +287,7 @@ const structuralChecks = [
   ['src/content.config.ts', ['loader: glob', 'offeringType', 'modelStrategy']],
   ['src/lib/manager/d1.ts', ['offeringType', 'modelStrategy', 'normalizeProductDraftPayload']],
   ['src/pages/manager/index.astro', ['id="offeringType"', 'id="modelStrategy"', 'portalApiUrl', '/api/manager/ai/translation-locales', 'managerAnalyticsEnabled', 'managerReviewSystemEnabled']],
-  ['src/pages/manager/analytics.astro', ['industryProfile', 'managerOwner', '<strong>{managerOwner}</strong>']],
+  ['src/pages/manager/analytics.astro', ['industryProfile', 'managerOwner', '<strong>{managerSiteName}</strong>', '站点维护：{managerOwner}']],
   ['src/lib/form-captcha.ts', ['getFormCaptchaSecret', 'createFormCaptcha', 'validateFormCaptcha']],
   ['src/lib/public-form-submissions.ts', ['public_form_submissions', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachment_name']],
   ['src/pages/api/contact.ts', ['CONTACT_TO_EMAIL', 'createPublicFormSubmission', 'markPublicFormDelivery', 'attachmentName', 'verifyPublicForm']],

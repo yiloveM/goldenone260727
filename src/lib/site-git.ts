@@ -2,6 +2,10 @@ import { githubFetch } from './manager/github';
 export type GitContext = { repo: string; branch: string; token: string; bodyCache?: Map<string,string> };
 export type GitTree = { sha: string; tree: Array<{ path: string; sha: string; type: string }> };
 export class DraftConflict extends Error { status = 409; }
+export async function gitBlobSha(content: string) {
+  const bytes = new TextEncoder().encode(content), prefix = new TextEncoder().encode(`blob ${bytes.length}\0`), data = new Uint8Array(prefix.length + bytes.length); data.set(prefix); data.set(bytes, prefix.length);
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-1', data))].map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
 export const api = (ctx: GitContext) => `https://api.github.com/repos/${ctx.repo}`;
 export const decodeGitBlob = (value: string) => new TextDecoder().decode(Uint8Array.from(atob(value.replace(/\s/g, '')), char => char.charCodeAt(0)));
 const blobs = new Map<string, string>();

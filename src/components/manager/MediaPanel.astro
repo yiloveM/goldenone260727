@@ -8,6 +8,8 @@
             <span class="path" id="assetPath">根目录</span>
           </div>
           <div class="toolbar is-row">
+            <label class="media-search">搜索当前目录<input id="assetSearch" type="search" placeholder="按文件名搜索已加载内容" /></label>
+            <label>文件类型<select id="assetType"><option value="">全部文件</option><option value="image">图片</option><option value="document">PDF 文档</option></select></label>
             <button class="button secondary" id="assetBackButton" type="button">上一级</button>
             <button class="button secondary" id="assetRefreshButton" type="button">刷新</button>
             <button class="button secondary" id="assetNewFolderButton" type="button">新建文件夹</button>
@@ -18,5 +20,6 @@
             <span class="status" id="assetStatus">媒体资源未加载。</span>
           </div>
           <div class="asset-grid" id="assetGrid"></div>
+          <button class="button secondary" id="assetLoadMore" type="button" hidden>加载更多文件</button>
         </section>
       </section>

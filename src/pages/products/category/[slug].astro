@@ -9,6 +9,7 @@ import { brandAssets } from '../../../data/assets';
 import { buildProductCategories, isProductPublished } from '../../../data/productCategories';
 import { breadcrumbStructuredData, categoryKeywords, categorySeoDescription, collectionStructuredData } from '../../../data/seo';
 import { keywordTag } from '../../../lib/keyword-tags';
+import ManagedVisualStyle from '../../../components/ManagedVisualStyle.astro';
 
 export async function getStaticPaths() {
   const products = (await getCollection('products')).filter(isProductPublished);
@@ -51,6 +52,7 @@ const categoryStructuredData = [
 <BaseLayout title={`${categoryName} Series`} description={seoDescription} image={category.image} structuredData={categoryStructuredData}>
   <main>
     <section class="category-hero">
+      <ManagedVisualStyle slotKey={`category.${category.slug}`} fallback={category.backgroundImage} selector=".category-hero-bg" property="--category-hero-image" />
       <div class="category-hero-bg" style={`--category-hero-image: url('${categoryBackgroundImage}');`} aria-hidden="true"></div>
       <div class="container category-hero-inner">
         <div class="category-hero-copy">

@@ -1,0 +1,71 @@
+import assert from 'node:assert/strict';
+import { DatabaseSync } from 'node:sqlite';
+import { createHash } from 'node:crypto';
+import { build } from 'esbuild';
+import { mkdir,mkdtemp,readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import YAML from 'yaml';
+const output=resolve('.sandbox/manager-visual-api');await mkdir(output,{recursive:true});const run=await mkdtemp(resolve(output,'run-'));
+await build({entryPoints:['src/pages/api/manager/site-visuals.ts','src/pages/api/manager/content-preview.ts','src/pages/api/manager/product-order.ts','src/pages/api/manager/ai/translations.ts','src/pages/api/manager/ai/translation-status.ts','src/pages/api/manager/ai/translation-locales.ts','src/lib/manager/d1.ts'],outdir:run,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true,"PUBLIC_KEYSTATIC_GITHUB_REPO":"fixture/site"}'},logLevel:'silent',plugins:[{name:'isolated-runtime',setup(b){
+ b.onResolve({filter:/cloudflare:workers|virtual:site-build-identity|astro:content|\/access$|\/data\/site-visuals$|^\.\/site-visuals$/},args=>({path:args.path,namespace:'fixture'}));
+ b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='cloudflare:workers'?'export const env={};':args.path==='virtual:site-build-identity'?'export default {files:{}}':args.path==='astro:content'?'export const getCollection=async()=>[];':args.path.endsWith('/access')?'export const getRuntimeEnv=locals=>locals.env;export const requireManagerAccess=(request,env)=>env.denied?{response:new Response("Unauthorized",{status:401})}:{email:"fixture@example.test",response:null};':'export const overlaySiteImages=x=>x;export const siteVisual=(key,image)=>({image,active:false});'}));
+}}]});
+const api=await import(pathToFileURL(resolve(run,'pages/api/manager/site-visuals.js'))),preview=await import(pathToFileURL(resolve(run,'pages/api/manager/content-preview.js'))),order=await import(pathToFileURL(resolve(run,'pages/api/manager/product-order.js'))),{ensureManagerSchema}=await import(pathToFileURL(resolve(run,'lib/manager/d1.js')));
+const translate=await import(pathToFileURL(resolve(run,'pages/api/manager/ai/translations.js'))),tasksApi=await import(pathToFileURL(resolve(run,'pages/api/manager/ai/translation-status.js'))),localesApi=await import(pathToFileURL(resolve(run,'pages/api/manager/ai/translation-locales.js')));
+const sqlite=new DatabaseSync(':memory:');let failAfterCommit=false;
+const db={prepare(sql){const statement=sqlite.prepare(sql);const bound=values=>({async run(){if(failAfterCommit&&sql.includes("SET status='applied'")&&sql.includes('updated_at')){failAfterCommit=false;throw Error('Injected DB receipt failure');}const result=statement.run(...values);return{meta:{changes:Number(result.changes)}};},async first(){return statement.get(...values)||null;},async all(){return{results:statement.all(...values)};}});return{bind:(...values)=>bound(values),...bound([])};},async batch(statements){sqlite.exec('BEGIN');try{const results=[];for(const statement of statements)results.push(await statement.run());sqlite.exec('COMMIT');return results;}catch(error){sqlite.exec('ROLLBACK');throw error;}}};
+await ensureManagerSchema(db);sqlite.prepare("INSERT INTO manager_product_drafts(id,product_slug,product_title,payload_json,created_by,updated_by)VALUES('product-preserve-a','preserve','Existing','{}','x','x')").run();await ensureManagerSchema(db);assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM manager_product_drafts').get().n,1);
+const env={MANAGER_DB:db,PUBLIC_KEYSTATIC_GITHUB_REPO:'fixture/site',KEYSTATIC_GITHUB_BRANCH:'main',MANAGER_DISPATCH_TOKEN:'isolated',PUBLIC_R2_ASSET_BASE_URL:'https://media.fixture.test/assets'};
+const hash=text=>createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0${text}`).digest('hex'),bodies=new Map(),files=new Map();const put=(path,text)=>{const sha=hash(text);bodies.set(sha,text);files.set(path,sha);return sha;};
+put('src/data/site-language-settings.json',JSON.stringify({enabledLocales:{es:true,ar:false}}));put('src/data/site-locales.json',JSON.stringify({requiredPhraseKeys:['title'],requiredFaqCount:0,locales:{es:{approved:true,phrases:{title:'Título'},faqs:[]}}}));
+const config={version:1,extension:{seo:'preserve'},home:{heroSlides:[{key:'primary',visual:{enabled:true,image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50}}],center:{enabled:false},primaryCta:{href:'',labels:[]}},pages:{about:{enabled:false}},categories:[]};put('src/data/site-visuals.json',JSON.stringify(config));
+for(const[slug,weight]of [['first',1],['second',2]])put(`src/content/products/${slug}.mdoc`,`---\ntitle: ${slug}\ncategory: Tools\nsortOrder: ${weight}\nimage: /r2/original.webp\nmetaKeywords: preserve\nunknownCustomerData:\n  nested: keep\n---\nOriginal **body** [link](/about/).\n`);
+let head='a'.repeat(40),nextTree=null,concurrent=false,writes=[],tasks=[];const originalFetch=globalThis.fetch;
+globalThis.fetch=async(input,init={})=>{const url=new URL(input),body=init.body?JSON.parse(init.body):{};if(init.method)writes.push({path:url.pathname,method:init.method});
+ if(url.pathname.endsWith('/git/ref/heads/main'))return Response.json({object:{sha:head}});
+ if(url.pathname.includes('/git/trees/')&&!init.method)return Response.json({sha:'b'.repeat(40),tree:[...files].map(([path,sha])=>({path,sha,type:'blob'}))});
+ if(url.pathname.includes('/git/blobs/'))return Response.json({encoding:'base64',content:Buffer.from(bodies.get(url.pathname.split('/').pop())).toString('base64')});
+ if(url.pathname.endsWith('/git/trees')){nextTree=body.tree;return Response.json({sha:'c'.repeat(40)});}
+ if(url.pathname.endsWith('/git/commits')){if(concurrent){concurrent=false;head='f'.repeat(40);}return Response.json({sha:'d'.repeat(40)});}
+ if(url.pathname.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);for(const item of nextTree)put(item.path,item.content);head=body.sha;return Response.json({});}
+ if(url.pathname.endsWith('/ai-translation.yml/runs')){const runs=tasks.filter(task=>!url.searchParams.has('status')||task.status===url.searchParams.get('status'));return Response.json({total_count:runs.length,workflow_runs:runs});}
+ if(url.pathname.endsWith('/ai-translation.yml/dispatches')){tasks.push({id:99,head_branch:'main',display_title:`AI translation ${body.inputs.sourceSlug} / ${body.inputs.locales} / ${body.inputs.requestId}`,status:'queued'});return new Response(null,{status:204});}
+ if(url.pathname.endsWith('/actions/runs/99/jobs'))return Response.json({jobs:[]});
+ if(url.pathname.includes('/contents/.github/ai-translation-results/'))return new Response('Not found',{status:404});
+ throw Error('Unexpected test request '+url.pathname);
+};
+const call=(module,method,body,query='',override={})=>module[method]({locals:{env:{...env,...override}},request:new Request('https://fixture.test/api/manager/entry'+query,{method,headers:{'content-type':'application/json'},...(method==='GET'?{}:{body:JSON.stringify(body)})}),url:new URL('https://fixture.test/api/manager/entry'+query)});
+let checks=1;
+try{
+ assert.equal((await call(api,'GET',null,'',{denied:true})).status,401);assert.equal(writes.length,0);checks++;
+ const state=await(await call(api,'GET')).json();assert.equal(state.slots.length,1);assert.deepEqual(state.locales,['en','es']);assert.equal(state.slots[0].enabled,undefined);checks++;
+ const payload={slots:[{key:'home.primary',image:'/r2/home/new.webp',mobileImage:'',alt:'',localizedAlts:[],focusX:35,focusY:50}]};
+ assert.equal((await call(api,'POST',{baseSha:state.baseSha,payload:{slots:[{...payload.slots[0],enabled:true}]}})).status,400);assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM manager_site_visual_drafts').get().n,0);checks++;
+ const saved=await(await call(api,'POST',{baseSha:state.baseSha,payload})).json();assert.ok(saved.draft?.id);const id=saved.draft.id,updatedAt=saved.draft.updatedAt;checks++;
+ assert.equal((await call(api,'POST',{id,updatedAt:'stale',baseSha:state.baseSha,payload})).status,409);checks++;
+ assert.equal((await call(preview,'GET',null,`?kind=visual&id=${id}&version=stale`)).status,409);const validPreview=await call(preview,'GET',null,`?kind=visual&id=${id}&version=${encodeURIComponent(updatedAt)}`);assert.equal(validPreview.status,200);assert.match(await validPreview.text(),/new.webp/);assert.match(validPreview.headers.get('cache-control'),/no-store/);checks++;
+ failAfterCommit=true;assert.equal((await call(api,'PATCH',{id,updatedAt})).status,400);assert.equal(sqlite.prepare('SELECT status FROM manager_site_visual_drafts WHERE id=?').get(id).status,'queued');checks++;
+ const recovered=await(await call(api,'GET')).json();assert.equal(recovered.drafts[0].status,'applied');assert.deepEqual(JSON.parse(bodies.get(files.get('src/data/site-visuals.json'))).extension,{seo:'preserve'});assert.equal(writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length,1);checks++;
+ assert.equal((await call(api,'PATCH',{id,updatedAt})).status,200);assert.equal(writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length,1);checks++;
+ const records=['first','second'].map((slug,index)=>({slug,sourceSha:files.get(`src/content/products/${slug}.mdoc`),sortOrder:2-index}));
+ assert.equal((await call(order,'POST',{category:'Tools',records:records.slice(0,1)})).status,409);checks++;
+ const group=await(await call(order,'POST',{category:'Tools',records})).json();assert.ok(group.id);const listing=await(await call(order,'GET')).json();const selection=listing.groups[0];assert.equal(selection.records.length,2);checks++;
+ assert.equal((await call(order,'PATCH',{id:selection.id,records:selection.records})).status,200);for(const slug of ['first','second']){const text=bodies.get(files.get(`src/content/products/${slug}.mdoc`));assert.match(text,/metaKeywords: preserve/);assert.match(text,/nested: keep/);assert.ok(text.endsWith('Original **body** [link](/about/).\n'));}checks++;
+ const before=files.get('src/data/site-visuals.json'),latest=await(await call(api,'GET')).json(),again=await(await call(api,'POST',{baseSha:latest.baseSha,payload:{slots:[{...payload.slots[0],focusX:60}]}})).json();concurrent=true;assert.equal((await call(api,'PATCH',{id:again.draft.id,updatedAt:again.draft.updatedAt})).status,409);assert.equal(files.get('src/data/site-visuals.json'),before);checks++;
+ assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'first',locales:['es']},'',{denied:true})).status,401);checks++;
+ assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'first',locales:['ar']})).status,400);assert.equal(tasks.length,0);checks++;
+ assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'',locales:['es']})).status,400);checks++;
+ assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'../first',locales:['es']})).status,400);checks++;
+ const submitted=await call(translate,'POST',{sourceType:'products',sourceSlug:'first',locales:['es']});assert.equal(submitted.status,200);const receipt=await submitted.json();assert.match(receipt.requestId,/^ai-/);assert.equal(tasks.length,1);checks++;
+ assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'first',locales:['es']})).status,409);assert.equal(tasks.length,1);checks++;
+ const restored=await call(tasksApi,'GET');assert.equal(restored.status,200);const task=await restored.json();assert.equal(task.requestId,receipt.requestId);assert.equal(task.tasks.length,1);assert.equal(task.status,'queued');checks++;
+ assert.equal((await call(tasksApi,'GET',null,'?requestId=../../other')).status,400);checks++;
+ const currentVisuals=await(await call(api,'GET')).json(), removable=currentVisuals.drafts.find(row=>row.status==='draft');assert.ok(removable);
+ assert.equal((await call(api,'DELETE',{id:removable.id,updatedAt:removable.updatedAt,confirmed:false})).status,400);assert.equal((await call(api,'DELETE',{id:removable.id,updatedAt:'stale',confirmed:true})).status,409);checks++;
+ const remoteWrites=writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length;assert.equal((await call(api,'DELETE',{id:removable.id,updatedAt:removable.updatedAt,confirmed:true})).status,200);assert.equal(writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length,remoteWrites);assert.ok(files.has('src/data/site-visuals.json'));checks++;
+ const previousTasks=tasks;tasks=Array.from({length:95},(_,id)=>({id,head_branch:'main',display_title:`AI translation other-${id} / es / ai-fixture-${id}`,status:'pending'}));assert.equal((await call(translate,'POST',{sourceType:'products',sourceSlug:'first',locales:['es']})).status,409);assert.equal(tasks.length,95);tasks=previousTasks;checks++;
+ const workflow=YAML.parse(await readFile('.github/workflows/ai-translation.yml','utf8'));assert.equal(workflow.concurrency.queue,'max');assert.equal(workflow.concurrency['cancel-in-progress'],false);checks++;
+ assert.deepEqual((await(await call(localesApi,'GET')).json()).locales.map(item=>item.value),['es']);put('src/data/site-language-settings.json',JSON.stringify({enabledLocales:{es:false,ar:false}}));assert.deepEqual((await(await call(localesApi,'GET')).json()).locales,[]);checks++;
+ console.log(JSON.stringify({passed:checks,sqlite:'REAL',handlers:'REAL',github:'MOCKED',cloudWrites:'NONE'}));
+}finally{globalThis.fetch=originalFetch;sqlite.close();}

@@ -2,20 +2,21 @@
         <section class="panel">
           <div class="panel-head">
             <div>
-              <h2>AI 自动翻译助手</h2>
-              <span>把英文产品详情页和英文技术文章翻译成其它语言，AI 只生成待审核草稿，管理员审核后才会发布。</span>
+              <h2>翻译任务</h2>
+              <span>选择英文原文和已开放的语言。生成后先审核草稿，再统一发布网站更新。</span>
             </div>
           </div>
-          <div class="translation-guide">
+          <details class="translation-guide">
+            <summary>翻译和审核使用说明</summary>
             <strong>管理员按这个顺序操作：</strong>
             <ol>
               <li>先选“要翻译什么内容”和“目标语言”。</li>
-              <li>不填页面标识时，会按“要翻译什么内容”批量生成草稿。</li>
-              <li>填写页面标识时，只翻译对应的一个页面；选“产品和文章”会自动判断内容类型。</li>
+              <li>选择一篇英文原文，或从产品、文章列表勾选最多五篇后发起翻译。</li>
+              <li>需要处理全部内容时，明确选择全部范围，并在提交前核对清单。</li>
               <li>点击“提交后台 AI 翻译任务”。任务提交后可以关闭当前页面，后台会继续处理。</li>
-              <li>等待后台任务完成后，到“产品翻译草稿”或“文章翻译草稿”逐个检查，确认后打开“审核后发布”并保存。</li>
+              <li>任务状态会自动更新；完成后在本工作台的产品或文章待审列表检查内容，保存修改后点击“审核通过”，最后统一发布网站更新。</li>
             </ol>
-          </div>
+          </details>
           <form class="form" id="translationForm">
             <div class="field">
               <label for="translationSourceType">生成范围</label>
@@ -26,8 +27,10 @@
               </select>
             </div>
             <div class="field">
-              <label for="translationSlug">只生成指定页面，可留空</label>
-              <input id="translationSlug" placeholder="例如 vx-modular-control-cabinet" />
+              <label for="translationSlug">指定原文</label>
+              <select id="translationSourcePicker"><option value="">请选择要翻译的内容</option></select>
+              <input id="translationSlug" placeholder="从上方选择产品或文章" readonly />
+              <p class="field-help">也可从产品或文章列表勾选后发起翻译；批量范围提交前会列明。</p>
             </div>
             <div class="field">
               <label>覆盖已有草稿</label>
@@ -42,7 +45,7 @@
                 <label>目标语言</label>
                 <span class="locale-bulk-controls" aria-label="目标语言批量选择">
                   <label>
-                    <input id="translationLocaleSelectAll" type="checkbox" checked />
+                    <input id="translationLocaleSelectAll" type="checkbox" />
                     <span>全选</span>
                   </label>
                   <label>
@@ -59,6 +62,7 @@
             <button class="button secondary" id="translationStatusButton" type="button">刷新任务状态</button>
             <span class="status" id="translationStatus">未提交任务。</span>
           </div>
+          <div id="translationTaskList" class="translation-task-list"></div>
           <div class="status-box" id="translationResult"></div>
         </section>
       </section>

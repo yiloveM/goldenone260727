@@ -126,6 +126,14 @@ export type ReviewDraftRecord = {
 export const getManagerDb = (env: ManagerEnv) => env?.MANAGER_DB as D1DatabaseLike | undefined;
 
 export const ensureManagerSchema = async (db: D1DatabaseLike) => {
+  await db.prepare(`CREATE TABLE IF NOT EXISTS manager_site_visual_drafts (
+    id TEXT PRIMARY KEY, payload_json TEXT NOT NULL, base_content_sha TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','queued','applied')),
+    created_by TEXT NOT NULL, updated_by TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    applied_at TEXT, applied_content_sha TEXT
+  )`).run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_manager_site_visual_drafts_status_updated ON manager_site_visual_drafts(status,updated_at DESC)').run();
   await db
     .prepare(
       `CREATE TABLE IF NOT EXISTS manager_product_drafts (

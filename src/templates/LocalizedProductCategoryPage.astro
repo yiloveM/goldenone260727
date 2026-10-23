@@ -9,6 +9,8 @@ import { localizedProduct, localizedProductUrl, translateTechnicalText, ui } fro
 import { type NonEnglishLocale, type ProductEntry } from './localizedPageHelpers';
 import { siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
+import ManagedVisualStyle from '../components/ManagedVisualStyle.astro';
+import { slugifyCategory } from '../data/productCategories';
 import { applyProductTranslationDraft, findPublishedProductTranslation } from '../data/translationDrafts';
 
 interface LocalizedCategory {
@@ -68,6 +70,7 @@ const categoryStructuredData = [
 <BaseLayout title={`${categoryName}`} description={seoDescription} image={category.image} structuredData={categoryStructuredData} locale={locale}>
   <main>
     <section class="category-hero">
+      <ManagedVisualStyle slotKey={`category.${slugifyCategory(category.name)}`} fallback={category.backgroundImage} selector=".category-hero-bg" property="--category-hero-image" />
       <div class="category-hero-bg" style={`--category-hero-image: url('${category.backgroundImage}');`} aria-hidden="true"></div>
       <div class="container category-hero-inner">
         <div class="category-hero-copy" dir="ltr">

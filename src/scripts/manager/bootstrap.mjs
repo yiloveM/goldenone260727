@@ -8,6 +8,9 @@ import { installProducts } from './products.mjs';
 import { installArticles } from './articles.mjs';
 import { installReviews } from './reviews.mjs';
 import { installPublishing } from './publishing.mjs';
+import { installVisuals } from './visuals.mjs';
+import { installWorkspace } from './workspace.mjs';
+import { installSorting } from './sorting.mjs';
 
 const instances = new WeakMap();
 
@@ -26,9 +29,16 @@ export function initializeManager(config) {
   installPublishing(context);
   installWorkDrafts(context);
   installFormalContent(context);
+  installVisuals(context);
+  installSorting(context);
+  installWorkspace(context);
   const bootstrapManager = async () => {
     await context.loadProducts();
     await context.loadDraftsSafely();
+    document.documentElement.dataset.managerReady = 'true';
+    context.activateTab('dashboard');
+    context.refreshWorkspace().catch(() => {});
+    context.restoreTranslationTask().catch(error => { context.setStatus('translationStatus',error.message,true); context.updateTranslationOverview(); });
     if (context.managerReviewSystemEnabled && new URLSearchParams(window.location.search).get('section') === 'reviews') context.activateTab('reviews');
   };
   Object.assign(context, { bootstrapManager });
@@ -128,17 +138,19 @@ export function initializeManager(config) {
     if (!input) return;
     const product = context.state.products.find(item => item.slug === input.dataset.productPublished);
     if (!product) return;
-    product.published = input.checked;
+    const desired = input.checked;
+    input.disabled = true;
     context.requestJson('/api/manager/product-drafts', {
       method: 'POST',
-      body: JSON.stringify({ payload: context.productToPayload(product) }),
+      body: JSON.stringify({ payload: {...context.productToPayload(product), published:desired} }),
     })
-      .then(() => {
+      .then(async () => {
+        context.state.productVisibilityDrafts.set(product.slug,desired);
         context.renderProducts();
-        context.setStatus('productBrowserStatus', `${product.title} 已保存为${input.checked ? '上线' : '下线'}草稿。`);
+        context.setStatus('productBrowserStatus', `${product.title} 已保存为${desired ? '上线' : '下线'}草稿，审核并发布网站更新后才会生效。`);
+        await context.loadDrafts().catch(()=>context.setStatus('productBrowserStatus','显示设置草稿已保存；列表暂未同步，请稍后更新草稿列表。',true));
       })
       .catch(error => {
-        product.published = !input.checked;
         context.renderProducts();
         context.setStatus('productBrowserStatus', error.message, true);
       });
@@ -188,6 +200,12 @@ export function initializeManager(config) {
   });
 
   context.$('assetRefreshButton').addEventListener('click', () => context.loadAssets().catch(error => context.setStatus('assetStatus', error.message, true)));
+  const filterAssets=()=>{context.state.selectedAssetKeys.clear();context.renderAssets();};
+  context.$('assetSearch').addEventListener('input', filterAssets);
+  context.$('assetType').addEventListener('change', filterAssets);
+  context.$('imagePickerSearch').addEventListener('input', context.renderImagePicker);
+  context.$('assetLoadMore').addEventListener('click', event => runButtonAction(event.currentTarget, () => context.loadAssets(undefined, true)).catch(error => context.setStatus('assetStatus', error.message, true)));
+  context.$('imagePickerLoadMore').addEventListener('click', event => runButtonAction(event.currentTarget, () => context.loadImagePickerAssets(undefined, true)).catch(error => context.setStatus('imagePickerStatus', error.message, true)));
 
   context.$('assetBackButton').addEventListener('click', () => context.loadAssets(context.parentPrefix(context.state.assetPrefix)).catch(error => context.setStatus('assetStatus', error.message, true)));
 

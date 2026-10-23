@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
+import { openManagerTab, setManagerTheme } from './manager-test-navigation.mjs';
 import { resolve } from 'node:path';
 export async function checkAdminWorkflow({page,backend,check,output}) {
-  await page.reload();await page.waitForSelector('.manager-product-title');
+  await page.reload();await openManagerTab(page,'products');await page.waitForSelector('.manager-product-title');
   await page.evaluate(()=>{window.__manualDialogs=true;});
-  const tab=async name=>{await page.locator(`[data-tab="${name}"]`).click();};
+  const tab=name=>openManagerTab(page,name);
   const dialog=()=>page.locator('dialog.bw-dialog[open]');
   const closeDialog=()=>page.keyboard.press('Escape');
   await check('formal product selection covers all filtered pages and clears on filter changes without a dialog',async()=>{
@@ -79,7 +80,7 @@ export async function checkAdminWorkflow({page,backend,check,output}) {
     const names=['Corner-Hardware-Commercial-Project-Full-Technical-Catalogue-2026-Revised-Edition.pdf','超长文件名称产品目录项目选型技术资料安装说明规格参数完整版本下载文件.pdf','دليل-المواصفات-الفنية-الكامل-للمنتجات-والمشاريع-التجارية-نسخة-مطولة.pdf'];
     for(const name of names)backend.assets.set(name,{name,key:name,url:'/fixture.pdf',size:2048,isDocument:true});
     for(const theme of ['light','dark'])for(const width of [1440,390]){
-      await page.setViewportSize({width,height:900});await page.locator('#themeMenuButton').click();await page.locator(`[data-theme-option="${theme}"]`).click();await tab('images');await page.locator('#assetRefreshButton').click();await page.waitForFunction(()=>document.getElementById('assetStatus').textContent.includes('已加载'));await page.waitForFunction(name=>!!document.querySelector(`.asset-name[title="${name}"]`),names[0]);
+      await page.setViewportSize({width,height:900});await setManagerTheme(page,theme);await tab('images');await page.locator('#assetRefreshButton').click();await page.waitForFunction(()=>document.getElementById('assetStatus').textContent.includes('已加载'));await page.waitForFunction(name=>!!document.querySelector(`.asset-name[title="${name}"]`),names[0]);
       for(const name of names){const measurements=await page.locator('.asset-card').filter({has:page.locator('.asset-name').filter({hasText:name})}).evaluate(card=>{const label=card.querySelector('.asset-name'),icon=card.querySelector('.asset-document'),box=card.getBoundingClientRect(),text=label.getBoundingClientRect(),figure=icon.getBoundingClientRect();return {width:box.width,textOverflow:getComputedStyle(label).textOverflow,contained:text.left>=box.left&&text.right<=box.right+1,center:Math.abs((figure.left+figure.right)-(box.left+box.right))<2,ellipsis:getComputedStyle(label).textOverflow==='ellipsis',full:label.title};});assert.equal(measurements.contained,true,JSON.stringify({name,theme,width,...measurements}));assert.equal(measurements.center,true,JSON.stringify({name,theme,width,...measurements}));assert.equal(measurements.ellipsis,true,JSON.stringify({name,theme,width,...measurements}));assert.equal(measurements.full,name);}
       await page.locator('#assetGrid').evaluate(node=>node.dir='rtl');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:resolve(output,`pdf-${theme}-${width}.png`)});await page.locator('#assetGrid').evaluate(node=>node.dir='ltr');
     }

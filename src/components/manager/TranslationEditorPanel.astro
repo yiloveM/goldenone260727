@@ -3,7 +3,7 @@
           <div class="panel-head">
             <div>
               <h2 id="translationEditorTitle">编辑翻译草稿</h2>
-              <span>保存后仍为待审核草稿，确认无误后再执行审核发布。</span>
+              <span>保存保留当前审核状态；未审核的内容确认无误后点“审核通过”，再统一发布网站更新。</span>
             </div>
             <button class="button secondary" id="translationEditorCloseButton" type="button">返回草稿列表</button>
           </div>
@@ -71,17 +71,14 @@
                 <textarea class="translation-body-editor" id="translationEditBody"></textarea>
               </label>
               <div class="translation-publish-row">
-                <label class="toggle">
-                  <input id="translationEditPublished" type="checkbox" />
-                  <span>标记为已审核发布</span>
-                </label>
+                <input id="translationEditPublished" type="checkbox" hidden />
                 <a class="button secondary" id="translationEditorPreviewLink" href="#" data-auth-preview="" data-preview-status="translationEditorStatus" target="_blank" rel="noreferrer">预览当前草稿</a>
               </div>
             </form>
           </div>
           <div class="translation-editor-actions">
             <button class="button" id="translationEditorSaveButton" type="button">保存草稿</button>
-            <button class="button secondary" id="translationEditorApproveButton" type="button">审核并保存当前草稿</button>
+            <button class="button secondary" id="translationEditorApproveButton" type="button">审核通过</button>
             <button class="button secondary" id="translationEditorCancelButton" type="button">返回草稿列表</button>
             <span class="status" id="translationEditorStatus">请选择一条翻译草稿。</span>
           </div>

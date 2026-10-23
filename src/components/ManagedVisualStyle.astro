@@ -1,0 +1,9 @@
+---
+import { siteVisual } from '../data/site-visuals';
+interface Props { slotKey: string; fallback: string; selector: string; property: string }
+const { slotKey, fallback, selector, property } = Astro.props;
+const visual = siteVisual(slotKey, fallback);
+// All arguments are code-owned slot/selector/property values, never CMS CSS.
+const css = visual.active ? `${selector}{background-position:${visual.focusX}% ${visual.focusY}%}@media(max-width:760px){${selector}{${property}:url('${visual.mobileImage}')}}` : '';
+---
+{css && <style is:inline set:html={css} />}

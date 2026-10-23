@@ -44,6 +44,7 @@ permissions:
 concurrency:
   group: ai-translation-${{ github.ref }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   translate:

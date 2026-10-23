@@ -3,7 +3,7 @@ export function installWorkDrafts(context) {
   const config = { product: {list:'draftList',records:'drafts',render:'renderDrafts',reload:'loadDrafts',status:'statusText',title:'产品'},blog:{list:'blogDraftWorkList',records:'blogDrafts',render:'renderBlogWorkDrafts',reload:'loadBlogDrafts',status:'blogStatus',title:'文章'},review:{list:'reviewDraftList',records:'reviewDrafts',render:'renderReviews',reload:'loadReviews',status:'reviewStatus',title:'评价'} };
   const busy = new Set();
   const workDraftBusy = status => ['queued','dispatching','running'].includes(status);
-  const workDraftStatus = status => ({draft:'未应用',queued:'任务处理中',dispatching:'任务提交中',running:'任务运行中',applied:'已应用 · 网站更新请查看发布记录',failed:'应用未完成'}[status] || '状态待确认');
+  const workDraftStatus = status => ({draft:'待审核',queued:'任务处理中',dispatching:'任务提交中',running:'任务运行中',applied:'已审核 · 网站更新请查看发布记录',failed:'审核未完成'}[status] || '状态待确认');
   const showWorkDraftHistory = kind => Boolean(context.$(`${kind}WorkShowHistory`)?.checked);
   const workDraftVisible = (kind,draft) => draft.status !== 'applied' || showWorkDraftHistory(kind);
   const workDraftCheckbox = (kind,draft) => `<input type="checkbox" data-work-select="${kind}:${context.escapeHtml(draft.id)}" ${workDraftBusy(draft.status)?'disabled':''} aria-label="选择工作记录 ${context.escapeHtml(draft.productTitle||draft.blogTitle||draft.buyerLabel||'')}" />`;
@@ -36,7 +36,7 @@ export function installWorkDrafts(context) {
   for(const [kind,settings] of Object.entries(config)) {
     const list=context.$(settings.list);if(!list)continue;
     const toolbar=document.createElement('div');toolbar.className='toolbar is-row work-draft-toolbar';
-    toolbar.innerHTML=`<label class="toggle"><input type="checkbox" id="${kind}WorkShowHistory" />显示已应用历史</label><label class="toggle"><input type="checkbox" id="${kind}WorkSelectAll" />全选当前工作记录</label><button class="button secondary" id="${kind}WorkRefresh" type="button">刷新记录</button><span role="status" id="${kind}WorkSelection">已选 0 条</span><button class="button danger" id="${kind}WorkDelete" disabled type="button">删除选中工作记录</button>`;
+    toolbar.innerHTML=`<label class="toggle"><input type="checkbox" id="${kind}WorkShowHistory" />显示已审核历史</label><label class="toggle"><input type="checkbox" id="${kind}WorkSelectAll" />全选当前工作记录</label><button class="button secondary" id="${kind}WorkRefresh" type="button">刷新记录</button><span role="status" id="${kind}WorkSelection">已选 0 条</span><button class="button danger" id="${kind}WorkDelete" disabled type="button">删除选中工作记录</button>`;
     list.before(toolbar);
     context.$(`${kind}WorkRefresh`).addEventListener('click',()=>context[settings.reload]().catch(error=>context.setStatus(settings.status,error.message,true)));
     context.$(`${kind}WorkShowHistory`).addEventListener('change',()=>context[settings.render]());

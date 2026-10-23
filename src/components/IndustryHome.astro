@@ -13,6 +13,7 @@ import { collectionStructuredData, organizationStructuredData, websiteStructured
 import { brandShowcase, factoryGallery, siteInfo } from '../data/site';
 import { keywordTag } from '../lib/keyword-tags';
 import { siteImages } from '../data/backgroundImages';
+import { siteVisual, siteVisuals } from '../data/site-visuals';
 
 interface Props { locale?: Locale }
 const { locale = 'en' } = Astro.props;
@@ -55,6 +56,10 @@ const conversionHeroSlides = [
     points: [pages.home.conversionSlide3Point1, pages.home.conversionSlide3Point2, pages.home.conversionSlide3Point3],
   },
 ] as const;
+const heroVisuals = ['primary', 'quality', 'cooperation'].map((key, index) => siteVisual(`home.${key}`, conversionHeroSlides[index].image, index === 0 ? brandAssets.heroRippleMobile : conversionHeroSlides[index].image, locale));
+const visualCta = siteVisuals.home.heroSlides.find(item => item.key === 'primary')?.visual.enabled ? siteVisuals.home.primaryCta : null;
+const ctaLabel = visualCta?.labels.find(item => item.locale === locale)?.text;
+const ctaHref = visualCta?.href && ctaLabel ? (visualCta.href.startsWith('#') ? visualCta.href : localizePath(visualCta.href, locale)) : '';
 const homeStructuredData = [
   organizationStructuredData(Astro.site),
   websiteStructuredData(Astro.site),
@@ -76,6 +81,10 @@ const homeStructuredData = [
     <section class="conversion-hero" aria-labelledby="conversion-hero-title" data-hero-carousel data-hero-slides={JSON.stringify(conversionHeroSlides)}>
       <div class="conversion-hero__media" aria-hidden="true">
         {conversionHeroSlides.map((slide, index) => (
+          heroVisuals[index].active ? <picture style="display:contents">
+            <source media="(max-width:760px)" srcset={heroVisuals[index].mobileImage} />
+            <img class:list={['conversion-hero__image', { 'is-active': index === 0 }]} src={slide.image} alt="" width="1920" height="1080" loading={index === 0 ? 'eager' : 'lazy'} fetchpriority={index === 0 ? 'high' : undefined} decoding="async" data-hero-image style={`object-position:${heroVisuals[index].focusX}% ${heroVisuals[index].focusY}%`} />
+          </picture> :
           <img
             class:list={['conversion-hero__image', { 'is-active': index === 0 }]}
             src={slide.image}
@@ -101,7 +110,7 @@ const homeStructuredData = [
             <p data-hero-description>{conversionHeroSlides[0].description}</p>
           </div>
           <div class="conversion-hero__actions">
-            <a class="signature-button signature-button--orange" href="#free-design">{pages.home.freeDesign} <span aria-hidden="true">&#8594;</span></a>
+            <a class="signature-button signature-button--orange" href={ctaHref || '#free-design'}>{ctaLabel && ctaHref ? ctaLabel : pages.home.freeDesign} <span aria-hidden="true">&#8594;</span></a>
             <a class="signature-button signature-button--outline" href={productHref}>{pages.home.exploreProducts}</a>
           </div>
           <ul class="conversion-hero__points">

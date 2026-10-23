@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getRuntimeEnv, requireManagerAccess } from '../../../../lib/manager/access';
+import { activeTranslationRuns } from '../../../../lib/manager/translation-scope';
 import {
   encodeGitHubPath,
   getBranch,
@@ -16,6 +17,7 @@ const WORKFLOW_FILE = 'ai-translation.yml';
 
 type WorkflowRun = {
   id: number;
+  head_branch?: string;
   name?: string;
   display_title?: string;
   status?: string;
@@ -74,11 +76,12 @@ const getTranslationResult = async (
   const response = await fetch(
     `https://api.github.com/repos/${repoFullName}/contents/${encodeGitHubPath(path)}?ref=${encodeURIComponent(branch)}`,
     {
-      headers: githubHeaders(accessToken, 'businessweb-manager-ai-translator'),
+      headers: githubHeaders(accessToken, 'businessweb-manager-ai-translator'), redirect: 'manual',
     }
   );
 
   if (response.status === 404) return null;
+  if (response.status >= 300 && response.status < 400) throw new Error('Unexpected content redirect');
   if (!response.ok) throw new Error(await response.text());
 
   const data = (await response.json()) as { content?: string; encoding?: string; html_url?: string };
@@ -96,8 +99,8 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   const access = requireManagerAccess(request, env);
   if (access.response) return access.response;
 
-  const requestId = url.searchParams.get('requestId')?.trim() || '';
-  if (!requestId) return new Response('缺少任务信息，请重新提交翻译任务。', { status: 400 });
+  let requestId = url.searchParams.get('requestId')?.trim() || '';
+  if (requestId && !/^ai-[a-z0-9]+-[a-z0-9]+$/.test(requestId)) return new Response('任务信息不正确。', { status: 400 });
 
   const accessToken = getDispatchToken(env, 'translation');
   if (!accessToken) {
@@ -119,8 +122,15 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
       undefined,
       'businessweb-manager-ai-translator'
     );
-    const runs = runsResponse.workflow_runs || [];
-    const matchedRun = runs.find(run => `${run.display_title || ''} ${run.name || ''}`.includes(requestId));
+    const active = await activeTranslationRuns({repo:repoFullName,branch,token:accessToken});
+    const runs = [...new Map([...active,...(runsResponse.workflow_runs || [])].filter(run=>run.head_branch===branch).map(run=>[run.id,run])).values()];
+    const tasks = runs.flatMap(run => {const id=String(run.display_title||'').match(/\bai-[a-z0-9]+-[a-z0-9]+\b/)?.[0];return id?[{requestId:id,status:run.status,label:statusLabel(run),locales:String(run.display_title||'').split(' / ')[1]||''}]:[];}).slice(0,100);
+    if (!requestId) {
+      const recent = runs.find(run => run.status !== 'completed' && /\bai-[a-z0-9]+-[a-z0-9]+\b/.test(run.display_title || '')) || runs.find(run => /\bai-[a-z0-9]+-[a-z0-9]+\b/.test(run.display_title || ''));
+      requestId = recent?.display_title?.match(/\bai-[a-z0-9]+-[a-z0-9]+\b/)?.[0] || '';
+      if (!requestId) return Response.json({ found: false, status: 'idle', label: '暂无翻译任务。',tasks }, { headers: { 'cache-control': 'no-store' } });
+    }
+    const matchedRun = runs.find(run => new RegExp(`(?:^|[^a-z0-9-])${requestId}(?=$|[^a-z0-9-])`, 'i').test(`${run.display_title || ''} ${run.name || ''}`));
 
     if (!matchedRun) {
       return new Response(
@@ -130,6 +140,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
           status: 'waiting',
           label: statusLabel(undefined),
           message: '任务已提交，正在等待处理，请稍后刷新。',
+          tasks,
         }),
         {
           headers: { 'cache-control': 'no-store', 'content-type': 'application/json; charset=utf-8' },
@@ -181,6 +192,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
           completedAt: job.completed_at || '',
         })),
         result,
+        tasks,
       }),
       {
         headers: { 'cache-control': 'no-store', 'content-type': 'application/json; charset=utf-8' },

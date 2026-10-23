@@ -38,7 +38,7 @@ export function installReviews(context) {
           <div class="draft work-draft-record">${context.workDraftCheckbox('review',draft)}
             <span><strong>${context.escapeHtml(draft.buyerLabel || draft.reviewId)}</strong><small>${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small></span>
 <span class="record-actions">            <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-review-draft-edit="${context.escapeHtml(draft.id)}" type="button">编辑</button>
-            <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-review-draft-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站</button>
+            <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-review-draft-apply="${context.escapeHtml(draft.id)}" type="button">审核通过</button>
             ${context.workDraftActions('review',draft)}</span>
           </div>`).join('')
       : '<div class="draft"><span><strong>暂无评价草稿</strong><small>保存后会显示在这里。</small></span></div>';
@@ -63,13 +63,14 @@ export function installReviews(context) {
     context.state.activeReviewDraftId = data.draft?.id || '';
     await loadReviews();
     context.setStatus('reviewStatus', operation === 'delete' ? '删除草稿已保存，尚未删除正式数据。' : '评价草稿已保存。');
+    return data;
   };
 
   const applyReviewDraft = async id => {
     context.setStatus('reviewStatus', '正在提交评价内容更新...');
     const data = await context.requestJson(`/api/manager/review-drafts/${encodeURIComponent(id)}/apply`, { method: 'POST' });
     await loadReviews();
-    context.setStatus('reviewStatus', data.requestId ? '评价更新已提交，应用后仍需使用“发布网站更新”上线。' : '评价更新已提交。');
+    context.setStatus('reviewStatus', data.requestId ? '评价审核已提交，网站更新进度请查看发布记录。' : '评价更新已提交。');
   };
   Object.assign(context, { reviewPayloadFromForm, fillReviewForm, renderReviews, loadReviews, saveReviewDraft, applyReviewDraft });
 }

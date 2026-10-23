@@ -1,5 +1,7 @@
 ---
 import Sidebar from '../../components/manager/Sidebar.astro';
+import WorkspacePanel from '../../components/manager/WorkspacePanel.astro';
+import VisualsPanel from '../../components/manager/VisualsPanel.astro';
 import ProductOrderPanel from '../../components/manager/ProductOrderPanel.astro';
 import ProductsPanel from '../../components/manager/ProductsPanel.astro';
 import ArticlesPanel from '../../components/manager/ArticlesPanel.astro';
@@ -27,6 +29,7 @@ const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const managerOwner = String((industryProfile.governance as { contentOwner?: string } | undefined)?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
 const managerReviewSystemEnabled = reviewSystemEnabled;
+const managerSiteName = industryProfile.brand?.name || '内容管理';
 ---
 
 <!doctype html>
@@ -41,13 +44,17 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
   <body>
     <main class="shell">
       <div class="admin-layout">
-        <Sidebar managerOwner={managerOwner} managerReviewSystemEnabled={managerReviewSystemEnabled} managerAnalyticsEnabled={managerAnalyticsEnabled} />
+        <Sidebar managerOwner={managerOwner} managerSiteName={managerSiteName} managerReviewSystemEnabled={managerReviewSystemEnabled} managerAnalyticsEnabled={managerAnalyticsEnabled} />
 
         <div class="content-area">
-          <aside class="publication-guidance" role="note" aria-label="发布提醒">
+          <header class="manager-mobile-header"><button class="button secondary" id="managerMenuButton" aria-controls="managerSidebar" aria-expanded="false" type="button">工作区</button><strong>{managerSiteName}</strong><span>内容管理</span></header>
+          <aside class="publication-guidance" role="note" aria-label="发布提醒" hidden>
             <strong>发布提醒</strong>
-            <span>有未发布变更时，请完成编辑后点击‘发布网站更新’统一更新。</span>
+            <span id="publicationGuidanceText">正在确认未发布变更。</span>
           </aside>
+          <nav class="translation-workspace-nav" id="translationWorkspaceNav" aria-label="翻译工作台" hidden><strong>翻译</strong><button class="tab" data-tab="translation" type="button">任务</button><button class="tab" data-tab="product-drafts" type="button">产品待办</button><button class="tab" data-tab="blog-drafts" type="button">文章待办</button></nav>
+      <WorkspacePanel />
+      <VisualsPanel />
       <ProductOrderPanel />
 
       <ProductsPanel managerReviewSystemEnabled={managerReviewSystemEnabled} />
@@ -70,6 +77,7 @@ const managerReviewSystemEnabled = reviewSystemEnabled;
         </div>
       </div>
     </main>
+    <button class="manager-menu-shade" id="managerMenuShade" aria-label="关闭工作区" type="button" hidden></button>
 
     <ImagePicker />
 

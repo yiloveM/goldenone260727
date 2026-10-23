@@ -1,0 +1,225 @@
+{
+  "version": 1,
+  "home": {
+    "heroSlides": [
+      {
+        "key": "primary",
+        "visual": {
+          "enabled": true,
+          "image": "",
+          "mobileImage": "",
+          "alt": "",
+          "localizedAlts": [],
+          "focusX": 50,
+          "focusY": 50
+        }
+      },
+      {
+        "key": "quality",
+        "visual": {
+          "enabled": true,
+          "image": "",
+          "mobileImage": "",
+          "alt": "",
+          "localizedAlts": [],
+          "focusX": 50,
+          "focusY": 50
+        }
+      },
+      {
+        "key": "cooperation",
+        "visual": {
+          "enabled": true,
+          "image": "",
+          "mobileImage": "",
+          "alt": "",
+          "localizedAlts": [],
+          "focusX": 50,
+          "focusY": 50
+        }
+      }
+    ],
+    "center": {
+      "enabled": false,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    },
+    "primaryCta": {
+      "href": "",
+      "labels": []
+    }
+  },
+  "pages": {
+    "productsCatalog": {
+      "enabled": true,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    },
+    "about": {
+      "enabled": true,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    },
+    "contact": {
+      "enabled": true,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    },
+    "faq": {
+      "enabled": true,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    },
+    "articles": {
+      "enabled": true,
+      "image": "",
+      "mobileImage": "",
+      "alt": "",
+      "localizedAlts": [],
+      "focusX": 50,
+      "focusY": 50
+    }
+  },
+  "categories": [
+    {
+      "key": "lapel-pin-and-badge",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "medal",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "challenge-coin",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "key-chain",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "golf-accessories-and-tools",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "belt-buckle",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "metal-and-wooden-plaque",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "fridge-magnets",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "more-metal-crafts",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    },
+    {
+      "key": "promotion-gift",
+      "visual": {
+        "enabled": true,
+        "image": "",
+        "mobileImage": "",
+        "alt": "",
+        "localizedAlts": [],
+        "focusX": 50,
+        "focusY": 50
+      }
+    }
+  ]
+}

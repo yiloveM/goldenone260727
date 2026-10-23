@@ -1,5 +1,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { siteImages } from './backgroundImages';
+import { siteVisual } from './site-visuals';
 import { industryProfile } from './industry-profile';
 import productMediaCatalog from './product-media-catalog.json';
 
@@ -30,7 +31,7 @@ export const slugifyCategory = (name: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-const categoryBackgroundImage = (name: string) =>
+export const categoryBackgroundImage = (name: string) =>
   name === 'Fridge Magnets'
     ? '/images/metal-gifts/custom-lapel-pins.webp'
     : `/r2/Banner/2026-product-design/categories/${slugifyCategory(name)}.webp`;
@@ -73,7 +74,7 @@ export const productCategoryMeta: readonly ProductCategoryMeta[] = industryProfi
   slug: slugifyCategory(category.name),
   description: category.description,
   image: realCategoryImage(category.name, categoryBackgroundImage(category.name)),
-  backgroundImage: categoryBackgroundImage(category.name),
+  backgroundImage: siteVisual(`category.${slugifyCategory(category.name)}`, categoryBackgroundImage(category.name)).image,
   imageAlt: `${category.name} category`,
   accent: index === 0 ? 'Core offering' : index === 1 ? 'Project capability' : 'Lifecycle support',
   highlights: category.highlights,

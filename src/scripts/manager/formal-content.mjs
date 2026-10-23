@@ -10,6 +10,8 @@ export function installFormalContent(context) {
     context.$(`${settings.prefix}ContentSelection`).textContent=`已选 ${chosen.length} 项 / 当前筛选 ${rows.length} 项（全部分页）`;
     context.$(`${settings.prefix}ContentDelete`).disabled=busy.has(kind)||!chosen.length;
     context.$(`${settings.prefix}ContentClear`).disabled=busy.has(kind)||!chosen.length;
+    context.$(`${settings.prefix}ContentBulk`).hidden=!chosen.length;
+    context.$(`${settings.prefix}ContentTranslate`).disabled=busy.has(kind)||!chosen.length||chosen.length>5||chosen.some(row=>(row.locale||'en')!=='en');
     const available=new Set(rows.map(row=>row.sourcePath));
     context.$(settings.list).querySelectorAll('[data-formal-select],[data-formal-delete]').forEach(node=>{node.disabled=busy.has(kind)||!available.has(node.dataset.sourcePath);});
   };
@@ -28,7 +30,8 @@ export function installFormalContent(context) {
   for(const [kind,settings] of Object.entries(config)) {
     const list=context.$(settings.list),prefix=settings.prefix;
     const toolbar=document.createElement('div');toolbar.className='toolbar is-row formal-content-toolbar';
-    toolbar.innerHTML=`<label class="toggle"><input id="${prefix}ContentSelectAll" type="checkbox" />全选当前筛选</label><span role="status" aria-live="polite" id="${prefix}ContentSelection">已选 0 项</span><button class="button secondary" id="${prefix}ContentClear" disabled type="button">清空选择</button><button class="button danger" id="${prefix}ContentDelete" disabled type="button">删除选中${kind==='product'?'产品':'文章'}</button>`;list.before(toolbar);
+    toolbar.innerHTML=`<label class="toggle"><input id="${prefix}ContentSelectAll" type="checkbox" />全选当前筛选</label><span role="status" aria-live="polite" id="${prefix}ContentSelection">已选 0 项</span><span class="formal-bulk-actions" id="${prefix}ContentBulk" hidden><button class="button secondary" id="${prefix}ContentTranslate" type="button" title="选择英语原文，每批最多 5 篇">翻译选中原文</button><button class="button secondary" id="${prefix}ContentClear" disabled type="button">清空选择</button><button class="button danger" id="${prefix}ContentDelete" disabled type="button">删除选中${kind==='product'?'产品':'文章'}</button></span>`;list.before(toolbar);
+    context.$(`${prefix}ContentTranslate`).addEventListener('click',()=>context.beginTranslation(kind,context[settings.filter]().filter(row=>selected[kind].has(row.sourcePath))).catch(error=>context.setStatus(settings.status,error.message,true)));
     context.$(`${prefix}ContentSelectAll`).addEventListener('change',event=>{selected[kind]=new Set(event.target.checked?context[settings.filter]().filter(row=>row.sourceSha).map(row=>row.sourcePath):[]);context[settings.render]();});
     context.$(`${prefix}ContentClear`).addEventListener('click',()=>{selected[kind].clear();context[settings.render]();});
     const fail=error=>context.setStatus(settings.status,error.message,true);

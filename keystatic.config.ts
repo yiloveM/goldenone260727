@@ -1,3 +1,4 @@
+import { siteVisualFields } from './src/keystatic/site-visual-fields';
 import { aiSeoFields } from './src/keystatic/ai-seo-fields';
 import { blogManagerField } from './src/keystatic/blog-manager-field';
 import { articleCategoryField } from './src/keystatic/article-category-field';
@@ -134,10 +135,11 @@ export default config({
       'AI & SEO Settings': ["aiSeo"],
       '站点设置': ["analyticsDashboard","siteFoundation","productEditorSettings","catalogDownloads","siteLanguages","customerReviews","formVerification"],
       '内容管理': ['productManager', 'productOrder', 'products', 'blogManager', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
-      '媒体资源': ['imagePool'],
+      '媒体资源': ['siteVisuals', 'imagePool'],
     },
   },
   singletons: {
+    siteVisuals: singleton({ label: '站点视觉资源', path: 'src/data/site-visuals', format: 'json', schema: siteVisualFields() }),
     aiSeo: singleton({label:'AI 内容导航',path:'src/data/ai-seo-settings',format:'json',schema:aiSeoFields()}),
     blogManager: singleton({label:'所有文章',path:'src/keystatic/blog-manager',format:'json',schema:{manager:blogManagerField()}}),
     formVerification: singleton({

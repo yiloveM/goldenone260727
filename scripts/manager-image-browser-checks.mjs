@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { openManagerTab, setManagerTheme } from './manager-test-navigation.mjs';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 
@@ -18,7 +19,7 @@ export async function checkManagerImages({ page, backend, check, output }) {
   const rows = () => page.locator('#galleryList [data-list="galleryImages"]');
   const values = () => rows().evaluateAll(nodes => nodes.map(node => node.value));
   const openProduct = async () => {
-    await page.reload(); await page.waitForSelector('#searchInput');
+    await page.reload(); await openManagerTab(page,'products'); await page.waitForSelector('#searchInput');
     await page.locator('#searchInput').fill(product.title);
     await page.locator(`.manager-product-title[data-slug="${product.slug}"]`).click();
   };
@@ -55,9 +56,9 @@ export async function checkManagerImages({ page, backend, check, output }) {
     await check('gallery paste, cover paste and picker selection keep the first image synchronized', async () => {
       await rows().first().fill(paths.square);
       assert.equal(await page.locator('#image').inputValue(), paths.square);
-      await page.locator('#image').fill(paths.wide); await page.locator('#image').press('Tab');
+      await rows().first().fill(paths.wide); await rows().first().press('Tab');
       assert.equal(await rows().first().inputValue(), paths.wide);
-      await page.locator('[data-image-field="image"]').click();
+      await page.locator('[data-image-list="galleryImages"]').first().click();
       await page.locator(`[data-picker-select="${paths.portrait}"]`).click();
       assert.equal(await page.locator('#image').inputValue(), paths.portrait);
       assert.equal(await rows().first().inputValue(), paths.portrait);
@@ -90,7 +91,7 @@ export async function checkManagerImages({ page, backend, check, output }) {
     const results = [];
     await check('full portrait, square and wide previews fit desktop/mobile/landscape in both themes', async () => {
       for (const theme of ['light', 'dark']) {
-        await page.locator('#themeMenuButton').click(); await page.locator(`[data-theme-option="${theme}"]`).click();
+        await setManagerTheme(page,theme);
         for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 768 }, { width: 390, height: 844 }, { width: 360, height: 844 }, { width: 844, height: 390 }]) {
           await page.setViewportSize(viewport);
           for (const [name, url] of Object.entries(paths)) {
@@ -107,18 +108,18 @@ export async function checkManagerImages({ page, backend, check, output }) {
     });
     await check('cover, media library, article and picker previews use the same complete original image', async () => {
       await rows().first().fill(paths.portrait);
-      await page.locator('#imagePreviewButton').click(); await fit();
+      await page.locator('#galleryList [data-inline-image-preview]').first().click(); await fit();
       assert.ok((await page.locator('#imagePreviewOpenLink').getAttribute('href')).endsWith(paths.portrait));
       await page.locator('#imagePreviewCloseButton').click();
-      await page.locator('[data-image-field="image"]').click();
+      await page.locator('#galleryList [data-image-list="galleryImages"]').first().click();
       await page.locator(`[data-picker-preview="${paths.portrait}"]`).click(); await fit();
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('#imagePicker').getAttribute('aria-hidden'), 'false');
       await page.keyboard.press('Escape');
       assert.equal(await page.locator('body').evaluate(node => node.classList.contains('has-modal')), false);
-      await page.locator('[data-tab="images"]').click();
+      await openManagerTab(page,'images');
       await page.locator(`[data-asset-preview="${paths.wide}"]`).click(); await fit(); await page.keyboard.press('Escape');
-      await page.locator('[data-tab="blog"]').click(); await page.locator('[data-blog-slug="sample-article"]').click();
+      await openManagerTab(page,'blog'); await page.locator('[data-blog-slug="sample-article"]').click();
       await page.locator('#blogImage').fill(paths.portrait); await page.locator('#blogImagePreviewButton').click(); await fit(); await page.keyboard.press('Escape');
     });
     assert.ok(backend.requests.slice(before).every(item => item.path.startsWith('/api/manager/')));

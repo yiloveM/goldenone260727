@@ -1,5 +1,8 @@
 ---
 import ShareButtons from './ShareButtons.astro';
+import ManagedVisualStyle from './ManagedVisualStyle.astro';
+import { visualSlots, visualLocales } from '../data/site-visual-slots';
+import { siteVisual } from '../data/site-visuals';
 import { getR2WebpDeliveryUrl } from '../lib/r2-image-delivery';
 
 interface Props {
@@ -18,6 +21,13 @@ interface Props {
 
 const { eyebrow, title, description, image, ctaHref, ctaLabel, variant, share = false, shareLabel = 'Share page', dir, titleLines } = Astro.props;
 const classes = ['page-banner', variant ? `page-banner--${variant}` : ''];
+const segments = Astro.url.pathname.split('/').filter(Boolean);
+if (visualLocales.includes(segments[0]) && segments[0] !== 'en') segments.shift();
+const route = `/${segments.join('/')}/`.replace('//', '/');
+const visualSlot = visualSlots.find(slot => slot.group === 'pages' && slot.path === route);
+const managedVisual = visualSlot ? siteVisual(visualSlot.key, image) : null;
+const managedClass = managedVisual?.active ? `managed-${visualSlot!.key.replace(/\./g, '-')}` : '';
+if (managedClass) classes.push(managedClass);
 const bannerImage = getR2WebpDeliveryUrl(image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE) || image;
 const resolvedTitleLines = titleLines?.map(line => line.trim()).filter(Boolean).slice(0, 2);
 const longestTitleLine = resolvedTitleLines?.reduce((longest, line) => Math.max(longest, line.length), 0) ?? 0;
@@ -28,7 +38,7 @@ const titleLengthClass = longestTitleLine >= 27
     : '';
 ---
 <section class:list={classes} style={`--page-banner-image: url('${bannerImage}');`}>
-  <div class="container page-banner-inner">
+  {managedClass && <ManagedVisualStyle slotKey={visualSlot!.key} fallback={image} selector={`.${managedClass}::before`} property="--page-banner-image" />}<div class="container page-banner-inner">
     <div class="page-banner-copy" dir={dir}>
       <span class="eyebrow">{eyebrow}</span>
       <h1 class={titleLengthClass}>{resolvedTitleLines?.length ? resolvedTitleLines.join(' ') : title}</h1>

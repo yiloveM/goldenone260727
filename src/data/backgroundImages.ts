@@ -1,8 +1,9 @@
+import { overlaySiteImages } from './site-visuals';
 const local = (name: string) => `/images/metal-gifts/${name}.webp`;
 const campaign = (name: string) => `/r2/Banner/2026-product-design/${name}.webp`;
 const context = (name: string) => `/r2/home/design-context-20261017/${name}.webp`;
 
-export const siteImages = {
+export const legacySiteImages = {
   brand: {
     logo: '/r2/brand/goldenone-logo-c1e2f260b0.png',
     footerLogo: '/images/brand/goldenone-logo-transparent.png',
@@ -65,3 +66,4 @@ export const siteImages = {
     fallback: local('hero-collection-v2'),
   },
 } as const;
+export const siteImages = overlaySiteImages(legacySiteImages);

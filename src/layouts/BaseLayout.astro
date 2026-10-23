@@ -4,6 +4,7 @@ import '../styles/global.css';
 import '../styles/goldenone-redesign.css';
 import '../styles/goldenone-visual-refinement.css';
 import { brandAssets } from '../data/assets';
+import { siteVisual } from '../data/site-visuals';
 import { siteInfo, socialLinks } from '../data/site';
 import { industryProfile, visualTokens } from '../data/industry-profile';
 import { buildProductCategories, isProductPublished } from '../data/productCategories';
@@ -148,6 +149,7 @@ const imageOrigins = Array.from(new Set([image, brandAssets.heroRippleDesktop, .
   .filter(origin => origin && origin !== new URL(siteBase).origin)));
 const webpPreloadImage = getR2WebpDeliveryUrl(image, import.meta.env.PUBLIC_R2_ASSET_BASE_URL, import.meta.env.PUBLIC_R2_IMAGE_DELIVERY_MODE);
 const preloadPageImage = !preloadHomeHero && (webpPreloadImage || image);
+const managedHero = preloadHomeHero ? siteVisual('home.primary', image, brandAssets.heroRippleMobile) : null;
 const footerCategoryLinks = navCategories.slice(0, 6);
 const hasEmail = Boolean(siteInfo.email);
 const hasPhone = Boolean(siteInfo.phone);
@@ -203,7 +205,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={fontHref} />
     {preloadPageImage && <link rel="preload" as="image" href={image} fetchpriority="high" />}
-    {preloadHomeHero && <link rel="preload" as="image" href={webpPreloadImage || image} fetchpriority="high" />}
+    {preloadHomeHero && (managedHero?.active ? <><link rel="preload" as="image" href={image} media={managedHero.mobileImage !== image ? '(min-width:761px)' : undefined} fetchpriority="high" />{managedHero.mobileImage !== image && <link rel="preload" as="image" href={managedHero.mobileImage} media="(max-width:760px)" fetchpriority="high" />}</> : <link rel="preload" as="image" href={webpPreloadImage || image} fetchpriority="high" />)}
     {structuredDataItems.map(item => <script is:inline type="application/ld+json" set:html={serializeJsonLd(item)} />)}
     <style is:inline set:html={visualTokenStyle}></style>
   </head>

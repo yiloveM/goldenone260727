@@ -1,16 +1,18 @@
 ---
 interface Props {
   managerOwner: string;
+  managerSiteName: string;
   managerReviewSystemEnabled: boolean;
   managerAnalyticsEnabled: boolean;
 }
-const { managerOwner, managerReviewSystemEnabled, managerAnalyticsEnabled } = Astro.props;
+const { managerOwner, managerSiteName, managerReviewSystemEnabled, managerAnalyticsEnabled } = Astro.props;
 ---
 
-<aside class="sidebar">
+<aside class="sidebar" id="managerSidebar">
+          <button class="button secondary manager-menu-close" id="managerMenuClose" type="button">关闭工作区</button>
           <div class="brand-mark">
             <a href="/" aria-label="返回网站首页">
-              <strong>{managerOwner}</strong>
+              <strong>{managerSiteName}</strong>
               <span>内容管理</span>
             </a>
           </div>
@@ -35,13 +37,12 @@ const { managerOwner, managerReviewSystemEnabled, managerAnalyticsEnabled } = As
           <nav class="tabs" aria-label="Manager sections">
             <div class="nav-group">
               <span class="nav-group-label">内容</span>
-              <button class="tab is-active" data-tab="products" type="button">产品管理</button>
-              <button class="tab" data-tab="product-order" type="button">产品排序</button>
+              <button class="tab is-active" data-tab="dashboard" type="button">工作台</button>
+              <button class="tab" data-tab="products" type="button">产品管理</button>
               <button class="tab" data-tab="blog" type="button">所有文章</button>
               {managerReviewSystemEnabled ? <button class="tab" data-tab="reviews" type="button">客户评价</button> : null}
-              <button class="tab" data-tab="translation" type="button">AI 翻译助手</button>
-              <button class="tab" data-tab="product-drafts" type="button">产品翻译草稿</button>
-              <button class="tab" data-tab="blog-drafts" type="button">文章翻译草稿</button>
+              <button class="tab" data-workspace="translation" type="button">翻译</button>
+              <button class="tab" data-tab="visuals" type="button">站点视觉</button>
               <button class="tab" data-tab="publish" type="button">发布网站更新</button>
             </div>
             <div class="nav-group">
@@ -55,4 +56,5 @@ const { managerOwner, managerReviewSystemEnabled, managerAnalyticsEnabled } = As
               </div>
             ) : null}
           </nav>
+          <small class="manager-owner">站点维护：{managerOwner}</small>
         </aside>

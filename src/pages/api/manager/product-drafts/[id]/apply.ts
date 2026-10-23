@@ -75,6 +75,8 @@ export const POST: APIRoute = async ({ locals, request, params }) => {
     });
   }
 
+  if (JSON.parse(record.payload_json).managerOrderBatch) return new Response('请在产品排序中整批审核这组草稿。', { status: 409 });
+
   const repoFullName = getRepoFullName(env);
   const branch = getBranch(env);
   const requestId = createRequestId('manager');

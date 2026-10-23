@@ -5,21 +5,22 @@ interface Props {
 const { managerReviewSystemEnabled } = Astro.props;
 ---
 
-<section class="section is-active" data-panel="products">
+<section class="section" data-panel="products">
         <div class="grid">
           <aside class="panel manager-view is-visible" id="productBrowserView">
             <header class="product-manager-header">
               <div>
-                <h2>产品内容工作台</h2>
-                <p>按分类和关键词快速找到产品；点击产品图或产品名称进入编辑，操作列只处理预览和上线状态。</p>
+                <h2>产品管理</h2>
+                <p>按语言和分类管理内容；选择产品进入编辑，审核后统一发布。</p>
               </div>
               <div class="product-manager-side">
                 <div class="product-manager-summary" aria-label="产品状态概览">
                   <span><strong id="productTotalCount">0</strong><small>全部产品</small></span>
-                  <span><strong id="productOnlineCount">0</strong><small>已上线</small></span>
-                  <span><strong id="productOfflineCount">0</strong><small>已下线</small></span>
+                  <span><strong id="productOnlineCount">—</strong><small>已上线版本</small></span>
+                  <span><strong id="productOfflineCount">0</strong><small>设为隐藏</small></span>
                 </div>
-                <button class="button secondary" id="newProductButton" type="button">新建产品草稿</button>
+                <button class="button secondary" data-tab="product-order" type="button">调整顺序</button>
+                <button class="button" id="newProductButton" type="button">新增产品</button>
               </div>
             </header>
             <div class="product-manager-toolbar">
@@ -154,7 +155,7 @@ const { managerReviewSystemEnabled } = Astro.props;
                     <strong>关键产品参数</strong>
                     <button class="mini-button" data-action="specs:add" type="button">添加参数</button>
                   </div>
-                  <p class="field-help">例如 Flow Rate、Filter Area、Valve Connection。单位和型号不要随意改写。</p>
+                  <p class="field-help">填写买家需要比较的名称、数值和单位；保持产品型号与真实参数一致。</p>
                   <div class="builder-list" id="specsList"></div>
                 </div>
               </div>
@@ -205,6 +206,8 @@ const { managerReviewSystemEnabled } = Astro.props;
             </form>
 
             <div class="actions">
+              <button class="button secondary" id="previewProductDraft" type="button">预览草稿</button>
+              <a class="button secondary" id="viewProductButton" href="#" target="_blank" rel="noreferrer">查看网站</a>
               <button class="button" id="saveDraftButton" type="button">保存草稿</button>
               <button class="button secondary" id="reloadButton" type="button">刷新草稿</button>
               <span class="status" id="statusText">请选择一个产品。</span>

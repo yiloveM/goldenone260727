@@ -10,6 +10,7 @@ export function installCore(context) {
     activeReviewDraftId: '',
     activeReviewData: {},
     orderChanges: new Map(),
+    productVisibilityDrafts: new Map(),
     productPage: 1,
     activeSlug: '',
     activeDraftId: '',
@@ -209,7 +210,7 @@ export function installCore(context) {
       },
     });
     const text = await response.text();
-    if (!response.ok) throw new Error(apiResponseMessage(text) || '请求未完成，请稍后重试。');
+    if (!response.ok) throw Object.assign(new Error(apiResponseMessage(text) || '请求未完成，请稍后重试。'), { status: response.status });
     return parseJsonResponse(text, '后台返回内容无法识别，请刷新页面后重试。');
   };
 
@@ -271,8 +272,9 @@ export function installCore(context) {
   };
 
   const setConnectedUi = (connected, detail = '') => {
-    $('connectionPanel').hidden = false;
+    $('connectionPanel').hidden = connected;
     $('managerEmail').hidden = false;
+    $('managerEmail').textContent = connected ? '内容管理员 · 已连接' : '暂未连接';
     $('connectionPanel').classList.toggle('is-connected', connected);
     $('connectionTitle').textContent = connected ? '内容后台已连接' : '连接内容后台';
     $('connectionDetail').textContent = connected

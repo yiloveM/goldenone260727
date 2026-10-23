@@ -8,6 +8,7 @@
           <button class="button secondary" id="imagePickerCloseButton" type="button">关闭</button>
         </div>
         <div class="image-picker-toolbar">
+          <label class="media-search">搜索当前目录<input id="imagePickerSearch" type="search" placeholder="按文件名搜索已加载图片" /></label>
           <button class="button secondary" id="imagePickerBackButton" type="button">上一级</button>
           <button class="button secondary" id="imagePickerRefreshButton" type="button">刷新</button>
           <button class="button" id="imagePickerUploadButton" type="button">上传图片</button>
@@ -15,6 +16,7 @@
           <span class="path" id="imagePickerPath">根目录</span>
         </div>
         <div class="image-picker-grid" id="imagePickerGrid"></div>
+        <button class="button secondary" id="imagePickerLoadMore" type="button" hidden>加载更多图片</button>
         <div class="image-picker-status">
           <span class="status" id="imagePickerStatus">图片池未加载。</span>
         </div>

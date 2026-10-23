@@ -161,6 +161,7 @@ export function installArticles(context) {
     context.state.activeBlogSlug = payload.blogSlug;
     await loadBlogDrafts();
     context.setStatus('blogStatus', '文章草稿已保存。');
+    return data;
   };
 
   const renderBlogWorkDrafts = () => {
@@ -178,7 +179,7 @@ export function installArticles(context) {
                   <small>en · ${context.escapeHtml(context.workDraftStatus(draft.status))} · ${context.formatDate(draft.updatedAt)}</small>
                 </span>
 <span class="record-actions">                <button class="button secondary" ${context.workDraftBusy(draft.status) ? 'disabled' : ''} data-blog-draft-edit="${context.escapeHtml(draft.id)}" type="button">继续编辑</button>
-                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-blog-apply="${context.escapeHtml(draft.id)}" type="button">应用到网站内容</button>
+                <button class="button secondary" ${context.workDraftBusy(draft.status) || draft.status === 'applied' ? 'disabled' : ''} data-blog-apply="${context.escapeHtml(draft.id)}" type="button">审核通过</button>
               ${context.workDraftActions('blog',draft)}</span>
               </div>
             `

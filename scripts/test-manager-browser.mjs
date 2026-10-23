@@ -1,3 +1,5 @@
+import { openManagerTab, expandManagerEditor, setManagerTheme } from './manager-test-navigation.mjs';
+import { checkManagerUx } from './manager-ux-browser-checks.mjs';
 import { checkAdminWorkflow } from './admin-workflow-browser-checks.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -41,10 +43,15 @@ try {
   await page.addInitScript(() => { new MutationObserver(() => { if(window.__manualDialogs)return;const dialog=document.querySelector('dialog.bw-dialog[open]');if(!dialog)return;const input=dialog.querySelector('input');if(input)input.value='new-folder';dialog.querySelector('form').requestSubmit(); }).observe(document,{childList:true,subtree:true,attributes:true,attributeFilter:['open']}); });
   await page.goto(server.url);
   await page.waitForFunction(() => document.querySelectorAll('[data-product-select]').length > 0 || document.querySelectorAll('.manager-product-row').length > 0);
-  const tab = name => page.locator(`[data-tab="${name}"]`).click();
-  const fill = (id, value) => page.locator('#' + id).fill(value);
+  const tab = name => openManagerTab(page, name);
+  const fill = async (id, value) => {
+    while(await page.locator('.section.is-active .manager-view.is-visible details.editor-group:not([open])>summary').count())await page.locator('.section.is-active .manager-view.is-visible details.editor-group:not([open])>summary').first().click();
+    if(id==='translationSlug'){await page.locator(`#translationSourcePicker option[value$=":${value}"]`).waitFor({state:'attached'});return page.locator('#translationSourcePicker').selectOption({value:`${await page.locator('#translationSourceType').inputValue()}:${value}`});}
+    return page.locator('#' + id).fill(value);
+  };
   const waitText = (id, value) => page.waitForFunction(({ id, value }) => document.getElementById(id)?.textContent.includes(value), { id, value });
   await check('same portal, global reminder, owner policy and review controls', async () => {
+    await waitText('publicationGuidanceText','统一更新');
     assert.match(await page.locator('.publication-guidance').innerText(), /统一更新/);
     assert.equal(await page.locator('#offeringType').isDisabled(), true);
     assert.equal(await page.locator('#modelStrategy').isDisabled(), true);
@@ -67,6 +74,7 @@ try {
   if (process.env.MANAGER_COMPARE_BASELINE) assert.deepEqual(snapshot, JSON.parse(await readFile(resolve(process.env.MANAGER_COMPARE_BASELINE, 'ui-contract.json'), 'utf8')));
   await page.screenshot({ path: resolve(output, 'desktop.png'), fullPage: true });
   await check('search, filtering and product pagination', async () => {
+    await tab('products');
     await fill('searchInput', 'Website design');
     assert.equal(await page.locator('.manager-product-row').count(), 1);
     await fill('searchInput', '');
@@ -87,7 +95,7 @@ try {
     await page.locator('#productForm [data-action="specs:add"]').click();
     await page.locator('#specsList input').nth(0).fill('Scope');
     await page.locator('#specsList input').nth(1).fill('Multilingual');
-    await page.locator('[data-image-field="image"]').click();
+    await page.locator('[data-image-list="galleryImages"]').first().click();
     await page.locator('[data-picker-select]').first().click();
     assert.equal(await page.locator('#image').inputValue(), '/fixture-image.svg');
     await page.locator('[data-action="reviews:add"]').click();
@@ -100,7 +108,7 @@ try {
     assert.match(draft.payload.content, /Edited service body/);
     assert.equal(draft.payload.specs[0].value, 'Multilingual');
     assert.equal(draft.payload.reviews.at(-1).buyerLabel, 'New buyer');
-    await page.reload();
+    await page.reload(); await tab('products');
     await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
     await page.locator('.manager-product-title[data-slug="sample-service"]').click();
     await page.locator('[data-apply]').first().click();
@@ -135,6 +143,7 @@ try {
     await tab('product-order');
     const input = page.locator('#orderGrid input').first(); await input.fill('77'); await input.dispatchEvent('input');
     await page.locator('#orderSaveButton').click(); await waitText('orderStatus', '草稿');
+    assert.ok(backend.orderGroups.some(group=>group.values.some(item=>item.sortOrder===77)));
   });
   await check('article editing and saved draft read-back', async () => {
     await tab('blog'); await page.locator('[data-blog-slug="sample-article"]').click();
@@ -159,6 +168,7 @@ try {
     await fill('translationSlug', 'sample-service');
     await page.locator('#translationSubmitButton').click(); await waitText('translationStatus', '已提交');
     await page.locator('#translationStatusButton').click();
+    await tab('product-drafts');
     await page.locator('[data-translation-edit="product:es--sample-service"]').click();
     await waitText('translationEditorStatus', '草稿已加载');
     const [popup] = await Promise.all([page.waitForEvent('popup'), page.locator('#translationEditorPreviewLink').click()]);
@@ -186,10 +196,10 @@ try {
     await tab('products');
     await fill('searchInput', 'no-match-exists'); assert.equal(await page.locator('.manager-product-row').count(), 0);
     await fill('searchInput', '');
-    const saved = backend.products.splice(0); await page.reload();
+    const saved = backend.products.splice(0); await page.reload(); await tab('products');
     await waitText('productBrowserStatus', '当前筛选 0');
     assert.equal(await page.locator('#newProductButton').isVisible(), true);
-    backend.products.push(...saved); await page.reload(); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
+    backend.products.push(...saved); await page.reload(); await tab('products'); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
   });
   await check('publication toggles create one draft and recover on failed save', async () => {
     const toggle = page.locator('[data-product-published="sample-service"]');
@@ -201,6 +211,7 @@ try {
   });
   await check('rich-text image selection and table row/column edits round-trip into a draft', async () => {
     await page.locator('.manager-product-title[data-slug="sample-service"]').click();
+    await page.locator('#productEditorView .editor-section-nav button').filter({hasText:'详细内容'}).click();
     const editor = page.locator('[data-rich-editor="productContent"]');
     const surface = editor.locator('.rich-editor__surface');
     await surface.fill('Rich editor test.'); await surface.click(); await page.keyboard.press('End');
@@ -223,7 +234,7 @@ try {
     assert.match(payload.content, /Header/); assert.match(payload.content, /fixture-image/);
   });
   await check('product builders retain gallery, features, FAQ and merged table headings', async () => {
-    const action = name => page.locator(`#productForm [data-action="${name}"]`).first().click();
+    const action = async name => { await expandManagerEditor(page); await page.locator(`#productForm [data-action="${name}"]`).first().click(); };
     await action('highlights:add'); await page.locator('#productForm [data-list="highlights"]').last().fill('Maintainable websites');
     await action('applications:add'); await page.locator('#productForm [data-list="applications"]').last().fill('International business');
     await action('gallery:add'); await page.locator('#productForm [data-list="galleryImages"]').last().fill('/fixture-image.svg');
@@ -242,7 +253,7 @@ try {
     assert.deepEqual(backend.productDrafts().find(item => item.productSlug === 'sample-service').payload.highlights, []);
   });
   await check('image preview Escape closes only the top overlay and restores scroll', async () => {
-    await page.locator('[data-image-field="image"]').click();
+    await page.locator('[data-image-list="galleryImages"]').first().click();
     await page.locator('[data-picker-preview]').first().click();
     assert.equal(await page.locator('#imagePreview').getAttribute('aria-hidden'), 'false');
     await page.keyboard.press('Escape');
@@ -267,7 +278,7 @@ try {
     await fill('title', 'Continued product draft'); await page.locator('#saveDraftButton').click(); await waitText('statusText', '草稿已保存');
     const product = backend.productDrafts().find(item => item.productSlug === 'sample-service');
     const count = backend.productDrafts().length;
-    await page.reload(); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
+    await page.reload(); await tab('products'); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
     await page.locator('.manager-product-title[data-slug="sample-service"]').click();
     await page.locator(`[data-product-draft-edit="${product.id}"]`).click();
     assert.equal(await page.locator('#title').inputValue(), 'Continued product draft');
@@ -283,6 +294,7 @@ try {
   });
   await check('removing a table heading preserves its body and deleting the last column removes only the table', async () => {
     await tab('products'); await page.locator('.manager-product-title[data-slug="sample-service"]').click();
+    await page.locator('#productEditorView .editor-section-nav button').filter({hasText:'详细内容'}).click();
     const editor = page.locator('[data-rich-editor="productContent"]');
     const surface = editor.locator('.rich-editor__surface'); await surface.fill('Keep this paragraph.'); await surface.click(); await page.keyboard.press('End');
     await editor.locator('[data-rich-command="table"]').click();
@@ -297,7 +309,7 @@ try {
     await tab('reviews'); await page.locator('#newReviewButton').click();
     await fill('reviewBuyerLabel', 'Fixture buyer'); await fill('reviewQuote', 'Clear editing workflow.');
     await page.locator('#saveReviewDraftButton').click(); await waitText('reviewStatus', '评价草稿已保存');
-    await page.locator('[data-review-draft-apply]').last().click(); await waitText('reviewStatus', '更新已提交');
+    await page.locator('[data-review-draft-apply]').last().click(); await waitText('reviewStatus', '审核已提交');
     let saved = JSON.parse(await readFile(resolve(output, 'write-back/src/data/customer-reviews.json'), 'utf8'));
     assert.equal(saved.reviews[0].buyerLabel, 'Fixture buyer');
     await page.locator('[data-review-id]').first().click();
@@ -305,7 +317,7 @@ try {
     const deletion = backend.db.prepare('SELECT id, payload_json FROM manager_review_drafts').all()
       .find(row => JSON.parse(row.payload_json).operation === 'delete');
     assert.ok(deletion, 'Select the actual deletion draft, not its time-dependent list position.');
-    await page.locator(`[data-review-draft-apply="${deletion.id}"]`).click(); await waitText('reviewStatus', '更新已提交');
+    await page.locator(`[data-review-draft-apply="${deletion.id}"]`).click(); await waitText('reviewStatus', '审核已提交');
     saved = JSON.parse(await readFile(resolve(output, 'write-back/src/data/customer-reviews.json'), 'utf8'));
     assert.equal(saved.reviews.length, 0);
     assert.equal(await page.locator('#reviewPublished').count(), 1);
@@ -330,7 +342,7 @@ try {
   await tab('publish'); await waitText('publishStatus', '已读取');
   await check('mobile and dark theme preserve reminder and single-backend navigation', async () => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator('#themeMenuButton').click(); await page.locator('[data-theme-option="dark"]').click();
+    await setManagerTheme(page,'dark');
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.screenshot({ path: resolve(output, 'mobile-dark.png'), fullPage: true });
@@ -360,15 +372,16 @@ try {
   await check('content titles are escaped rather than executed in product lists', async () => {
     const original = backend.products[0].title;
     const title = '<img src=x onerror="window.injected=true">'; backend.products[0].title = title;
-    await page.reload(); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
+    await page.reload(); await tab('products'); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
     assert.equal(await page.locator('.manager-product-title[data-slug="sample-service"]').innerText(), title);
     assert.equal(await page.locator('.manager-product-row img[src="x"]').count(), 0);
     assert.equal(await page.evaluate(() => window.injected), undefined);
-    backend.products[0].title = original; await page.reload(); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
+    backend.products[0].title = original; await page.reload(); await tab('products'); await page.waitForSelector('.manager-product-title[data-slug="sample-service"]');
   });
   const offDist = await buildManagerFixture(root, output, false, undefined, 'off', false);
   await tab('products'); await page.locator('.manager-product-title[data-slug="sample-service"]').click();
   await page.locator('[data-product-draft-edit]').first().click();
+  await expandManagerEditor(page);
   await page.locator('[data-action="reviews:add"]').click();
   await page.locator('#productReviewList [data-field="buyerLabel"]').last().fill('Unpublished pending buyer');
   await page.locator('#productReviewList [data-field="quote"]').last().fill('Keep this while reviews are disabled.');
@@ -378,7 +391,7 @@ try {
   const offServer = await backend.start(offDist);
   try {
     await check('Keystatic OFF hides review editing while preserving old unpublished reviews', async () => {
-      const off = await context.newPage(); await off.goto(offServer.url); await off.waitForSelector('.manager-product-title[data-slug="sample-service"]');
+      const off = await context.newPage(); await off.goto(offServer.url); await openManagerTab(off,'products'); await off.waitForSelector('.manager-product-title[data-slug="sample-service"]');
       assert.equal(await off.locator('[data-tab="reviews"]').count(), 0);
       assert.equal(await off.locator('#managerAnalyticsLink').count(), 0);
       await off.locator('.manager-product-title[data-slug="sample-service"]').click();
@@ -393,9 +406,11 @@ try {
   await check('re-enabling reviews restores preserved draft fields without data re-entry', async () => {
     backend.setReviews(true);
     const enabled = await context.newPage(); await enabled.goto(server.url);
+    await openManagerTab(enabled,'products');
     await enabled.waitForSelector('.manager-product-title[data-slug="sample-service"]');
     await enabled.locator('.manager-product-title[data-slug="sample-service"]').click();
     await enabled.locator(`[data-product-draft-edit="${pendingReviewDraft}"]`).click();
+    await expandManagerEditor(enabled);
     assert.ok((await enabled.locator('#productReviewList [data-field="buyerLabel"]').evaluateAll(nodes => nodes.map(node => node.value))).includes('Unpublished pending buyer'));
     await enabled.close();
   });
@@ -405,6 +420,7 @@ try {
     backend.setPolicy(policy); const physicalServer = await backend.start(physicalDist);
     try {
       const physical = await context.newPage(); await physical.goto(physicalServer.url);
+      await openManagerTab(physical,'products');
       await physical.waitForSelector('#newProductButton'); await physical.locator('#newProductButton').click();
       assert.equal(await physical.locator('#offeringType').inputValue(), 'physical-product');
       assert.equal(await physical.locator('#modelStrategy').inputValue(), 'series');
@@ -414,6 +430,7 @@ try {
   });
   await checkManagerImages({ page, backend, check, output });
   await checkAdminWorkflow({page,backend,check,output});
+  await checkManagerUx({page,backend,check,output});
   assert.deepEqual(faults, []); assert.deepEqual(forbidden, []);
   assert.ok(backend.requests.every(item => item.path.startsWith('/api/manager/')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ checks, requests: backend.requests, cloudWrites: 'NONE', realAuthentication: 'NOT_TESTED', output }, null, 2));

@@ -102,6 +102,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   if (requestedId) {
     const previous = await db.prepare('SELECT payload_json FROM manager_product_drafts WHERE id = ? AND product_slug = ?')
       .bind(id, payload.productSlug).first<{ payload_json: string }>();
+    if (previous && JSON.parse(previous.payload_json).managerOrderBatch) return new Response('请在产品排序中整批管理这组草稿。', { status: 409 });
     if (previous) payload = retainUneditedProductReviews(payload, JSON.parse(previous.payload_json));
   }
   const payloadJson = JSON.stringify(payload);

@@ -189,7 +189,7 @@ export function installTranslations(context) {
       .map(
         ([code, label]) => `
           <label>
-            <input type="checkbox" value="${code}" checked />
+            <input type="checkbox" value="${code}" />
             <span>${context.escapeHtml(label)}</span>
           </label>
         `
@@ -284,7 +284,7 @@ export function installTranslations(context) {
       <div class="notice ${toneClass}">
         <span>
           <strong>${context.escapeHtml(translationOutcomeLabel(result) || data.label || data.status || '任务状态')}</strong>
-          <small>${context.escapeHtml(data.message || data.run?.title || '')}</small>
+          <small>${context.escapeHtml(data.message || '状态会自动更新，生成结果需审核后再发布网站。')}</small>
           ${
             result
               ? `<small>生成 ${generated} 条，跳过 ${skipped} 条，错误 ${errors} 条。</small>`
@@ -357,11 +357,6 @@ export function installTranslations(context) {
     const syncKey = `${data.requestId || context.state.translationRequestId}:${types.sort().join(',')}:${data.result?.generated?.length || 0}`;
     if (context.state.translationDraftSyncKey === syncKey) return;
     context.state.translationDraftSyncKey = syncKey;
-
-    if (types.length === 1 && context.activePanel() === 'translation') {
-      context.activateTab(translationDraftTabForType(types[0]));
-      return;
-    }
 
     await Promise.all(
       types.map(type =>
@@ -603,6 +598,7 @@ export function installTranslations(context) {
     fillTranslationEditor(response.draft);
     await loadTranslationDrafts(type);
     context.setStatus('translationEditorStatus', publish ? '草稿已审核并保存。' : '草稿已保存。');
+    return response;
   };
 
   const handleTranslationDraftListClick = event => {
@@ -626,22 +622,56 @@ export function installTranslations(context) {
     if (type && draftSlug) openTranslationDraftEditor(type, draftSlug).catch(error => context.setStatus(draftUi(type).status, error.message, true));
   };
 
+  let polling = false, failures = 0;
+  const scheduleTranslationPoll = () => {
+    clearTimeout(context.state.translationTimer);
+    if (document.hidden || !context.state.translationRequestId || context.state.translationDone) return;
+    context.state.translationTimer = setTimeout(() => pollTranslationStatus().catch(error => context.setStatus('translationStatus', error.message, true)), Math.min(120000, 15000 * 2 ** failures));
+  };
   const pollTranslationStatus = async () => {
+    if (polling) return;
     if (!context.state.translationRequestId) {
       context.setStatus('translationStatus', '还没有提交任务。', true);
       return;
     }
+    polling = true;
+    try {
     const data = await context.requestJson(`/api/manager/ai/translation-status?requestId=${encodeURIComponent(context.state.translationRequestId)}`);
+    failures = 0; context.state.translationTask = data; context.state.translationTasks = data.tasks || [data];
     context.setStatus('translationStatus', data.label || data.status || '状态已刷新。', data.conclusion && data.conclusion !== 'success');
     renderTranslationResult(data);
     if (data.status === 'completed') {
-      clearInterval(context.state.translationTimer);
+      const next = context.state.translationTasks.find(task=>task.status!=='completed'&&task.requestId);
+      context.state.translationDone = !next;
+      if (next) context.state.translationRequestId = next.requestId;
+      clearTimeout(context.state.translationTimer);
       context.state.translationTimer = null;
       await refreshCompletedTranslationDrafts(data);
     }
+    } catch (error) { failures = Math.min(failures + 1, 3); if ([401,403,404].includes(error.status)) context.state.translationDone = true; throw error; }
+    finally { polling = false; scheduleTranslationPoll(); context.updateTranslationOverview?.(); }
   };
 
+  const restoreTranslationTask = async () => {
+    if (polling || context.state.translationChecking || context.state.translationRestored) return;
+    context.state.translationChecking = true;
+    try {
+    const data = await context.requestJson('/api/manager/ai/translation-status');
+    context.state.translationTask = data;
+    context.state.translationTasks = data.tasks || (data.requestId ? [data] : []);
+    context.state.translationRestored = true;
+    context.state.translationRequestId = data.requestId || '';
+    context.state.translationDone = ['completed','idle'].includes(data.status);
+    context.setStatus('translationStatus', data.label || '暂无翻译任务。');
+    if (data.requestId) renderTranslationResult(data);
+    scheduleTranslationPoll(); context.updateTranslationOverview?.(); return data;
+    } finally { context.state.translationChecking = false; }
+  };
+  document.addEventListener('visibilitychange', () => { clearTimeout(context.state.translationTimer); if (!document.hidden) scheduleTranslationPoll(); });
+
   const submitTranslation = async () => {
+    if (context.state.translationChecking) throw new Error('正在恢复翻译任务，请稍后再提交。');
+    if (context.state.translationRequestId && !context.state.translationDone) throw new Error('当前翻译仍在处理，请先等待该任务完成。');
     const locales = selectedLocales();
     if (!locales.length) {
       context.setStatus('translationStatus', '请至少选择一个目标语言。', true);
@@ -653,6 +683,7 @@ export function installTranslations(context) {
       body: JSON.stringify({
         sourceType: context.$('translationSourceType').value,
         sourceSlug: context.$('translationSlug').value.trim(),
+        confirmAll: context.$('translationSourcePicker').value === '*',
         locales,
         overwrite: context.$('translationOverwrite').checked,
         apiKeyOffset: Date.now(),
@@ -661,9 +692,10 @@ export function installTranslations(context) {
     context.state.translationRequestId = data.requestId;
     context.state.translationDraftSyncKey = '';
     context.state.translationLastSourceType = data.sourceType || context.$('translationSourceType').value || 'all';
-    context.setStatus('translationStatus', '翻译任务已提交，请稍后刷新任务状态。');
-    clearInterval(context.state.translationTimer);
-    context.state.translationTimer = setInterval(() => pollTranslationStatus().catch(error => context.setStatus('translationStatus', error.message, true)), 8000);
+    context.state.translationDone = false;
+    context.setStatus('translationStatus', '翻译任务已提交，状态会自动更新。完成后请审核草稿，再统一发布网站更新。');
+    failures = 0; scheduleTranslationPoll();
   };
+  Object.assign(context, { restoreTranslationTask, scheduleTranslationPoll });
   Object.assign(context, { translationDraftTabForType, setTranslationFormData, renderTranslationSingleTextList, renderTranslationSpecs, renderTranslationFaqs, renderTranslationSpecTables, renderTranslationProductBuilders, syncTranslationFormInput, handleTranslationAction, renderLocaleOptions, loadTranslationLocales, localeInputs, syncLocaleBulkControls, setAllLocales, invertLocales, selectedLocales, translationOutcomeLabel, translationOutcomeMessage, renderTranslationItems, renderTranslationResult, generatedTranslationDraftTypes, requestedTranslationDraftTypes, refreshCompletedTranslationDrafts, draftUi, visibleTranslationDrafts, syncTranslationSelection, toggleAllTranslationDrafts, deleteTranslationDrafts, renderTranslationDrafts, loadTranslationDrafts, approveTranslationDrafts, setTranslationEditorOpen, closeTranslationEditor, fillTranslationEditor, openTranslationDraftEditor, cleanTranslationStrings, cleanTranslationSpecs, cleanTranslationFaqs, cleanTranslationSpecTables, saveTranslationDraftEditor, handleTranslationDraftListClick, pollTranslationStatus, submitTranslation });
 }

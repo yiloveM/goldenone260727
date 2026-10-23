@@ -41,6 +41,11 @@ const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error('Usage: node scripts/run-astro.mjs <dev|check|build|preview|verified-build> [...args]');
 
 if (command === 'verified-build') {
+  for (const test of [['--test','scripts/test-site-visuals.mjs'],['scripts/test-visual-reader.mjs'],['scripts/test-manager-visual-api.mjs']]) {
+    const result = spawnSync(process.execPath, test, sharedOptions);
+    if (result.error) throw result.error;
+    if (result.status !== 0) process.exit(result.status ?? 1);
+  }
   const discoveryTests = spawnSync(process.execPath, ['--test', resolve(projectRoot, 'scripts', 'test-llms-discovery.mjs'), resolve(projectRoot, 'scripts', 'test-worker-chunks.mjs')], sharedOptions);
   if (discoveryTests.error) throw discoveryTests.error;
   if (discoveryTests.status !== 0) process.exit(discoveryTests.status ?? 1);

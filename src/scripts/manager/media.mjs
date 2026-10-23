@@ -90,7 +90,8 @@ export function installMedia(context) {
 
   const renderAssets = () => {
     context.$('assetPath').textContent = context.state.assetPrefix || '根目录';
-    const folders = context.state.assetFolders
+    const term = (context.$('assetSearch')?.value || '').trim().toLowerCase(), kind = context.$('assetType')?.value || '';
+    const folders = context.state.assetFolders.filter(item => !term || item.name.toLowerCase().includes(term))
       .map(
         folder => `
           <button class="asset-card is-folder" data-folder="${context.escapeHtml(folder.prefix)}" type="button">
@@ -101,7 +102,7 @@ export function installMedia(context) {
         `
       )
       .join('');
-    const files = context.state.assetFiles
+    const files = context.state.assetFiles.filter(file => (!term || file.name.toLowerCase().includes(term)) && (!kind || (kind === 'image' ? file.isImage : file.isDocument)))
       .map(
         file => `
           <div class="asset-card">
@@ -135,22 +136,27 @@ export function installMedia(context) {
   };
 
   let assetLoadSerial = 0;
-  const loadAssets = async (prefix = context.state.assetPrefix) => {
+  const loadAssets = async (prefix = context.state.assetPrefix, append = false) => {
     const serial = ++assetLoadSerial;
+    const cursor = append ? context.state.assetCursor || '' : '';
     context.setStatus('assetStatus', '正在加载媒体资源...');
-    const data = await context.requestJson(`/api/manager/r2/assets?prefix=${encodeURIComponent(prefix)}&limit=300`);
+    const data = await context.requestJson(`/api/manager/r2/assets?prefix=${encodeURIComponent(prefix)}&limit=300${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`);
     if (serial !== assetLoadSerial) return;
+    if (data.truncated && (!data.cursor || data.cursor === cursor)) throw new Error('文件列表未完整返回，请稍后重新加载。');
     context.state.assetPrefix = data.prefix || '';
-    context.state.assetFolders = data.folders || [];
-    context.state.assetFiles = data.files || [];
-    context.state.selectedAssetKeys.clear();
+    context.state.assetCursor = data.truncated ? data.cursor : '';
+    context.state.assetFolders = [...new Map([...(append ? context.state.assetFolders : []), ...(data.folders || [])].map(item => [item.prefix, item])).values()];
+    context.state.assetFiles = [...new Map([...(append ? context.state.assetFiles : []), ...(data.files || [])].map(item => [item.key, item])).values()];
+    if (!append) context.state.selectedAssetKeys.clear();
+    context.$('assetLoadMore').hidden = !context.state.assetCursor;
     renderAssets();
-    context.setStatus('assetStatus', `已加载 ${context.state.assetFolders.length} 个文件夹、${context.state.assetFiles.length} 个文件。`);
+    context.setStatus('assetStatus', `已加载 ${context.state.assetFolders.length} 个文件夹、${context.state.assetFiles.length} 个文件。${context.state.assetCursor ? '搜索当前已加载内容，可继续加载更多。' : '已加载当前目录全部内容。'}`);
   };
 
   const renderImagePicker = () => {
     context.$('imagePickerPath').textContent = context.state.imagePicker.prefix || '根目录';
-    const folders = context.state.imagePicker.folders
+    const term = (context.$('imagePickerSearch')?.value || '').trim().toLowerCase();
+    const folders = context.state.imagePicker.folders.filter(item => !term || item.name.toLowerCase().includes(term))
       .map(
         folder => `
           <button class="image-picker-card is-folder" data-picker-folder="${context.escapeHtml(folder.prefix)}" type="button">
@@ -162,7 +168,7 @@ export function installMedia(context) {
       )
       .join('');
     const files = context.state.imagePicker.files
-      .filter(file => file.isImage)
+      .filter(file => file.isImage && (!term || file.name.toLowerCase().includes(term)))
       .map(
         file => `
           <article class="image-picker-card">
@@ -183,23 +189,31 @@ export function installMedia(context) {
       folders + files || '<div class="notice"><span><strong>当前文件夹没有图片</strong><small>请进入其它文件夹或先在图片池上传。</small></span></div>';
   };
 
-  const loadImagePickerAssets = async (prefix = context.state.imagePicker.prefix) => {
+  let pickerLoadSerial = 0;
+  const loadImagePickerAssets = async (prefix = context.state.imagePicker.prefix, append = false) => {
+    const serial = ++pickerLoadSerial, cursor = append ? context.state.imagePicker.cursor || '' : '';
     context.setStatus('imagePickerStatus', '正在加载图片...');
-    const data = await context.requestJson(`/api/manager/r2/assets?prefix=${encodeURIComponent(prefix)}&limit=300`);
+    const data = await context.requestJson(`/api/manager/r2/assets?prefix=${encodeURIComponent(prefix)}&limit=300${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`);
+    if (serial !== pickerLoadSerial) return;
+    if (data.truncated && (!data.cursor || data.cursor === cursor)) throw new Error('图片列表未完整返回，请稍后重新加载。');
     context.state.imagePicker.prefix = data.prefix || '';
-    context.state.imagePicker.folders = data.folders || [];
-    context.state.imagePicker.files = data.files || [];
+    context.state.imagePicker.cursor = data.truncated ? data.cursor : '';
+    context.state.imagePicker.folders = [...new Map([...(append ? context.state.imagePicker.folders : []), ...(data.folders || [])].map(item => [item.prefix, item])).values()];
+    context.state.imagePicker.files = [...new Map([...(append ? context.state.imagePicker.files : []), ...(data.files || [])].map(item => [item.key, item])).values()];
+    context.$('imagePickerLoadMore').hidden = !context.state.imagePicker.cursor;
     renderImagePicker();
-    context.setStatus('imagePickerStatus', `已加载 ${context.state.imagePicker.folders.length} 个文件夹、${context.state.imagePicker.files.filter(file => file.isImage).length} 张图片。`);
+    context.setStatus('imagePickerStatus', `已加载 ${context.state.imagePicker.folders.length} 个文件夹、${context.state.imagePicker.files.filter(file => file.isImage).length} 张图片。${context.state.imagePicker.cursor ? '搜索当前已加载内容，可继续加载更多。' : '已加载当前目录全部图片。'}`);
   };
 
   const openImagePicker = async options => {
+    const prefix = context.state.imagePicker.prefix || '';
     context.state.imagePicker = {
+      onSelect: options.onSelect,
       fieldId: options.fieldId || '',
       listKey: options.listKey || '',
       richEditorId: options.richEditorId || '',
       detailIndex: options.detailIndex ?? null,
-      prefix: '',
+      prefix,
       files: [],
       folders: [],
     };
@@ -207,7 +221,7 @@ export function installMedia(context) {
     context.$('imagePicker').classList.add('is-open');
     context.$('imagePicker').setAttribute('aria-hidden', 'false');
     syncModalLock();
-    await loadImagePickerAssets('');
+    await loadImagePickerAssets(prefix);
   };
 
   const closeImagePicker = () => {
@@ -217,10 +231,12 @@ export function installMedia(context) {
   };
 
   const pickImage = url => {
+    if (context.state.imagePicker.onSelect) { context.state.imagePicker.onSelect(url); closeImagePicker(); return; }
     if (context.state.imagePicker.fieldId) {
       context.$(context.state.imagePicker.fieldId).value = url;
       if (context.state.imagePicker.fieldId === 'image') context.setProductMainImage(url);
       else updateImageFieldPreview(context.state.imagePicker.fieldId);
+      context.$(context.state.imagePicker.fieldId).dispatchEvent(new Event('input', { bubbles: true }));
     }
     if (context.state.imagePicker.listKey) {
       context.state.formData[context.state.imagePicker.listKey][Number(context.state.imagePicker.detailIndex)] = url;
