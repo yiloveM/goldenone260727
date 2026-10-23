@@ -65,7 +65,7 @@
     },
     "about": {
       "enabled": true,
-      "image": "",
+      "image": "https://goldenone.arkalpooltech.workers.dev/r2/Banner/2026-product-design/home/custom-projects.webp",
       "mobileImage": "",
       "alt": "",
       "localizedAlts": [],
