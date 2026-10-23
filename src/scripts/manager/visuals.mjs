@@ -12,9 +12,9 @@ export function installVisuals(context) {
   };
   const status = (message, error = false) => context.setStatus('visualStatus', message, error);
   const renderVisualDrafts = () => {
-    const rows=model.drafts.filter(row=>!row.live||context.$('visualShowHistory').checked);
+    const rows=model.drafts.filter(row=>(!row.live&&!row.superseded)||context.$('visualShowHistory').checked);
     context.$('visualDrafts').innerHTML=rows.map(row=>{
-      const label=row.live?'已上线':row.status==='applied'?(row.releaseKnown===false?'已审核，发布状态待确认':'已审核，等待网站发布'):row.status==='queued'?'正在核对处理结果':'待审核';
+      const label=row.live?'已上线':row.superseded?'已被后续更新替代':row.status==='applied'?(row.releaseKnown===false?'已审核，发布状态待确认':'已审核，等待网站发布'):row.status==='queued'?'正在核对处理结果':'待审核';
       const edit=row.status==='draft'?`<button class="button secondary" data-visual-edit="${esc(row.id)}" type="button">继续编辑</button><button class="button secondary" data-visual-approve="${esc(row.id)}" type="button">审核通过</button>`:'';
       return `<article class="draft"><span><strong>站点图片草稿</strong><small>${context.formatDate(row.updatedAt)} · ${label}</small></span><span class="record-actions">${edit}<button class="button danger" data-visual-delete="${esc(row.id)}" ${row.status==='queued'?'disabled':''} type="button">移除记录</button></span></article>`;
     }).join('')||'<p class="field-help">暂无待处理的站点图片草稿。</p>';

@@ -22,7 +22,9 @@ export const GET: APIRoute = async ({ locals, request }) => {
     const rows = await db!.prepare('SELECT * FROM manager_site_visual_drafts ORDER BY updated_at DESC LIMIT 50').all();
     let deployedSha='',releaseKnown=false;
     if((rows.results||[]).some((row:any)=>row.status==='applied'))try{const release=await readSiteRelease(state.ctx);if(release.commit){const tree=await readGitTree(state.ctx,release.commit);deployedSha=tree.tree.find(item=>item.path==='src/data/site-visuals.json')?.sha||'';releaseKnown=true;}}catch{/* Unverified publication remains a visible pending record. */}
-    return json({ baseSha: state.sha, slots: managerVisualSlots(state), locales: state.policy.locales, primaryCta: { ...state.config.home.primaryCta, labels: state.config.home.primaryCta.labels.filter(item => state.policy.locales.includes(item.locale)) }, drafts: (rows.results || []).map((row:any)=>({...visualRecord(row),live:releaseKnown&&row.status==='applied'&&row.applied_content_sha===deployedSha,releaseKnown})) });
+    // An older approved file is no longer pending once main has replaced it.
+    // Keep that history distinct from proof that the exact file is now live.
+    return json({ baseSha: state.sha, slots: managerVisualSlots(state), locales: state.policy.locales, primaryCta: { ...state.config.home.primaryCta, labels: state.config.home.primaryCta.labels.filter(item => state.policy.locales.includes(item.locale)) }, drafts: (rows.results || []).map((row:any)=>({...visualRecord(row),live:releaseKnown&&row.status==='applied'&&row.applied_content_sha===deployedSha,superseded:row.status==='applied'&&/^[a-f0-9]{40}$/.test(row.applied_content_sha||'')&&row.applied_content_sha!==state.sha&&row.applied_content_sha!==deployedSha,releaseKnown})) });
   } catch (error) { return failure(error); }
 };
 export const POST: APIRoute = async ({ locals, request }) => {

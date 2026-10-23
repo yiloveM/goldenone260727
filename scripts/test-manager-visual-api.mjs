@@ -21,10 +21,10 @@ const hash=text=>createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0${t
 put('src/data/site-language-settings.json',JSON.stringify({enabledLocales:{es:true,ar:false}}));put('src/data/site-locales.json',JSON.stringify({requiredPhraseKeys:['title'],requiredFaqCount:0,locales:{es:{approved:true,phrases:{title:'Título'},faqs:[]}}}));
 const config={version:1,extension:{seo:'preserve'},home:{heroSlides:[{key:'primary',visual:{enabled:true,image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50}}],center:{enabled:false},primaryCta:{href:'',labels:[]}},pages:{about:{enabled:false}},categories:[]};put('src/data/site-visuals.json',JSON.stringify(config));
 for(const[slug,weight]of [['first',1],['second',2]])put(`src/content/products/${slug}.mdoc`,`---\ntitle: ${slug}\ncategory: Tools\nsortOrder: ${weight}\nimage: /r2/original.webp\nmetaKeywords: preserve\nunknownCustomerData:\n  nested: keep\n---\nOriginal **body** [link](/about/).\n`);
-let head='a'.repeat(40),nextTree=null,concurrent=false,writes=[],tasks=[];const originalFetch=globalThis.fetch;
+let head='a'.repeat(40),nextTree=null,concurrent=false,writes=[],tasks=[],releaseSnapshot=null,releaseMode='success';const releaseCommit='e'.repeat(40),originalFetch=globalThis.fetch;
 globalThis.fetch=async(input,init={})=>{const url=new URL(input),body=init.body?JSON.parse(init.body):{};if(init.method)writes.push({path:url.pathname,method:init.method});
  if(url.pathname.endsWith('/git/ref/heads/main'))return Response.json({object:{sha:head}});
- if(url.pathname.includes('/git/trees/')&&!init.method)return Response.json({sha:'b'.repeat(40),tree:[...files].map(([path,sha])=>({path,sha,type:'blob'}))});
+ if(url.pathname.includes('/git/trees/')&&!init.method)return Response.json({sha:'b'.repeat(40),tree:[...(url.pathname.endsWith('/'+releaseCommit)&&releaseSnapshot?releaseSnapshot:files)].map(([path,sha])=>({path,sha,type:'blob'}))});
  if(url.pathname.includes('/git/blobs/'))return Response.json({encoding:'base64',content:Buffer.from(bodies.get(url.pathname.split('/').pop())).toString('base64')});
  if(url.pathname.endsWith('/git/trees')){nextTree=body.tree;return Response.json({sha:'c'.repeat(40)});}
  if(url.pathname.endsWith('/git/commits')){if(concurrent){concurrent=false;head='f'.repeat(40);}return Response.json({sha:'d'.repeat(40)});}
@@ -32,6 +32,8 @@ globalThis.fetch=async(input,init={})=>{const url=new URL(input),body=init.body?
  if(url.pathname.endsWith('/ai-translation.yml/runs')){const runs=tasks.filter(task=>!url.searchParams.has('status')||task.status===url.searchParams.get('status'));return Response.json({total_count:runs.length,workflow_runs:runs});}
  if(url.pathname.endsWith('/ai-translation.yml/dispatches')){tasks.push({id:99,head_branch:'main',display_title:`AI translation ${body.inputs.sourceSlug} / ${body.inputs.locales} / ${body.inputs.requestId}`,status:'queued'});return new Response(null,{status:204});}
  if(url.pathname.endsWith('/actions/runs/99/jobs'))return Response.json({jobs:[]});
+ if(url.pathname.endsWith('/site-publish.yml/runs'))return Response.json({workflow_runs:releaseSnapshot?[{id:501,head_branch:'main',head_sha:releaseCommit,event:'push',status:'completed',conclusion:releaseMode,updated_at:'2026-10-23T01:00:00Z'}]:[]});
+ if(url.pathname.endsWith('/actions/runs/501/jobs'))return Response.json({jobs:[{status:'completed',conclusion:releaseMode,steps:[{name:'Build the Astro site',status:'completed',conclusion:releaseMode},{name:'Deploy the production Worker and static assets',status:'completed',conclusion:releaseMode,completed_at:'2026-10-23T00:59:00Z'}]}]});
  if(url.pathname.includes('/contents/.github/ai-translation-results/'))return new Response('Not found',{status:404});
  throw Error('Unexpected test request '+url.pathname);
 };
@@ -49,6 +51,12 @@ try{
  failAfterCommit=true;assert.equal((await call(api,'PATCH',{id,updatedAt})).status,400);assert.equal(sqlite.prepare('SELECT status FROM manager_site_visual_drafts WHERE id=?').get(id).status,'queued');checks++;
  const recovered=await(await call(api,'GET')).json();assert.equal(recovered.drafts[0].status,'applied');assert.deepEqual(JSON.parse(bodies.get(files.get('src/data/site-visuals.json'))).extension,{seo:'preserve'});assert.equal(writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length,1);checks++;
  assert.equal((await call(api,'PATCH',{id,updatedAt})).status,200);assert.equal(writes.filter(row=>row.path.endsWith('/git/refs/heads/main')).length,1);checks++;
+ const currentRecord=listing=>listing.drafts.find(row=>row.id===id);
+ assert.equal(currentRecord(recovered).live,false);assert.equal(currentRecord(recovered).superseded,false);checks++;
+ releaseSnapshot=new Map(files);const released=await(await call(api,'GET')).json();assert.equal(currentRecord(released).live,true);assert.equal(currentRecord(released).superseded,false);checks++;
+ const later=JSON.parse(bodies.get(files.get('src/data/site-visuals.json')));later.home.heroSlides[0].visual.alt='A subsequent approved update';put('src/data/site-visuals.json',JSON.stringify(later));const pendingLater=await(await call(api,'GET')).json();assert.equal(currentRecord(pendingLater).live,true);assert.equal(currentRecord(pendingLater).superseded,false);checks++;
+ releaseSnapshot=new Map(files);const superseded=await(await call(api,'GET')).json();assert.equal(currentRecord(superseded).live,false);assert.equal(currentRecord(superseded).superseded,true);assert.equal(sqlite.prepare('SELECT status FROM manager_site_visual_drafts WHERE id=?').get(id).status,'applied');checks++;
+ releaseSnapshot=null;const unknown=await(await call(api,'GET')).json();assert.equal(currentRecord(unknown).live,false);assert.equal(currentRecord(unknown).superseded,true);checks++;
  const records=['first','second'].map((slug,index)=>({slug,sourceSha:files.get(`src/content/products/${slug}.mdoc`),sortOrder:2-index}));
  assert.equal((await call(order,'POST',{category:'Tools',records:records.slice(0,1)})).status,409);checks++;
  const group=await(await call(order,'POST',{category:'Tools',records})).json();assert.ok(group.id);const listing=await(await call(order,'GET')).json();const selection=listing.groups[0];assert.equal(selection.records.length,2);checks++;
