@@ -19,6 +19,7 @@ export async function checkManagerUx({page,backend,check,output}) {
   });
   await check('Banner image picker saves one resumable draft and review remains separate from site publishing',async()=>{
     backend.assets.set('ux-banner.svg',{key:'ux-banner.svg',name:'ux-banner.svg',url:'/fixture-image.svg',isImage:true,size:100});
+    await tab('visuals');await page.locator('[data-visual-slot]').first().waitFor();assert.equal(await page.locator('[data-visual-slot]').first().locator('[data-visual-mobile-preview]').count(),1);
     await tab('visuals');await page.locator('[data-visual-slot]').first().waitFor();await page.locator('[data-visual-pick=image]').first().click();await page.locator('#imagePickerSearch').fill('');if(await page.locator('#imagePickerBackButton').isEnabled())await page.locator('#imagePickerBackButton').click();await page.locator('[data-picker-select]').first().click();await page.locator('#visualSave').click();await wait('visualStatus','草稿已保存');assert.equal(backend.visualDrafts.length,1);
     const before=backend.requests.filter(row=>row.path.endsWith('/deploy/site')&&row.method==='POST').length;
     await page.locator('[data-visual-approve]').first().click();await wait('visualStatus','审核通过');assert.equal(backend.visualDrafts[0].status,'applied');assert.equal(backend.requests.filter(row=>row.path.endsWith('/deploy/site')&&row.method==='POST').length,before);
