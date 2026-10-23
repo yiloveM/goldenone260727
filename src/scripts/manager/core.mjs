@@ -223,7 +223,7 @@ export function installCore(context) {
 
   const addPreviewBase = html => {
     if (/<base\s/i.test(html)) return html;
-    const base = `<base href="${escapeHtml(window.location.origin)}/">`;
+    const base = `<base href="${escapeHtml(new URL('/', context.publicSiteOrigin || window.location.origin).href)}">`;
     return /<head[^>]*>/i.test(html) ? html.replace(/<head([^>]*)>/i, `<head$1>${base}`) : `${base}${html}`;
   };
 

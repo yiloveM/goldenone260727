@@ -224,7 +224,7 @@ const contracts = [
   {
     area: 'Manager review draft workflow',
     file: 'src/pages/manager/index.astro',
-    markers: ['data-panel="reviews"', '/api/manager/review-drafts', '生成删除草稿'],
+    markers: ['data-panel="reviews"', '/api/manager/review-drafts', 'id="deleteReviewDraftButton"', "context.saveReviewDraft('delete')", 'data-review-draft-apply'],
   },
   {
     area: 'Independent product review editing and structured data',

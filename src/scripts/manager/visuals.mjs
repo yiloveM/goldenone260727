@@ -1,8 +1,15 @@
 import { confirmDialog } from '../../lib/admin-dialog.mjs';
 export function installVisuals(context) {
   let loaded = false, busy = false, model = { slots: [], drafts: [], locales: [] }, activeDraft = null;
+  let originalSlots = new Map(), originalCta = '';
   const esc = context.escapeHtml;
-  const visualPayload = () => ({ slots: model.slots.map(({ key, image, mobileImage, alt, localizedAlts, focusX, focusY }) => ({ key, image, mobileImage, alt, localizedAlts, focusX, focusY })), ...(model.slots.some(slot => slot.key === 'home.primary') ? {primaryCta:model.primaryCta || {href:'',labels:[]}} : {}) });
+  const slotContent = ({ key, image, mobileImage, alt, localizedAlts, focusX, focusY }) => ({ key, image, mobileImage, alt, localizedAlts, focusX, focusY });
+  const visualPayload = () => {
+    const slots = model.slots.map(slotContent).filter(slot => JSON.stringify(slot) !== originalSlots.get(slot.key));
+    const primaryCta = model.primaryCta || {href:'',labels:[]}, ctaChanged = JSON.stringify(primaryCta) !== originalCta;
+    if (ctaChanged && !slots.some(slot=>slot.key==='home.primary')) { const primary=model.slots.find(slot=>slot.key==='home.primary');if(primary)slots.push(slotContent(primary)); }
+    return {slots,...(ctaChanged?{primaryCta}:{})};
+  };
   const status = (message, error = false) => context.setStatus('visualStatus', message, error);
   const renderVisualDrafts = () => {
     const rows=model.drafts.filter(row=>!row.live||context.$('visualShowHistory').checked);
@@ -22,10 +29,12 @@ export function installVisuals(context) {
     if (loaded && !force) return;
     if (force && !await context.allowDiscard?.('visual')) return;
     const data = await context.requestJson('/api/manager/site-visuals'); model = data; model.primaryCta ||= {href:'',labels:[]}; loaded = true; activeDraft = null;
+    originalSlots = new Map(model.slots.map(slot=>[slot.key,JSON.stringify(slotContent(slot))]));originalCta=JSON.stringify(model.primaryCta);
     renderVisuals(); renderVisualDrafts(); context.markEditorClean?.('visual'); status(model.slots.length ? '图片已载入，未修改的图片保持本站当前设置。' : '暂无可编辑的图片位置。');
   };
-  const run = async action => { if (busy) return; busy = true; context.$('visualSave').disabled = true; try { return await action(); } finally { busy = false; context.$('visualSave').disabled = false; } };
+  const run = async action => { if (busy) return; busy = true; context.$('visualForm').inert=true;for(const id of ['visualSave','visualGroup','visualPreview','visualRefresh'])context.$(id).disabled=true;try { return await action(); } finally { busy = false;context.$('visualForm').inert=false;for(const id of ['visualGroup','visualPreview','visualRefresh'])context.$(id).disabled=false;context.$('visualSave').disabled=!model.slots.length; } };
   const saveVisuals = () => run(async () => {
+    if (!visualPayload().slots.length) return status('尚未修改图片，请先选择要更新的内容。');
     status('正在保存图片草稿…');
     const data = await context.requestJson('/api/manager/site-visuals', { method: 'POST', body: JSON.stringify({ id: activeDraft?.id, updatedAt: activeDraft?.updatedAt, baseSha: model.baseSha, payload: visualPayload() }) });
     activeDraft = data.draft; model.drafts = [activeDraft, ...model.drafts.filter(row => row.id !== activeDraft.id)]; renderVisualDrafts(); context.markEditorClean?.('visual'); status('草稿已保存，审核通过后再发布网站更新。'); return data;
@@ -52,7 +61,7 @@ export function installVisuals(context) {
     const remove=event.target.closest('[data-visual-delete]');if(remove){run(async()=>{const draft=model.drafts.find(row=>row.id===remove.dataset.visualDelete);if(!draft||draft.status==='queued')return;if(!await confirmDialog('只移除这条工作记录，已审核的站点图片和网站保持。当前记录有未保存修改时，也会放弃这些修改。',{title:'移除站点图片草稿记录',confirmLabel:'移除记录',danger:true}))return;await context.requestJson('/api/manager/site-visuals',{method:'DELETE',body:JSON.stringify({id:draft.id,updatedAt:draft.updatedAt,confirmed:true})});model.drafts=model.drafts.filter(row=>row.id!==draft.id);if(activeDraft?.id===draft.id){activeDraft=null;context.markEditorClean?.('visual');}renderVisualDrafts();status('工作记录已移除，正式图片保持。');}).catch(error=>status(error.message,true));return;}
     const edit = event.target.closest('[data-visual-edit]'), approve = event.target.closest('[data-visual-approve]');
     if (edit) (async () => { if (!await context.allowDiscard?.('visual')) return; const draft = model.drafts.find(row => row.id === edit.dataset.visualEdit);if(draft.status!=='draft'||draft.baseSha!==model.baseSha)return status('正式图片已更新，请从当前图片建立新的草稿。',true);activeDraft=draft; for (const entry of activeDraft.payload.slots) { const slot = model.slots.find(slot => slot.key === entry.key); if (slot) Object.assign(slot, entry); }if(activeDraft.payload.primaryCta)model.primaryCta=structuredClone(activeDraft.payload.primaryCta); renderVisuals(); context.markEditorClean?.('visual'); status('继续编辑已保存的图片草稿。'); })().catch(error => status(error.message, true));
-    if (approve) run(async () => { const draft = model.drafts.find(row => row.id === approve.dataset.visualApprove); await context.requestJson('/api/manager/site-visuals', { method: 'PATCH', body: JSON.stringify({ id: draft.id, updatedAt: draft.updatedAt }) }); loaded = false; await loadVisuals(); context.refreshWorkspace?.(); status('审核通过，请到“网站发布”统一更新。'); }).catch(error => status(error.message, true));
+    if (approve) (async()=>{if(!await context.allowDiscard?.('visual'))return;await run(async () => { const draft = model.drafts.find(row => row.id === approve.dataset.visualApprove); await context.requestJson('/api/manager/site-visuals', { method: 'PATCH', body: JSON.stringify({ id: draft.id, updatedAt: draft.updatedAt }) }); loaded = false; await loadVisuals(); context.refreshWorkspace?.(); status('审核通过，请到“网站发布”统一更新。'); });})().catch(error => status(error.message, true));
   });
   context.$('visualPreview').addEventListener('click', () => {
     if (!activeDraft || context.editorIsDirty?.('visual')) return status('请先保存当前修改，再预览草稿。', true);

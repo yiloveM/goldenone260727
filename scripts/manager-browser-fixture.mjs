@@ -25,7 +25,7 @@ async function copyTree(source, target) {
 
 export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true, profile = {governance:{contentOwner:'Manager regression'}}) {
   const fixture = resolve(output, label);
-  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
+  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/public-media-url.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
     const source = await readFile(resolve(root, file), 'utf8');
     await write(resolve(fixture, file), file.endsWith('index.astro') ? source.replace("if (config) initializeManager(JSON.parse(config.textContent || '{}'));", "if (config) { initializeManager(JSON.parse(config.textContent || '{}')); initializeManager(JSON.parse(config.textContent || '{}')); }") : source);
   }
@@ -221,11 +221,13 @@ export async function managerBackend(root, output) {
             res.writeHead(200, { 'content-type': 'application/json' });
             res.end(JSON.stringify(result)); return;
           }
-          if (pathname === '/fixture-image.svg') { res.setHeader('content-type', 'image/svg+xml'); res.end('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect x="20" y="20" width="120" height="120" fill="#138477"/></svg>'); return; }
+          if (pathname === '/fixture-image.svg' || pathname === '/r2/cdn-test.svg') { res.setHeader('content-type', 'image/svg+xml'); res.end('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><rect x="20" y="20" width="120" height="120" fill="#138477"/></svg>'); return; }
           const path = pathname === '/' || pathname === '' || pathname === '/manager/' ? resolve(dist, 'manager/index.html') : resolve(dist, '.' + pathname);
           if (!path.startsWith(dist + sep)) { res.writeHead(404); res.end(); return; }
           res.setHeader('content-type', ({ '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' })[extname(path)] || 'application/octet-stream');
-          res.end(await readFile(path));
+          let file=await readFile(path);
+          if(path.endsWith('index.html')&&file.includes('manager-config')){const origin=`http://127.0.0.1:${server.address().port}`;file=Buffer.from(file.toString().replace(/(<script id="manager-config"[^>]*>)([\s\S]*?)(<\/script>)/,(_,open,text,close)=>open+JSON.stringify({...JSON.parse(text),publicR2AssetBaseUrl:origin+'/r2',publicSiteOrigin:origin})+close));}
+          res.end(file);
         } catch (error) { if (!res.headersSent) res.writeHead(error.status || 503, { 'content-type': 'text/plain; charset=utf-8' }); res.end(error.message); }
       });
       await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

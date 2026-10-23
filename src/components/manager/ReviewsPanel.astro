@@ -1,32 +1,40 @@
 <section class="section" data-panel="reviews">
-        <div class="grid">
-          <aside class="panel">
+        <p class="status review-operation-status" id="reviewStatus" role="status" aria-live="polite"></p>
+        <div class="review-workspace-grid">
+          <aside class="panel review-browser">
             <div class="panel-head">
-              <div><h2>客户评价</h2><span id="reviewSystemStatus">评价展示设置由系统统一管理，本页面可维护评价内容。</span></div>
-              <button class="button secondary" id="newReviewButton" type="button">新建评价草稿</button>
+              <div><h2>客户评价</h2><span id="reviewSystemStatus">管理客户反馈，修改后保存草稿并审核。</span></div>
+              <button class="button" id="newReviewButton" type="button">新增评价</button>
             </div>
             <div class="toolbar is-row">
-              <button class="button secondary" id="reviewRefreshButton" type="button">刷新评价</button>
+              <label>查找评价<input id="reviewSearch" type="search" placeholder="评价人或评价内容" /></label>
+              <label>显示状态<select id="reviewVisibilityFilter"><option value="">全部</option><option value="shown">设为显示</option><option value="hidden">设为隐藏</option></select></label>
+              <button class="button secondary" id="reviewRefreshButton" type="button">更新列表</button>
+              <button class="button secondary" id="reviewDraftsButton" type="button">草稿 <span id="reviewDraftCount">0</span></button>
               <span class="status" id="reviewListStatus">评价列表未加载。</span>
             </div>
             <div class="blog-list" id="reviewList"></div>
           </aside>
-          <section class="panel">
-            <div class="panel-head"><div><h2>评价草稿编辑器</h2><span>保存后先进入待审核列表；点击“应用到网站”后更新正式评价。</span></div></div>
+          <section class="panel review-editor-panel">
+            <div id="reviewEditorEmpty" class="review-editor-empty"><strong>选择一条评价开始编辑</strong><p>也可以点击“新增评价”，填写客户反馈。</p></div>
+            <div id="reviewEditorView" hidden>
+            <div class="panel-head"><div><h2 id="reviewEditorTitle">编辑客户评价</h2><span>保存草稿后，在下方草稿列表审核。</span></div><button class="button secondary" id="reviewBackButton" type="button">返回评价列表</button></div>
             <form class="form" id="reviewForm">
               <input id="reviewId" type="hidden" />
               <div class="field"><label for="reviewBuyerLabel">评价人</label><input id="reviewBuyerLabel" required /></div>
               <div class="field"><label for="reviewRating">星级</label><select id="reviewRating"><option value="5">5 星</option><option value="4">4 星</option><option value="3">3 星</option><option value="2">2 星</option><option value="1">1 星</option></select></div>
-              <div class="field is-wide"><label for="reviewQuote">评价原文</label><textarea id="reviewQuote" required></textarea></div>
+              <div class="field is-wide"><label for="reviewQuote">评价原文</label><textarea id="reviewQuote" rows="6" required></textarea></div>
               <div class="field"><label for="reviewDate">评价日期（选填）</label><input id="reviewDate" type="date" /></div>
-              <div class="field"><label>前台状态</label><span class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示该评价</span></span></div>
+              <div class="field"><label>审核后的显示状态</label><label class="toggle"><input id="reviewPublished" type="checkbox" checked /><span>显示这条评价</span></label></div>
             </form>
-            <div class="actions">
-              <button class="button" id="saveReviewDraftButton" type="button">保存评价草稿</button>
-              <button class="button secondary" id="deleteReviewDraftButton" type="button">生成删除草稿</button>
-              <span class="status" id="reviewStatus">请选择一条评价或新建草稿。</span>
+            <div class="review-edit-preview" aria-label="编辑内容预览"><span class="field-help">编辑预览</span><strong id="reviewPreviewBuyer"></strong><span id="reviewPreviewRating"></span><blockquote id="reviewPreviewQuote"></blockquote><small id="reviewPreviewDate"></small></div>
+            <div class="actions editor-save-bar">
+              <button class="button" id="saveReviewDraftButton" type="button">保存草稿</button>
+              <button class="button danger" id="deleteReviewDraftButton" disabled type="button">删除这条评价</button>
+              <a class="button secondary" href="#reviewDraftWorkspace">查看草稿</a>
             </div>
-            <div class="drafts" id="reviewDraftList"></div>
+            </div>
           </section>
         </div>
+        <section class="panel review-draft-workspace" id="reviewDraftWorkspace"><div class="panel-head"><div><h2>评价草稿</h2><p>评价修改在此审核；标记“删除评价”的草稿审核通过后，才会移除正式评价。</p></div></div><div class="drafts" id="reviewDraftList"></div></section>
       </section>

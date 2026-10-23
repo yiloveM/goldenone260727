@@ -1,10 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptySiteVisuals, emptyVisual, validateSiteVisuals, mergeVisualPatch, resolveVisual, visualAt, setVisual } from '../src/lib/site-visuals.mjs';
+import { publicMediaUrl } from '../src/lib/public-media-url.mjs';
 const slots = [{ key:'home.primary', group:'home', supported:true },{key:'home.center',group:'home',supported:false},{key:'pages.about',group:'pages',supported:true},{key:'category.tools',group:'categories',supported:true}];
 const policy = { slots, locales:['en','es'], knownLocales:['en','es','ar'], paths:['/','/about/'], fragments:['#free-design'], origin:'https://fixture.test', cdn:'https://media.fixture.test/assets' };
 const base = () => emptySiteVisuals(slots,true);
 const patch = (fields = {}) => ({ slots:[{ key:'home.primary', image:'/r2/home/banner.webp', ...fields }] });
+test('private portal previews resolve R2 through each site CDN and preserve public URL safety',()=>{
+ assert.equal(publicMediaUrl('/r2/Banner/part%20one.webp','https://cdn.fixture.test/site-assets','https://public.fixture.test'),'https://cdn.fixture.test/site-assets/Banner/part%20one.webp');
+ assert.equal(publicMediaUrl('r2/a.webp','/r2','https://public.fixture.test'),'https://public.fixture.test/r2/a.webp');
+ assert.equal(publicMediaUrl('/images/fallback.webp','https://cdn.fixture.test/assets','https://public.fixture.test'),'https://public.fixture.test/images/fallback.webp');
+ assert.equal(publicMediaUrl('https://second.test/a.webp','https://cdn.fixture.test'),'https://second.test/a.webp');
+ assert.equal(publicMediaUrl('/r2/a.webp','','https://public.fixture.test'),'https://public.fixture.test/r2/a.webp');
+ for(const input of ['javascript:alert(1)','//evil.test/x.webp','/r2/../secret.webp','/r2/%2e%2e/secret.webp'])assert.equal(publicMediaUrl(input,'https://cdn.fixture.test/assets','https://public.fixture.test'),'');
+ assert.equal(publicMediaUrl('/r2/a.webp','https://other-customer.test/media'),'https://other-customer.test/media/a.webp');
+});
 test('missing/OFF/empty/ON/re-enable preserve exact existing desktop and mobile fallbacks',()=>{
   let value=validateSiteVisuals(null,policy); assert.equal(resolveVisual(value,slots[0],'old','old-mobile').image,'old');
   value=base();assert.deepEqual(resolveVisual(value,slots[0],'old','old-mobile'),{image:'old',mobileImage:'old-mobile',active:false,alt:'',focusX:50,focusY:50});

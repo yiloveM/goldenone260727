@@ -495,7 +495,7 @@ export function installProducts(context) {
     context.$('managerEmail').textContent = '内容管理员 · 已连接';
     fillCategoryOptions();
     renderProducts();
-    renderProductOrder();
+    context.renderProductOrder();
     if(data.warning) context.setStatus('productBrowserStatus',data.warning,true);
   };
 
@@ -561,7 +561,7 @@ export function installProducts(context) {
     }
     context.state.orderChanges.clear();
     await loadDrafts();
-    renderProductOrder();
+    context.renderProductOrder();
     context.setStatus('orderStatus', '排序草稿已保存，请在产品内容页检查后审核通过。');
   };
 

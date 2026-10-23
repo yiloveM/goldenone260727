@@ -38,7 +38,10 @@ export function installWorkspace(context) {
     $('translationWorkspaceNav').hidden = !translation;
     document.querySelector('[data-workspace=translation]')?.classList.toggle('is-active', translation);
     if (tab === 'product-order') document.querySelector('.sidebar [data-tab=products]')?.classList.add('is-active');
-    if (tab === 'product-order') context.loadOrderDrafts().catch(error => context.setStatus('orderStatus', error.message, true));
+    if (tab === 'product-order') {
+      context.renderProductOrder();
+      context.loadOrderDrafts().catch(error => context.setStatus('orderStatus', error.message, true));
+    }
     if (tab === 'visuals') context.loadVisuals().catch(error => context.setStatus('visualStatus', error.message, true));
     if (tab === 'translation') { fillTranslationSources(); context.restoreTranslationTask().catch(error => context.setStatus('translationStatus', error.message, true)); }
     if (tab === 'dashboard') refreshWorkspace().catch(() => {});

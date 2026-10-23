@@ -68,9 +68,7 @@ export function initializeManager(config) {
     if (button && !button.disabled) context.setProductPage(button.dataset.productPage);
   });
 
-  context.$('orderSearchInput').addEventListener('input', context.renderProductOrder);
 
-  context.$('orderCategoryFilter').addEventListener('change', context.renderProductOrder);
 
   context.$('orderGrid').addEventListener('input', event => {
     const input = event.target.closest('[data-order-slug]');
@@ -79,7 +77,7 @@ export function initializeManager(config) {
     const nextValue = Math.max(1, Math.round(Number(input.value || 1)));
     if (product && nextValue === Number(product.sortOrder)) context.state.orderChanges.delete(input.dataset.orderSlug);
     else context.state.orderChanges.set(input.dataset.orderSlug, nextValue);
-    context.setStatus('orderStatus', `已修改 ${context.state.orderChanges.size} 个权重，保存后会生成排序草稿。`);
+    context.setStatus('orderStatus', `已修改 ${context.state.orderChanges.size} 个产品的顺序，请保存草稿。`);
   });
 
   context.$('orderSaveButton').addEventListener('click', () => context.saveOrderDrafts().catch(error => context.setStatus('orderStatus', error.message, true)));

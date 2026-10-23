@@ -3,17 +3,17 @@ import { safeContentUrl } from './content-links.mjs';
 
 // The installed Markdoc parser handles nested emphasis, escaped brackets and
 // balanced URL parentheses. Only an explicit HTML vocabulary crosses into UI.
-export function renderMarkdownPreview(body: string) {
+export function renderMarkdownPreview(body: string, resolveMedia: (value: string) => string = value => value) {
   const ast = Markdoc.parse(String(body || ''));
   const mediaAttrs = { src: { type: String, required: true }, alt: { type: String }, caption: { type: String }, title: { type: String } };
   const tree = Markdoc.transform(ast, { tags: {
     r2Image: { attributes: mediaAttrs, transform(node: any) {
       const { src, alt = '', caption = '' } = node.attributes;
-      const url = safeContentUrl(src, true);
+      const url = safeContentUrl(resolveMedia(safeContentUrl(src, true)), true);
       return url ? new Markdoc.Tag('figure', {}, [new Markdoc.Tag('img', { src: url, alt, loading: 'lazy' }), ...(caption ? [new Markdoc.Tag('figcaption', {}, [caption])] : [])]) : [];
     } },
     r2Document: { attributes: mediaAttrs, transform(node: any) {
-      const url = safeContentUrl(node.attributes.src, true);
+      const url = safeContentUrl(resolveMedia(safeContentUrl(node.attributes.src, true)), true);
       return url ? new Markdoc.Tag('p', {}, [new Markdoc.Tag('a', { href: url }, [node.attributes.title || 'PDF document'])]) : [];
     } },
   } });
@@ -32,7 +32,7 @@ export function renderMarkdownPreview(body: string) {
       if (typeof value.attributes?.title === 'string') attrs.title = value.attributes.title;
     }
     if (value.name === 'img') {
-      const src = safeContentUrl(value.attributes?.src, true);
+      const src = safeContentUrl(resolveMedia(safeContentUrl(value.attributes?.src, true)), true);
       if (!src) return [];
       Object.assign(attrs, { src, alt: String(value.attributes?.alt || ''), loading: 'lazy' });
     }

@@ -1,4 +1,6 @@
 import { renderMarkdownPreview } from '../../../../lib/translation-preview';
+import { publicMediaUrl } from '../../../../lib/public-media-url.mjs';
+import siteOrigin from '../../../../data/site-origin.json';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { parse } from 'yaml';
@@ -186,6 +188,7 @@ const page = ({
 
 export const GET: APIRoute = async ({ locals, request, url }) => {
   const env = getRuntimeEnv(locals);
+  const media = (value: string) => publicMediaUrl(value, String(env?.PUBLIC_R2_ASSET_BASE_URL || import.meta.env.PUBLIC_R2_ASSET_BASE_URL || ''), siteOrigin.productionUrl);
   const access = requireManagerAccess(request, env);
   if (access.response) return access.response;
 
@@ -226,7 +229,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   }
 
   const data = draft.data;
-  const image = String(source.image || '');
+  const image = media(String(source.image || ''));
 
   const body =
     type === 'product'
@@ -235,12 +238,12 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
           `<section class="preview-card"><h2>Key product parameters</h2>${renderKeyValueTable(data.specs)}</section>`,
           renderSpecTables(data.specTables),
           renderList('Highlights', data.highlights),
-          `<section class="preview-card">${renderMarkdownPreview(draft.body)}</section>`,
+          `<section class="preview-card">${renderMarkdownPreview(draft.body, media)}</section>`,
           renderFaqs(data.faqs),
         ]
           .filter(Boolean)
           .join('')
-      : [`<section class="preview-card"><span class="eyebrow">${escapeHtml(data.category)}</span>${renderMarkdownPreview(draft.body)}</section>`].join('');
+      : [`<section class="preview-card"><span class="eyebrow">${escapeHtml(data.category)}</span>${renderMarkdownPreview(draft.body, media)}</section>`].join('');
 
   return new Response(
     page({

@@ -1,8 +1,10 @@
 import { confirmDialog, promptDialog } from '../../lib/admin-dialog.mjs';
+import { publicMediaUrl } from '../../lib/public-media-url.mjs';
 export function installMedia(context) {
   const normalizeThumbnailUrl = value => {
     const raw = String(value ?? '').trim();
     if (!raw) return '';
+    if (/^\/?r2\//i.test(raw)) return publicMediaUrl(raw, context.publicR2AssetBaseUrl, context.publicSiteOrigin);
     if (/^(https?:|data:|blob:|\/)/i.test(raw)) return raw;
     if (/^r2\//i.test(raw)) return `/${raw.replace(/^\/+/, '')}`;
     return `${context.publicR2AssetBaseUrl}/${raw.replace(/^\/+/, '').replace(/ /g, '%20')}`;
