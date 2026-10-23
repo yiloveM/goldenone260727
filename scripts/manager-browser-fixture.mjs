@@ -95,9 +95,11 @@ export async function managerBackend(root, output) {
   const draftRows = (type = 'product') => db.prepare(`SELECT * FROM manager_${type}_drafts ORDER BY updated_at DESC, id`).all().map(row =>
     type === 'product' ? normalizer.productDraftToResponse(row) : type === 'blog' ? normalizer.blogDraftToResponse(row) : normalizer.reviewDraftToResponse(row));
   const productDrafts = () => draftRows();
+  const delayedApis = new Map();
   const visualDrafts = [], orderGroups = []; let workspace = { known: true, pending: 1, unpublished: 1, message: '审核通过的变更将在下一次网站发布后上线。' }, translationStatus = null;
   const visualSlots = [{ key:'home.primary',group:'home',title:'首页首屏',path:'/',fallback:'/fixture-image.svg',image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50 },{ key:'pages.about',group:'pages',title:'关于我们',path:'/about/',fallback:'/fixture-image.svg',image:'',mobileImage:'',alt:'',localizedAlts:[],focusX:50,focusY:50 }];
   const api = async (pathname, method, body, search) => {
+    if(delayedApis.has(pathname)){const delay=delayedApis.get(pathname);delayedApis.delete(pathname);await new Promise(done=>setTimeout(done,delay));}
     requests.push({ path: pathname, method, ...(method === 'GET' ? {} : { body }) });
     if (!authenticated) throw Object.assign(new Error('登录已过期，请重新登录。'), { status: 403 });
     if (failedApis.delete(pathname)) throw new Error('连接暂时失败，请重试。');
@@ -197,7 +199,7 @@ export async function managerBackend(root, output) {
   };
   return { requests, db, productDrafts, products, assets, translationDrafts, records,
     visualDrafts, visualSlots, orderGroups, setWorkspace:value=>{workspace=value;}, setTranslationStatus:value=>{translationStatus=value;},
-    setReviews: value => { reviewsEnabled = value; }, failNextSave: () => { failSave = true; },
+    setReviews: value => { reviewsEnabled = value; }, delayNextApi: (path,ms) => delayedApis.set(path,ms), failNextSave: () => { failSave = true; },
     failNextApi: path => failedApis.add(path), setPolicy: value => { policy = value; },
     setLocales: value => { enabledLocales = value; }, normalizeProduct: normalizer.normalizeProductDraftPayload,
     setAuthenticated: value => { authenticated = value; },

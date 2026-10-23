@@ -10,7 +10,7 @@ export function installWorkspace(context) {
     return JSON.stringify([fields, kind === 'product' ? context.state.formData : kind === 'translation' ? context.state.translationFormData : null]);
   };
   const markEditorClean = kind => clean.set(kind, fingerprint(kind));
-  const editorIsDirty = kind => clean.has(kind) && clean.get(kind) !== fingerprint(kind);
+  const editorIsDirty = kind => (kind === 'visual' || retained.get(kind) === true) && clean.has(kind) && clean.get(kind) !== fingerprint(kind);
   const allowDiscard = async kind => !editorIsDirty(kind) || await confirmDialog('当前修改尚未保存。放弃后会重新载入已保存内容；取消可以继续编辑。', { title: '放弃未保存的修改？', confirmLabel: '放弃修改', cancelLabel: '继续编辑' });
   Object.assign(context, { markEditorClean, editorIsDirty, allowDiscard });
 

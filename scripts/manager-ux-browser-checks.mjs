@@ -5,6 +5,7 @@ import { openManagerTab } from './manager-test-navigation.mjs';
 export async function checkManagerUx({page,backend,check,output}) {
   const tab=name=>openManagerTab(page,name),wait=(id,text)=>page.waitForFunction(({id,text})=>document.getElementById(id)?.textContent.includes(text),{id,text});
   await check('workspace landing and publication guidance distinguish zero changes from unknown',async()=>{
+    backend.delayNextApi('/api/manager/products',800);await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>{window.__manualDialogs=true;});await tab('products');await page.locator('html[data-manager-ready=true]').waitFor({state:'attached'});await tab('dashboard');await tab('products');assert.equal(await page.locator('dialog.bw-dialog[open]').count(),0,'background defaults must not count as unsaved edits in an unopened editor');await page.evaluate(()=>{window.__manualDialogs=false;});
     assert.equal(await page.getByRole('link',{name:'返回网站首页',exact:true}).getAttribute('href'),new URL('/',JSON.parse(await readFile('src/data/site-origin.json','utf8')).productionUrl).href);
     backend.setWorkspace({known:true,pending:0,unpublished:0,message:'没有待发布内容。'});await page.reload();await page.locator('html[data-manager-ready=true]').waitFor({state:'attached'});await wait('workspaceUnpublished','0');assert.equal(await page.locator('[data-panel=dashboard]').getAttribute('class'),'section is-active');assert.equal(await page.locator('.publication-guidance').isHidden(),true);
     backend.setWorkspace({known:false,message:'暂时无法确认。'});await page.locator('#workspaceRefresh').click();await wait('workspaceUnpublished','待确认');assert.equal(await page.locator('.publication-guidance').isVisible(),true);
@@ -71,12 +72,36 @@ export async function checkManagerUx({page,backend,check,output}) {
     try{
       await page.setViewportSize({width:1440,height:1000});await page.reload();await page.locator('html[data-manager-ready=true]').waitFor({state:'attached'});await tab('products');await page.locator('#categoryFilter').selectOption('Single UX category');assert.equal(await page.locator('.manager-product-row').count(),1);
       const measure=()=>page.locator('#productList').evaluate(node=>({head:node.querySelector('.manager-product-head')?.getBoundingClientRect().height||0,row:node.querySelector('.manager-product-row')?.getBoundingClientRect().height||0,list:node.getBoundingClientRect().height}));
-      const single=await measure();assert.ok(single.head>=44&&single.head<=45);assert.ok(single.row>=108&&single.row<=110);assert.ok(single.list<160);
+      const single=await measure();assert.ok(single.head>=44&&single.head<=45);assert.ok(single.row>=96&&single.row<=98);assert.ok(single.list<145);
       await page.locator('#categoryFilter').selectOption('');const multiple=await measure();assert.ok(Math.abs(single.head-multiple.head)<1);assert.ok(Math.abs(single.row-multiple.row)<1);
       await page.locator('#searchInput').fill('no-such-product-sparse-layout');assert.ok((await measure()).list<200);await page.locator('#searchInput').fill('');await page.locator('#categoryFilter').selectOption('Single UX category');
-      for(const theme of ['light','dark']){await page.setViewportSize({width:1440,height:1000});await page.locator('#themeMenuButton').click();await page.locator(`[data-theme-option=${theme}]`).click();for(const width of [1440,768,390,360]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.ok((await measure()).row<300);if(width===1440)assert.ok((await measure()).head<=45);}}
+      for(const theme of ['light','dark']){await page.setViewportSize({width:1440,height:1000});await page.locator('#themeMenuButton').click();await page.locator(`[data-theme-option=${theme}]`).click();for(const width of [1440,768,390,360]){await page.setViewportSize({width,height:1000});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);const sizes=await measure();assert.ok(sizes.row<300);assert.ok(sizes.list-sizes.head-sizes.row<3,'short lists must not retain breakpoint-specific blank space');if(width===1440)assert.ok(sizes.head<=45);}}
       await page.screenshot({path:resolve(output,'ux-single-product-mobile.png'),fullPage:false});await page.setViewportSize({width:1440,height:1000});await tab('blog');if(await page.locator('#blogBackButton').isVisible())await page.locator('#blogBackButton').click();await page.locator('.blog-list-title').first().waitFor();const slug=await page.locator('.blog-list-row').first().getAttribute('data-blog-slug');await page.locator('#blogSearchInput').fill(slug);assert.equal(await page.locator('.blog-list-row').count(),1);assert.ok(await page.locator('.blog-list-head').evaluate(node=>node.getBoundingClientRect().height<=45));assert.ok(await page.locator('#blogList').evaluate(node=>node.getBoundingClientRect().height<180));
-      await writeFile(reviewFile,JSON.stringify({...JSON.parse(originalReviews),reviews:[{id:'sparse-layout-review',buyerLabel:'Layout buyer',rating:'5',quote:'A single feedback record.',published:true}]}));await tab('reviews');await page.locator('#reviewRefreshButton').click();await page.locator('[data-review-id]').first().waitFor();const quote=await page.locator('[data-review-id] .review-card-quote').first().innerText();await page.locator('#reviewSearch').fill(quote);assert.equal(await page.locator('[data-review-id]').count(),1);assert.ok(await page.locator('#reviewList').evaluate(node=>node.getBoundingClientRect().height<300));
+      for(const width of [1440,768,390]){await page.setViewportSize({width,height:1000});assert.ok(await page.locator('#blogList').evaluate(node=>node.getBoundingClientRect().height<250));}await page.setViewportSize({width:1440,height:1000});
+      await writeFile(reviewFile,JSON.stringify({...JSON.parse(originalReviews),reviews:[{id:'sparse-layout-review',buyerLabel:'Layout buyer',rating:'5',quote:'A single feedback record.',published:true}]}));await tab('reviews');await page.locator('#reviewRefreshButton').click();await page.locator('[data-review-id]').first().waitFor();const quote=await page.locator('[data-review-id] .review-card-quote').first().innerText();await page.locator('#reviewSearch').fill(quote);assert.equal(await page.locator('[data-review-id]').count(),1);for(const width of [1440,768,390]){await page.setViewportSize({width,height:1000});assert.ok(await page.locator('#reviewList').evaluate(node=>node.getBoundingClientRect().height<300));}
     }finally{product.category=category;await writeFile(reviewFile,originalReviews);await page.setViewportSize({width:1440,height:900});}
+  });
+  await check('shared workspace density keeps navigation compact and every content surface inside the viewport',async()=>{
+    await page.setViewportSize({width:1440,height:1000});await tab('dashboard');
+    for(const theme of ['light','dark']){
+      await page.setViewportSize({width:1440,height:1000});
+      await page.locator('#themeMenuButton').click();await page.locator(`[data-theme-option=${theme}]`).click();
+      for(const height of [780,1200]){
+        await page.setViewportSize({width:1440,height});
+        const rows=await page.locator('.sidebar .tab').evaluateAll(nodes=>nodes.filter(n=>n.getBoundingClientRect().height).map(n=>({height:n.getBoundingClientRect().height,wrap:n.scrollWidth>n.clientWidth})));
+        assert.ok(rows.length>=9);assert.ok(rows.every(n=>n.height>=38&&n.height<=40&&!n.wrap),'desktop navigation must not stretch to fill tall screens');
+      }
+      for(const width of [1440,1024,768,390,360]){
+        await page.setViewportSize({width,height:900});
+        for(const name of ['dashboard','products','blog','reviews','translation','visuals','images','publish']){
+          await tab(name);
+          const layout=await page.locator('.section.is-active').evaluate(node=>({overflow:document.documentElement.scrollWidth>innerWidth+1,controls:[...node.querySelectorAll('.button,.manager-product-edit,.manager-product-view,.blog-list-view')].filter(n=>n.getBoundingClientRect().height&&n.getClientRects().length).map(n=>({label:n.textContent.trim(),height:n.getBoundingClientRect().height,wrap:getComputedStyle(n).whiteSpace}))}));
+          assert.equal(layout.overflow,false,`${theme}/${width}/${name} overflows`);
+          assert.ok(layout.controls.every(n=>n.wrap==='nowrap'),`${name}: labels should not split`);
+          if(width<=560)assert.ok(layout.controls.every(n=>n.height>=44),`${name}: mobile controls need a comfortable touch target: ${JSON.stringify(layout.controls.filter(n=>n.height<44))}`);
+        }
+      }
+    }
+    await page.setViewportSize({width:1440,height:900});await tab('dashboard');
   });
 }

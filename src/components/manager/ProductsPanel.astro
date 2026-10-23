@@ -19,8 +19,10 @@ const { managerReviewSystemEnabled } = Astro.props;
                   <span><strong id="productOnlineCount">—</strong><small>已上线版本</small></span>
                   <span><strong id="productOfflineCount">0</strong><small>设为隐藏</small></span>
                 </div>
-                <button class="button secondary" data-tab="product-order" type="button">调整顺序</button>
-                <button class="button" id="newProductButton" type="button">新增产品</button>
+                <div class="product-manager-header-actions">
+                  <button class="button secondary" data-tab="product-order" type="button">调整顺序</button>
+                  <button class="button" id="newProductButton" type="button">新增产品</button>
+                </div>
               </div>
             </header>
             <div class="product-manager-toolbar">
