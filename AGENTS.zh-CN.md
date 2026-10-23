@@ -1,5 +1,7 @@
 # Golden One Codex 工作规则（中文配套版）
 
+媒体选择/改版/排障前先读本站 docs/media-paths.json 与 docs/MEDIA-PATHS-SPEC.md，再核真实配置/消费者/引用；登记不授权删除 R2。
+
 英文 [AGENTS.md](AGENTS.md) 是本独立仓库的优先 AI 入口；本文件供站长核对。
 本仓库对应 `yiloveM/goldenone260727`，是建设中的 Golden One 商业站，
 不是空白母版。位于 `webtemp` 下时先读父目录 `AGENTS.md`、英文主指令和仓库映射；

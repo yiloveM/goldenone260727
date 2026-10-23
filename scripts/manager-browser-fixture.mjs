@@ -25,7 +25,7 @@ async function copyTree(source, target) {
 
 export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true, profile = {governance:{contentOwner:'Manager regression'}}) {
   const fixture = resolve(output, label);
-  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/public-media-url.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
+  for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/public-media-url.mjs', 'src/lib/admin-media-url.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
     const source = await readFile(resolve(root, file), 'utf8');
     await write(resolve(fixture, file), file.endsWith('index.astro') ? source.replace("if (config) initializeManager(JSON.parse(config.textContent || '{}'));", "if (config) { initializeManager(JSON.parse(config.textContent || '{}')); initializeManager(JSON.parse(config.textContent || '{}')); }") : source);
   }

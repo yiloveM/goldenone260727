@@ -17,6 +17,7 @@ try {
   await run(['scripts/check-admin-portal-rewrite.mjs']);
   await run(['scripts/audit-template-readiness.mjs', ...(production ? ['--production'] : [])]);
   await run(['scripts/audit-feature-continuity.mjs']);
+  await run(['scripts/audit-media-paths.mjs']);
   await run(['scripts/audit-product-seo.mjs']);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));

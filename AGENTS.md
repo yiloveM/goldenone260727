@@ -1,5 +1,7 @@
 # Golden One Codex Operating Rules
 
+Before media selection/redesign/troubleshooting, read this site's docs/media-paths.json and docs/MEDIA-PATHS-SPEC.md; verify actual settings/consumers/references. Registration grants no R2 deletion.
+
 ## Workspace governance
 
 Lifecycle: `building`. Current workspace directory: `goldenone002-building/`

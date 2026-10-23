@@ -4,6 +4,8 @@ import { block } from '@keystatic/core/content-components';
 import { R2ImagePicker } from './r2-image-picker';
 import { r2DocumentUrlField, r2ImageUrlField } from './r2-image-url-field';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
+import { adminMediaUrl } from '../lib/admin-media-url.mjs';
+import siteOrigin from '../data/site-origin.json';
 
 type R2ImageValue = {
   src: string;
@@ -25,12 +27,13 @@ function R2ImageNodeView({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   useSyncedSurfaceTheme(rootRef, 'r2');
+  const previewUrl = adminMediaUrl(value.src, import.meta.env.PUBLIC_R2_ASSET_BASE_URL || '', siteOrigin.productionUrl, { objectKey: true });
 
   return (
     <div ref={rootRef} className={`r2-markdoc-image${isSelected ? ' is-selected' : ''}`}>
-      {value.src ? (
+      {previewUrl ? (
         <button type="button" className="r2-markdoc-image__preview" onClick={() => setIsPickerOpen(true)}>
-          <img src={value.src} alt={value.alt || ''} loading="lazy" />
+          <img src={previewUrl} alt={value.alt || ''} loading="lazy" />
         </button>
       ) : (
         <button type="button" className="r2-markdoc-image__empty" onClick={() => setIsPickerOpen(true)}>

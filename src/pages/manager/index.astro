@@ -25,7 +25,7 @@ import industryProfile from '../../data/industry-profile.json';
 import { reviewSystemEnabled } from '../../data/customerReviews';
 
 export const prerender = true;
-const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || 'https://cdn.example.com').replace(/\/+$/, '');
+const publicR2AssetBaseUrl = (import.meta.env.PUBLIC_R2_ASSET_BASE_URL || '').replace(/\/+$/, '');
 const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const managerOwner = String((industryProfile.governance as { contentOwner?: string } | undefined)?.contentOwner || 'Ethan.B.Rain').trim() || 'Ethan.B.Rain';
 const managerReviewSystemEnabled = reviewSystemEnabled;

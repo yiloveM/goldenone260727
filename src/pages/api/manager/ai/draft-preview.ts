@@ -1,5 +1,6 @@
 import { renderMarkdownPreview } from '../../../../lib/translation-preview';
 import { publicMediaUrl } from '../../../../lib/public-media-url.mjs';
+import { renderProductPreviewMedia } from '../../../../lib/product-preview-media.mjs';
 import siteOrigin from '../../../../data/site-origin.json';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
@@ -229,11 +230,13 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   }
 
   const data = draft.data;
+  if (type === 'product' && !Object.keys(source || {}).length) return new Response('产品原文暂时无法读取，草稿已保留，请稍后重新打开预览。', { status: 503, headers: { 'cache-control': 'no-store' } });
   const image = media(String(source.image || ''));
 
   const body =
     type === 'product'
       ? [
+          renderProductPreviewMedia(source, media, { includeCover: false, title: String(data.title || source.title || '') }),
           renderList('Applications', data.applications),
           `<section class="preview-card"><h2>Key product parameters</h2>${renderKeyValueTable(data.specs)}</section>`,
           renderSpecTables(data.specTables),

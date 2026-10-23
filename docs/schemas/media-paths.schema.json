@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[\\w.-]+\\/[\\w.-]+$"
+    },
+    "entries": {
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "category": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,63}$"
+          },
+          "delivery": {
+            "type": "string",
+            "enum": [
+              "r2-public",
+              "site-static",
+              "external-public"
+            ]
+          },
+          "baseUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "authority": {
+            "type": "string",
+            "enum": [
+              "PUBLIC_R2_ASSET_BASE_URL",
+              "SITE_URL",
+              "observed-external"
+            ]
+          },
+          "pathPrefix": {
+            "type": "string",
+            "maxLength": 240
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "references": {
+            "minItems": 1,
+            "maxItems": 40,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 240
+                },
+                "field": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "path",
+                "field"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "lastVerifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verification": {
+            "type": "object",
+            "properties": {
+              "sourceCommit": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{40}$"
+              },
+              "coverage": {
+                "type": "string",
+                "enum": [
+                  "source-only",
+                  "sampled-http",
+                  "sampled-browser",
+                  "full-active-http"
+                ]
+              },
+              "result": {
+                "type": "string",
+                "enum": [
+                  "unverified",
+                  "pass",
+                  "partial",
+                  "fail"
+                ]
+              },
+              "samples": {
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "httpStatus": {
+                      "type": "integer",
+                      "minimum": 100,
+                      "maximum": 599
+                    },
+                    "contentType": {
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "naturalWidth": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "url",
+                    "httpStatus",
+                    "contentType"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sourceCommit",
+              "coverage",
+              "result",
+              "samples"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "delivery",
+          "baseUrl",
+          "authority",
+          "pathPrefix",
+          "purpose",
+          "references",
+          "lastVerifiedAt",
+          "verification"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "repository",
+    "entries"
+  ],
+  "additionalProperties": false
+}

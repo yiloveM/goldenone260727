@@ -6,6 +6,7 @@ import { openVisualState, managerVisualSlots } from '../../../lib/manager/site-v
 import { mergeVisualPatch, visualAt } from '../../../lib/site-visuals.mjs';
 import { safeContentUrl } from '../../../lib/content-links.mjs';
 import { publicMediaUrl } from '../../../lib/public-media-url.mjs';
+import { renderProductPreviewMedia } from '../../../lib/product-preview-media.mjs';
 import siteOrigin from '../../../data/site-origin.json';
 export const prerender = false;
 const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
@@ -31,7 +32,7 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
       }).join('');
     } else {
       const image = media(safeContentUrl(data.image, true));
-      body = `<p>${escape(data.description)}</p>${image ? `<img src="${escape(image)}" alt="">` : ''}${renderMarkdownPreview(data.content || data.body || '', media)}`;
+      body = `<p>${escape(data.description)}</p>${kind === 'product' ? renderProductPreviewMedia(data, media) : image ? `<img src="${escape(image)}" alt="">` : ''}${renderMarkdownPreview(data.content || data.body || '', media)}`;
       if (kind === 'product') {
         if (data.specs?.length) body += `<h2>Specifications</h2><table>${data.specs.map((item: any) => `<tr><th>${escape(item.label)}</th><td>${escape(item.value)}</td></tr>`).join('')}</table>`;
         for (const table of data.specTables || []) body += `<h2>${escape(table.title)}</h2><table><thead><tr>${(table.columns || []).map((cell: any) => `<th>${escape(cell)}</th>`).join('')}</tr></thead><tbody>${(table.rows || []).map((row: any[]) => `<tr>${row.map(cell => `<td>${escape(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;

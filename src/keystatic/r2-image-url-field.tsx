@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import type { BasicFormField, FormFieldInputProps, FormFieldStoredValue } from '@keystatic/core';
 import { R2ImagePicker } from './r2-image-picker';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
+import { adminMediaUrl } from '../lib/admin-media-url.mjs';
+import siteOrigin from '../data/site-origin.json';
 
 type R2ImageUrlFieldOptions = {
   label: string;
@@ -30,7 +32,8 @@ function R2ImageUrlInput({
 
   const trimmedValue = value.trim();
   const isDocument = assetKind === 'document';
-  const canPreview = Boolean(trimmedValue) && (isDocument || looksLikeImage(trimmedValue));
+  const previewUrl = adminMediaUrl(trimmedValue, import.meta.env.PUBLIC_R2_ASSET_BASE_URL || '', siteOrigin.productionUrl, { objectKey: true });
+  const canPreview = Boolean(previewUrl) && (isDocument || looksLikeImage(trimmedValue));
 
   return (
     <div ref={rootRef} className="r2-url-field">
@@ -45,7 +48,7 @@ function R2ImageUrlInput({
         />
         {canPreview ? (
           <button type="button" className="r2-url-field__preview" onClick={() => setIsPickerOpen(true)} aria-label="閲嶆柊閫夋嫨鍥剧墖">
-            {isDocument ? <span className="r2-url-field__pdf-icon" aria-hidden="true">PDF</span> : <img src={trimmedValue} alt="" loading="lazy" />}
+            {isDocument ? <span className="r2-url-field__pdf-icon" aria-hidden="true">PDF</span> : <img src={previewUrl} alt="" loading="lazy" />}
           </button>
         ) : (
           <span className="r2-url-field__preview r2-url-field__preview--empty" aria-hidden="true" />

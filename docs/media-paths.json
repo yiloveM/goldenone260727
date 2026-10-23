@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "repository": "yiloveM/goldenone260727",
+  "entries": [
+    {
+      "id": "banner-r2-public-banner",
+      "category": "banner",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "Banner/",
+      "purpose": "首页、页面和分类背景及移动端回退",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "pageBanners.engineeringNotes"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/Banner/2026-product-design/home/custom-metal-gifts.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/Banner/2026-product-design/home/custom-projects.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "banner-r2-public-home",
+      "category": "banner",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "home/",
+      "purpose": "首页、页面和分类背景及移动端回退",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "homeHero.rippleMobile"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/home/design-context-20261017/artwork-and-custom-products.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "banner-site-static-images",
+      "category": "banner",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "images/",
+      "purpose": "首页、页面和分类背景及移动端回退",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "homeHero.floatingProducts.2"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/challenge-coin-collection-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/customization-story-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "blog-site-static-images",
+      "category": "blog",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "images/",
+      "purpose": "文章封面及正文图片",
+      "references": [
+        {
+          "path": "src/content/blog/how-custom-metal-gifts-are-made.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/content/blog/golden-one-custom-metal-gifts-since-2006.mdoc",
+          "field": "image"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/factory/die-casting-workshop.jpg",
+            "httpStatus": 200,
+            "contentType": "image/jpeg"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/hero-collection-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "company-r2-public-company",
+      "category": "company",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "company/",
+      "purpose": "企业页面及业务展示中的图片",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "homeContext.contactCollection"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/company/goldenone-product-collection-20261017.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "company-r2-public-home",
+      "category": "company",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "home/",
+      "purpose": "企业页面及业务展示中的图片",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "homeContext.artwork"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/home/design-context-20261017/artwork-to-production.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/home/design-context-20261017/custom-project-discussion.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "company-r2-public-products",
+      "category": "company",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "products/",
+      "purpose": "企业页面及业务展示中的图片",
+      "references": [
+        {
+          "path": "src/data/campaignImages.ts",
+          "field": "25"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/products/design-process-v2/belt-buckle/approval.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/products/design-process-v2/belt-buckle/artwork.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "company-site-static-images",
+      "category": "company",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "images/",
+      "purpose": "企业页面及业务展示中的图片",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "factoryGallery.operationsDesk"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/challenge-coin-collection-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/customization-story-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "logo-r2-public-brand",
+      "category": "logo",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "brand/",
+      "purpose": "品牌标志、页脚标志或站点图标",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "brand.logo"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/brand/goldenone-logo-c1e2f260b0.png",
+            "httpStatus": 200,
+            "contentType": "image/png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "logo-site-static-favicon-goldenone-32-png",
+      "category": "logo",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "favicon-goldenone-32.png",
+      "purpose": "品牌标志、页脚标志或站点图标",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "brand.icon"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/favicon-goldenone-32.png",
+            "httpStatus": 200,
+            "contentType": "image/png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "logo-site-static-images",
+      "category": "logo",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "images/",
+      "purpose": "品牌标志、页脚标志或站点图标",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "brand.footerLogo"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/brand/goldenone-logo-transparent.png",
+            "httpStatus": 200,
+            "contentType": "image/png"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product-r2-public-banner",
+      "category": "product",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "Banner/",
+      "purpose": "产品主图、图库、详情图及分类展示；详情图保留图文组",
+      "references": [
+        {
+          "path": "src/data/productCategories.ts",
+          "field": "9.image"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/Banner/2026-product-design/categories/promotion-gift.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product-r2-public-products",
+      "category": "product",
+      "delivery": "r2-public",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev/r2",
+      "authority": "PUBLIC_R2_ASSET_BASE_URL",
+      "pathPrefix": "products/",
+      "purpose": "产品主图、图库、详情图及分类展示；详情图保留图文组",
+      "references": [
+        {
+          "path": "src/content/products/custom-belt-buckles.mdoc",
+          "field": "detailImages.24.image"
+        },
+        {
+          "path": "src/data/productCategories.ts",
+          "field": "8.image"
+        },
+        {
+          "path": "src/content/products/2d-challenge-coins.mdoc",
+          "field": "galleryImages.7"
+        },
+        {
+          "path": "src/content/products/3d-challenge-coins.mdoc",
+          "field": "detailImages.0.image"
+        },
+        {
+          "path": "src/content/products/bottle-opener-challenge-coins.mdoc",
+          "field": "galleryImages.3"
+        },
+        {
+          "path": "src/content/products/spinner-challenge-coins.mdoc",
+          "field": "galleryImages.5"
+        },
+        {
+          "path": "src/content/products/custom-golf-bag-tags.mdoc",
+          "field": "galleryImages.1"
+        },
+        {
+          "path": "src/content/products/custom-golf-brushes.mdoc",
+          "field": "detailImages.0.image"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/products/belt-buckle/belt-buckle/_shared/construction-guides/curved-vs-flat-belt-buckle-50d3695f70.jpeg",
+            "httpStatus": 200,
+            "contentType": "image/jpeg"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/r2/products/belt-buckle/belt-buckle/gallery/cutout-v1/0-65-729234a05f.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    },
+    {
+      "id": "product-site-static-images",
+      "category": "product",
+      "delivery": "site-static",
+      "baseUrl": "https://goldenone.arkalpooltech.workers.dev",
+      "authority": "SITE_URL",
+      "pathPrefix": "images/",
+      "purpose": "产品主图、图库、详情图及分类展示；详情图保留图文组",
+      "references": [
+        {
+          "path": "src/data/backgroundImages.ts",
+          "field": "productCategories.spareParts"
+        },
+        {
+          "path": "src/content/products/custom-fridge-magnets.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/data/productCategories.ts",
+          "field": "7.image"
+        },
+        {
+          "path": "src/content/products/custom-promotional-gifts.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/content/products/custom-bottle-stoppers.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/content/products/custom-cufflinks-tie-clips.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/content/products/custom-metal-ornaments.mdoc",
+          "field": "image"
+        },
+        {
+          "path": "src/content/products/full-color-printed-keychains.mdoc",
+          "field": "image"
+        }
+      ],
+      "lastVerifiedAt": "2026-10-23T19:27:51.877Z",
+      "verification": {
+        "sourceCommit": "be5702f3877e692bf8d12941f52c6e13412d211c",
+        "coverage": "sampled-http",
+        "result": "pass",
+        "samples": [
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/challenge-coin-collection-v2.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          },
+          {
+            "url": "https://goldenone.arkalpooltech.workers.dev/images/metal-gifts/custom-lapel-pins.webp",
+            "httpStatus": 200,
+            "contentType": "image/webp"
+          }
+        ]
+      }
+    }
+  ]
+}
