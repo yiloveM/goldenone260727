@@ -39,7 +39,7 @@ const mediaField = /^(?:image|imageUrl|src|sourceUrl|publicUrl|logo|footerLogo|i
 const looksMedia = value => /^(?:\/r2\/|r2\/)|\.(?:avif|webp|jpe?g|png|svg|ico|gif|pdf)(?:[?#].*)?$/i.test(value);
 
 export async function collectMediaReferences(root, vars, origin) {
-  const references=[], coverage=[];
+  const references=[], coverage=[],buildManagedAssets=[];
   const add=(raw,category,source,field,state='retained')=>{
     if(typeof raw!=='string'||!raw.trim())return;
     // Public body links are not automatically media, and directories are not objects.
@@ -52,6 +52,13 @@ export async function collectMediaReferences(root, vars, origin) {
   const body=(text,category,source,field,state)=>{
     for(const m of text.matchAll(/!\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)|\b(?:src|srcset|href)\s*=\s*["']([^"']+)["']|url\(\s*["']?([^\s)'";]+)["']?\s*\)/g)) {
       const raw=m[1]||m[2]||m[3]; if(raw.includes('${')||raw.includes('{'))continue;
+      if(m[3]&&/^data:image\//i.test(raw))continue; // Inlined bytes have no public path to register.
+      if(m[3]&&/^\.{1,2}\//.test(raw)){
+        const asset=path.resolve(root,path.dirname(source),raw);
+        if(asset.startsWith(path.resolve(root)+path.sep)&&fs.existsSync(asset)){
+          buildManagedAssets.push({source,import:raw});continue; // Vite import, not a browser URL.
+        }
+      }
       add(raw,category,source,field,state);
     }
   };
@@ -92,7 +99,8 @@ export async function collectMediaReferences(root, vars, origin) {
     coverage.push('Actual background, fallback and category read models evaluated, including selected catalog images and category process images.');
   } else coverage.push('No background read model: dynamic consumer coverage requires manual verification.');
   for(const dir of ['src/components','src/pages','src/templates','src/styles'])for(const file of files(root,dir,['.astro','.css','.tsx','.ts']))body(fs.readFileSync(within(root,file),'utf8'),'company',file,'source-literal','retained');
-  return {references:references.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),coverage,cleanupAllowed:false,limitations:['No complete cloud-draft or still-served release snapshot was supplied. Source states do not prove deployment.','Source literals conservatively protect stored uses; unrecognized/custom runtime consumers require independent review. No deletion is authorized by this report.']};
+  if(buildManagedAssets.length)coverage.push('Existing relative CSS dependency assets are build-managed, not guessed public URLs; verify emitted/inlined assets in the fresh build.');
+  return {references:references.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),buildManagedAssets,coverage,cleanupAllowed:false,limitations:['No complete cloud-draft or still-served release snapshot was supplied. Source states do not prove deployment.','Source literals conservatively protect stored uses; unrecognized/custom runtime consumers require independent review. No deletion is authorized by this report.']};
 }
 
 export function checkMediaReferences(registry, inventory, vars, origin, root) {
@@ -135,6 +143,11 @@ export async function probeMedia(value, allowedOrigins, fetcher=fetch, resolver=
   } finally { await agent.close(); }
 }
 
+export function onlineMediaSamples(registry, inventory) {
+  const entries=registry.entries.map(entry=>({id:entry.id,values:[...new Set(inventory.references.filter(ref=>ref.state!=='draft'&&!/Translations\//.test(ref.source)&&entryMatches(entry,ref.value,ref.category)).map(ref=>ref.value))].slice(0,2)}));
+  return {values:[...new Set(entries.flatMap(entry=>entry.values))].sort(),unprobedEntries:entries.filter(entry=>!entry.values.length).map(entry=>entry.id)};
+}
+
 export async function auditMediaPaths(root=process.cwd(),{online=false}={}) {
   root=path.resolve(root);const repository=repositoryIdentity(root),file=within(root,'docs/media-paths.json');
   if(!fs.existsSync(file))return {repository,status:'NOT_ADOPTED',errors:[],cleanupAllowed:false};
@@ -151,12 +164,12 @@ export async function auditMediaPaths(root=process.cwd(),{online=false}={}) {
   const result={repository,status:checks.errors.length?'FAIL':'SOURCE_CHECKED',sourceHead:git(root,['rev-parse','HEAD']),...inventory,...checks};
   if(online){
     const origins=[...new Set(registry.entries.map(entry=>new URL(entry.baseUrl).origin))];
-    const samples=[...new Set(registry.entries.flatMap(entry=>inventory.references.filter(ref=>entryMatches(entry,ref.value,ref.category)).slice(0,2).map(ref=>ref.value)))].sort();
+    const selection=onlineMediaSamples(registry,inventory),samples=selection.values;result.onlineUnprobedEntries=selection.unprobedEntries;
     result.online=[];
     for(const value of samples)try{result.online.push(await probeMedia(value,origins));}catch(error){result.online.push({url:value,status:'NOT_VERIFIED',code:error.code==='DNS_NOT_PUBLIC'?'DNS_NOT_PUBLIC':'NETWORK_UNVERIFIED',error:'No public response verified; no credential or redirect fallback.'});}
     result.onlineScope='AT_MOST_TWO_REAL_REFERENCES_PER_ENTRY_NOT_FULL_CENSUS';
     if(result.online.some(item=>item.passed===false))result.status='ONLINE_FAILURE';
-    else if(result.online.some(item=>item.status==='NOT_VERIFIED'))result.status='ONLINE_UNVERIFIED';
+    else if(result.online.some(item=>item.status==='NOT_VERIFIED')||selection.unprobedEntries.length)result.status='ONLINE_UNVERIFIED';
   }
   return result;
 }

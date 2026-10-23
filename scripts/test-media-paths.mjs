@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { validateMediaRegistry,mediaPathJsonSchema,publicRegistryUrl,publicHostname,safeRegistryPath,entryMatches } from './media-path-registry.mjs';
-import { checkMediaReferences,probeMedia,auditMediaPaths,collectMediaReferences } from './audit-media-paths.mjs';
+import { checkMediaReferences,probeMedia,auditMediaPaths,collectMediaReferences,onlineMediaSamples } from './audit-media-paths.mjs';
 
 const base='https://assets.businessmedia.com';
 const entry=()=>({id:'product-media',category:'product',delivery:'r2-public',baseUrl:base,authority:'PUBLIC_R2_ASSET_BASE_URL',pathPrefix:'products/',purpose:'Product galleries and detail figures',references:[{path:'src/content/products/item.mdoc',field:'image/galleryImages/detailImages'}],lastVerifiedAt:null,verification:{sourceCommit:'a'.repeat(40),coverage:'source-only',result:'unverified',samples:[]}});
@@ -71,6 +71,18 @@ test('network probes are explicit, bounded, credential-free and never follow red
   assert.equal((await probeMedia(base+'/products/a.webp',[base],redirect,dns)).passed,false);
   const spa=async()=>new Response('<!doctype html><html>SPA</html>',{headers:{'content-type':'image/webp'}});
   assert.equal((await probeMedia(base+'/products/a.webp',[base],spa,dns)).passed,false);
+});
+test('existing CSS asset imports are not confused with public R2 paths or browser traversal URLs',async()=>{
+  const folder=fs.mkdtempSync(path.join(temp,'css-'));fs.mkdirSync(path.join(folder,'src/styles'),{recursive:true});fs.mkdirSync(path.join(folder,'node_modules/flags'),{recursive:true});fs.writeFileSync(path.join(folder,'node_modules/flags/en.svg'),'<svg/>');fs.writeFileSync(path.join(folder,'src/styles/flags.css'),'a{background:url("../../node_modules/flags/en.svg")}b{background:url("/r2/company/banner.webp")}');
+  const inventory=await collectMediaReferences(folder,{PUBLIC_R2_ASSET_BASE_URL:base},originForCss());
+  assert.equal(inventory.buildManagedAssets.length,1);assert.equal(inventory.references.length,1);assert.equal(inventory.references[0].value,base+'/company/banner.webp');
+});
+function originForCss(){return 'https://site.businessmedia.com';}
+test('unreviewed and translated records protect references but never become automatic public probe targets',()=>{
+  const ref={value:base+'/products/a.webp',category:'product',state:'draft',source:'src/content/products/item.mdoc'};
+  assert.deepEqual(onlineMediaSamples(registry(),{references:[ref]}),{values:[],unprobedEntries:['product-media']});
+  assert.deepEqual(onlineMediaSamples(registry(),{references:[{...ref,state:'source-published',source:'src/content/productTranslations/es--item.mdoc'}]}).values,[]);
+  assert.deepEqual(onlineMediaSamples(registry(),{references:[{...ref,state:'source-published'}]}).values,[ref.value]);
 });
 test('current repository registry is independently bound and all recognized uses are registered',async()=>{
   const result=await auditMediaPaths(process.cwd()),local=JSON.parse(fs.readFileSync('docs/media-paths.json','utf8'));
