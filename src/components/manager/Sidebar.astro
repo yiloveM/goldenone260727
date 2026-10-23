@@ -1,4 +1,5 @@
 ---
+import siteOrigin from '../../data/site-origin.json';
 interface Props {
   managerOwner: string;
   managerSiteName: string;
@@ -11,7 +12,7 @@ const { managerOwner, managerSiteName, managerReviewSystemEnabled, managerAnalyt
 <aside class="sidebar" id="managerSidebar">
           <button class="button secondary manager-menu-close" id="managerMenuClose" type="button">关闭工作区</button>
           <div class="brand-mark">
-            <a href="/" aria-label="返回网站首页">
+            <a href={new URL('/', siteOrigin.productionUrl).href} aria-label="返回网站首页">
               <strong>{managerSiteName}</strong>
               <span>内容管理</span>
             </a>

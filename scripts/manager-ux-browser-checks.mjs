@@ -5,6 +5,7 @@ import { openManagerTab } from './manager-test-navigation.mjs';
 export async function checkManagerUx({page,backend,check,output}) {
   const tab=name=>openManagerTab(page,name),wait=(id,text)=>page.waitForFunction(({id,text})=>document.getElementById(id)?.textContent.includes(text),{id,text});
   await check('workspace landing and publication guidance distinguish zero changes from unknown',async()=>{
+    assert.equal(await page.getByRole('link',{name:'返回网站首页',exact:true}).getAttribute('href'),new URL('/',JSON.parse(await readFile('src/data/site-origin.json','utf8')).productionUrl).href);
     backend.setWorkspace({known:true,pending:0,unpublished:0,message:'没有待发布内容。'});await page.reload();await page.locator('html[data-manager-ready=true]').waitFor({state:'attached'});await wait('workspaceUnpublished','0');assert.equal(await page.locator('[data-panel=dashboard]').getAttribute('class'),'section is-active');assert.equal(await page.locator('.publication-guidance').isHidden(),true);
     backend.setWorkspace({known:false,message:'暂时无法确认。'});await page.locator('#workspaceRefresh').click();await wait('workspaceUnpublished','待确认');assert.equal(await page.locator('.publication-guidance').isVisible(),true);
     backend.setWorkspace({known:true,pending:1,unpublished:1,message:'有待发布变更。'});
