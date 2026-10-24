@@ -4,15 +4,41 @@ import { renderProductPreviewMedia } from '../../../../lib/product-preview-media
 import siteOrigin from '../../../../data/site-origin.json';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { parse } from 'yaml';
 import { getRuntimeEnv, requireManagerAccess } from '../../../../lib/manager/access';
-import { getBranch, getDispatchToken, getRepoFullName } from '../../../../lib/manager/github';
-import {openDraftState,summarizeDraft,requireTranslationFeature,splitDraft} from '../../../../lib/draft-lifecycle';
-import {readGitBlob,FeatureDenied} from '../../../../lib/site-git';
-import {readFeatureState,requireFeature,featureResponse} from '../../../../lib/manager/features';
+import { encodeGitHubPath, getBranch, getDispatchToken, getRepoFullName, githubHeaders } from '../../../../lib/manager/github';
 
 export const prerender = false;
 
 type DraftType = 'product' | 'blog';
+
+const decodeBase64 = (value: string) => {
+  const binary = atob(value.replace(/\s+/g, ''));
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
+
+const readRepoFile = async (repoFullName: string, branch: string, path: string, accessToken: string) => {
+  const response = await fetch(
+    `https://api.github.com/repos/${repoFullName}/contents/${encodeGitHubPath(path)}?ref=${encodeURIComponent(branch)}`,
+    { headers: githubHeaders(accessToken, 'businessweb-manager-draft-preview') }
+  );
+
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(await response.text());
+  const data = (await response.json()) as { content?: string; encoding?: string };
+  if (!data.content || data.encoding !== 'base64') return null;
+  return decodeBase64(data.content);
+};
+
+const splitMdoc = (content: string) => {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!match) return { data: {}, body: content };
+  return {
+    data: parse(match[1]) as Record<string, any>,
+    body: match[2] || '',
+  };
+};
 
 const escapeHtml = (value: unknown) =>
   String(value ?? '')
@@ -167,8 +193,6 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   const access = requireManagerAccess(request, env);
   if (access.response) return access.response;
 
-  if(!['product','blog'].includes(url.searchParams.get('type')||'product'))return new Response('草稿类型不正确。',{status:400});
-
   const type = normalizeDraftType(url.searchParams.get('type'));
   const draftSlug = safeDraftSlug(url.searchParams.get('draft'));
   if (!draftSlug) return new Response('翻译草稿信息不正确，请重新打开后重试。', { status: 400 });
@@ -178,22 +202,28 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   let source: Record<string, any> = {};
 
   if (accessToken) {
+    const repoFullName = getRepoFullName(env);
+    const branch = getBranch(env);
+    const draftPath =
+      type === 'product'
+        ? `src/content/productTranslations/${draftSlug}.mdoc`
+        : `src/content/blogTranslations/${draftSlug}.mdoc`;
+
     try {
-      const state=await openDraftState({repo:getRepoFullName(env),branch:getBranch(env),token:accessToken});
-      const summary=await summarizeDraft(state,type,draftSlug,true);
-      if(!summary)return new Response('内容不存在或该语言未开放。',{status:404});
-      await requireTranslationFeature(state,summary);
-      draft={data:summary.data!,body:summary.body!};
-      const sourcePath=`src/content/${type==='product'?'products':'blog'}/${summary.sourceSlug}.mdoc`;
-      source=splitDraft(await readGitBlob(state.ctx,state.files.get(sourcePath)!)).data;
+      const draftFile = await readRepoFile(repoFullName, branch, draftPath, accessToken);
+      if (draftFile) {
+        draft = splitMdoc(draftFile);
+        const sourceSlug = String(draft.data.sourceSlug || '');
+        const sourcePath = type === 'product' ? `src/content/products/${sourceSlug}.mdoc` : `src/content/blog/${sourceSlug}.mdoc`;
+        const sourceFile = sourceSlug ? await readRepoFile(repoFullName, branch, sourcePath, accessToken) : null;
+        source = sourceFile ? splitMdoc(sourceFile).data : {};
+      }
     } catch (error) {
-      return featureResponse(error instanceof FeatureDenied?403:503);
+      void error;
     }
   }
 
   if (!draft) {
-    if(import.meta.env.PROD)return featureResponse(503);
-    try{const denied=requireFeature(await readFeatureState(env),type==='product'?'productTranslations':'articleTranslations');if(denied)return denied;}catch{return featureResponse(503);}
     draft = await readLocalDraft(type, draftSlug);
     if (!draft) return new Response('找不到这个翻译草稿。', { status: 404 });
     source = await readLocalSource(type, String(draft.data.sourceSlug || ''));

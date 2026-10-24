@@ -10,7 +10,6 @@ import {
 } from '../../../lib/analytics/d1';
 import { getSearchConsoleAnalytics } from '../../../lib/analytics/google-search-console';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
-import {readFeatureState,requireFeature,featureResponse} from '../../../lib/manager/features';
 
 export const prerender = false;
 
@@ -52,7 +51,6 @@ export const GET: APIRoute = async ({ locals, request }) => {
     }
   }
 
-  if(role==='manager'){try{const denied=requireFeature(await readFeatureState(env),'analytics');if(denied)return denied;}catch{return featureResponse(503);}}
   const db = getAnalyticsDb(env);
   if (!db) return jsonError(503, 'Analytics database is not connected.');
 

@@ -12,7 +12,7 @@ async function resources(locals: any, request: Request) {
   const db: any = getManagerDb(env); if (!db) return { response: new Response('工作草稿暂时不可用。', { status: 503 }) };
   try { await ensureManagerSchema(db); } catch { return {response:new Response('工作草稿暂时无法连接，请稍后重试。',{status:503})}; } return { env, db, email: access.email, response: null };
 }
-const failure = (error: any) => new Response([403,409,503].includes(error?.status) ? error.message : '站点视觉暂时无法处理，请检查内容后重试。', { status: [403,409,503].includes(error?.status) ? error.status : 400, headers: { 'cache-control': 'no-store' } });
+const failure = (error: any) => new Response(error?.status === 409 ? error.message : '站点视觉暂时无法处理，请检查内容后重试。', { status: error?.status === 409 ? 409 : 400, headers: { 'cache-control': 'no-store' } });
 export const GET: APIRoute = async ({ locals, request }) => {
   const resource = await resources(locals, request); if (resource.response) return resource.response;
   const { env, db } = resource;

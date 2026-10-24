@@ -36,7 +36,7 @@ const review = { buyerLabel: 'A Buyer', rating: '2', quote: 'Useful product feed
 const loadTs = async (file, data) => {
   const absolute = path.join(root, file);
   let source = await readFile(absolute, 'utf8');
-  if (data !== undefined) source = source.replace("import {reviewSettings as reviewData} from './site-policy';", `const reviewData = ${JSON.stringify(data)};`);
+  if (data !== undefined) source = source.replace("import reviewData from './customer-reviews.json';", `const reviewData = ${JSON.stringify(data)};`);
   source = source.replace(/from (['"])(\.\.?\/[^'"]+)\1/g, (_, quote, relative) => `from ${quote}${pathToFileURL(path.resolve(path.dirname(absolute), relative)).href}${quote}`);
   source = source.replace("from '@keystatic/core'", `from '${import.meta.resolve('@keystatic/core')}'`);
   const output = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
@@ -154,8 +154,7 @@ test('the browser and save endpoint enforce the owner policy without editing pub
   assert.match(manager, /productEditorFields\.map/);
   const api = await readFile(path.join(root, 'src/pages/api/manager/product-drafts.ts'), 'utf8');
   assert.match(api, /getCollection\('products'\)/);
-  assert.match(api, /enforceProductEditorPolicy\(body\.payload, latestPolicy, product\?\.data\)/);
-  assert.match(api, /saved\.features\.reviews===true/);
+  assert.match(api, /enforceProductEditorPolicy\(body\.payload, productEditorSettings, product\?\.data\)/);
 });
 
 test('an older product draft cannot overwrite a newer Keystatic policy; new products use owner defaults', async () => {
@@ -249,13 +248,4 @@ test('home review write-back automatically associates internal IDs and retains l
   assert.equal(data.reviews[0].country, 'DE');
   assert.equal(data.reviews[0].rating, '1');
   assert.equal(data.summary.rating, '');
-});
-
-test('central review OFF preserves stored review data when an older product draft is applied',async()=>{
-  const cwd=await sandbox(),directory=path.join(cwd,'src/content/products');await mkdir(directory,{recursive:true});await mkdir(path.join(cwd,'src/data'),{recursive:true});
-  const config=JSON.parse(await readFile(path.join(root,'src/data/site-config.json'),'utf8'));if(config.modules)config.modules.home=config.modules.home.filter(x=>x.id!=='reviews');config.features.reviews.enabled=false;await writeFile(path.join(cwd,'src/data/site-config.json'),JSON.stringify(config));
-  const file=path.join(directory,'sample-product.mdoc');await writeFile(file,`---\n${YAML.stringify({title:'Original',description:'Description',category:'Equipment',reviews:[review],aggregateRatingValue:'2',aggregateRatingCount:1})}---\nBody.\n`);
-  const payload={productSlug:'sample-product',title:'Updated',description:'Description',category:'Equipment',reviews:[],aggregateRatingValue:'5',aggregateRatingCount:9};
-  runWriteback('apply-manager-product-draft.mjs',cwd,{MANAGER_PRODUCT_DRAFT_PAYLOAD:Buffer.from(JSON.stringify(payload)).toString('base64'),MANAGER_PRODUCT_DRAFT_ID:'fixture'});
-  const stored=YAML.parse((await readFile(file,'utf8')).split(/^---\s*$/m)[1]);assert.equal(stored.title,'Updated');assert.equal(stored.reviews[0].rating,'2');assert.equal(stored.aggregateRatingValue,'2');assert.equal(stored.aggregateRatingCount,1);
 });

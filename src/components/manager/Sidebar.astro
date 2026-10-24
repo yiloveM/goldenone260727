@@ -41,7 +41,7 @@ const { managerOwner, managerSiteName, managerReviewSystemEnabled, managerAnalyt
               <button class="tab is-active" data-tab="dashboard" type="button">工作台</button>
               <button class="tab" data-tab="products" type="button">产品管理</button>
               <button class="tab" data-tab="blog" type="button">所有文章</button>
-              <button class="tab" data-tab="reviews" type="button" hidden={!managerReviewSystemEnabled}>客户评价</button>
+              {managerReviewSystemEnabled ? <button class="tab" data-tab="reviews" type="button">客户评价</button> : null}
               <button class="tab" data-workspace="translation" type="button">翻译</button>
               <button class="tab" data-tab="visuals" type="button">站点视觉</button>
               <button class="tab" data-tab="publish" type="button">发布网站更新</button>
@@ -50,10 +50,12 @@ const { managerOwner, managerSiteName, managerReviewSystemEnabled, managerAnalyt
               <span class="nav-group-label">媒体</span>
               <button class="tab" data-tab="images" type="button">媒体资源</button>
             </div>
-              <div class="nav-group" id="managerAnalyticsGroup" hidden={!managerAnalyticsEnabled}>
+            {managerAnalyticsEnabled ? (
+              <div class="nav-group">
                 <span class="nav-group-label">数据</span>
                 <a class="tab tab-link" id="managerAnalyticsLink" href="#">网站访问分析</a>
               </div>
+            ) : null}
           </nav>
           <small class="manager-owner">站点维护：{managerOwner}</small>
         </aside>

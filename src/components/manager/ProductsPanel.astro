@@ -179,7 +179,7 @@ const { managerReviewSystemEnabled } = Astro.props;
                   <div class="builder-list" id="faqsList"></div>
                 </div>
               </div>
-              <div class="field is-wide" data-review-fields hidden={!managerReviewSystemEnabled}>
+              {managerReviewSystemEnabled && <div class="field is-wide">
                 <div class="builder">
                   <div class="builder-head">
                     <strong>产品评价</strong>
@@ -194,7 +194,7 @@ const { managerReviewSystemEnabled } = Astro.props;
                     </div>
                   </details>
                 </div>
-              </div>
+              </div>}
               <div class="field is-wide">
                 <div class="builder">
                   <div class="builder-head">

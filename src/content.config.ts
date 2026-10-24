@@ -1,7 +1,7 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
-import {productEditorSettings as productEditorSettings} from './data/site-policy';
+import productEditorSettings from './data/product-editor-settings.json';
 
 const localizedDraftLocales = ['zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'] as const;
 

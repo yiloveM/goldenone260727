@@ -3,7 +3,7 @@ import { parseDocument } from 'yaml';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import { ensureManagerSchema, getManagerDb } from '../../../lib/manager/d1';
 import { getRepoFullName, getBranch, getDispatchToken } from '../../../lib/manager/github';
-import { readGitHead, readGitTree, readGitBlobs, commitGitFiles, DraftConflict,FeatureDenied,FeatureUnavailable, gitBlobSha } from '../../../lib/site-git';
+import { readGitHead, readGitTree, readGitBlobs, commitGitFiles, DraftConflict, gitBlobSha } from '../../../lib/site-git';
 import { splitDraft } from '../../../lib/draft-lifecycle';
 export const prerender = false;
 const json = (data: any) => Response.json(data, { headers: { 'cache-control': 'no-store' } });
@@ -19,7 +19,7 @@ async function catalog(ctx: any) {
   const products = files.map(file => ({ ...splitDraft(blobs.get(file.sha)!), sourcePath: file.path, sourceSha: file.sha, slug: file.path.split('/').pop()!.slice(0, -5), raw: blobs.get(file.sha)! }));
   return { head, tree, products };
 }
-const fail = (error: any) => new Response(error instanceof DraftConflict||error instanceof FeatureDenied||error instanceof FeatureUnavailable ? error.message : '排序未完成，请重新载入产品后重试。', { status: [403,409,503].includes(error?.status) ? error.status : 400, headers: { 'cache-control': 'no-store' } });
+const fail = (error: any) => new Response(error instanceof DraftConflict ? error.message : '排序未完成，请重新载入产品后重试。', { status: error instanceof DraftConflict ? 409 : 400, headers: { 'cache-control': 'no-store' } });
 export const GET: APIRoute = async ({ locals, request }) => {
   const resource = await resources(locals, request); if (resource.response) return resource.response;
   const rows = (await resource.db.prepare("SELECT * FROM manager_product_drafts WHERE json_extract(payload_json,'$.managerOrderBatch.id') IS NOT NULL ORDER BY updated_at DESC LIMIT 500").all()).results || [];
@@ -71,7 +71,7 @@ export const PATCH: APIRoute = async ({ locals, request }) => {
     try {
       await commitGitFiles(ctx!, state.head, state.tree.sha, files, `Review product order ${body.id}`);
       await db.batch(rows.map((row: any) => db.prepare("UPDATE manager_product_drafts SET status='applied',applied_at=CURRENT_TIMESTAMP WHERE id=? AND status='queued'").bind(row.id)));
-    } catch (error) { if (error instanceof DraftConflict||error instanceof FeatureDenied||error instanceof FeatureUnavailable) await db.batch(rows.map((row: any) => db.prepare("UPDATE manager_product_drafts SET status='draft' WHERE id=? AND status='queued'").bind(row.id))); throw error; }
+    } catch (error) { if (error instanceof DraftConflict) await db.batch(rows.map((row: any) => db.prepare("UPDATE manager_product_drafts SET status='draft' WHERE id=? AND status='queued'").bind(row.id))); throw error; }
     return json({ applied: true, message: '排序已审核，等待发布网站更新。' });
   } catch (error) { return fail(error); }
 };

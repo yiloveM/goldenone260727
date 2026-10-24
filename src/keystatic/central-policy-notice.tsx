@@ -1,1 +1,0 @@
-export const centralPolicyNotice = () => ({ kind: 'form' as const, label: '功能总成', Input: () => <p>功能开关和目标语言请在“功能总成”中修改。这里继续维护详细设置及内容，保存后按原流程发布。</p>, defaultValue: () => '', parse: () => '', serialize: () => ({ value: undefined }), validate: (value: string) => value, reader: { parse: () => '' } });

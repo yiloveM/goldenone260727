@@ -20,7 +20,6 @@ globalThis.fetch=async(input,init={})=>{
  if(url.pathname.endsWith('/git/trees'))return Response.json({sha:'b'.repeat(40)});
  if(url.pathname.endsWith('/git/commits'))return Response.json({sha:'c'.repeat(40)});
  if(url.pathname.endsWith('/git/ref/heads/main'))return Response.json({object:{sha:'a'.repeat(40)}});
- if(url.pathname.endsWith('/git/trees/'+'a'.repeat(40)))return Response.json({sha:'d'.repeat(40),tree:[]});
  if(url.pathname.endsWith('/git/refs/heads/main')){assert.equal(body.force,false);return Response.json({});}
  if(url.pathname.endsWith('/site-publish.yml/runs'))return Response.json({workflow_runs:Array.from({length:30},(_,i)=>({id:30-i,run_attempt:1,event:'push',head_branch:'main',head_sha:(30-i).toString(16).padStart(40,'0'),status:'completed',conclusion:'success',updated_at:`2026-10-${String(30-i).padStart(2,'0')}T05:00:00Z`}))});
  if(url.pathname.endsWith('/actions/runs/30/jobs'))return Response.json({total_count:1,jobs:[{status:'completed',conclusion:'success',steps:[{name:'Build the Astro site',conclusion:'success'},{name:'Deploy the production Worker and static assets',status:'completed',conclusion:'success',completed_at:'2026-10-30T04:59:00Z'}]}]});
@@ -29,9 +28,9 @@ globalThis.fetch=async(input,init={})=>{
 try{
  const bodies=await readGitBlobs(ctx,shas);assert.equal(bodies.size,468);assert.equal(calls.length,8);checks++;
  await commitGitFiles(ctx,'a'.repeat(40),'d'.repeat(40),shas.map((sha,i)=>({path:`src/content/productTranslations/es--product-${i}.mdoc`,content:bodies.get(sha)})),'Isolated batch');
- assert.equal(calls.length,14);assert.equal(calls.filter(x=>x.url.endsWith('/git/trees'))[0].body.tree.length,468);assert.ok(calls.every(x=>!x.url.endsWith('/git/blobs')));checks++;
+ assert.equal(calls.length,12);assert.equal(calls.filter(x=>x.url.endsWith('/git/trees'))[0].body.tree.length,468);assert.ok(calls.every(x=>!x.url.endsWith('/git/blobs')));checks++;
  broken=true;calls=[];await assert.rejects(()=>readGitBlobs(ctx,shas),/读取不完整/);assert.equal(calls.length,1);checks++;
  broken=false;calls=[];const release=await readSiteRelease(ctx);assert.equal(release.runId,30);assert.equal(calls.length,2);checks++;
  calls=[];assert.equal((await readSiteRelease(ctx)).runId,30);assert.equal(calls.length,1);checks++;
- console.log(JSON.stringify({passed:checks,records:468,maxRequests:14,cloudWrites:'NONE'}));
+ console.log(JSON.stringify({passed:checks,records:468,maxRequests:12,cloudWrites:'NONE'}));
 }finally{globalThis.fetch=original;}

@@ -1,7 +1,7 @@
 import { canonicalArticleCategory, requireArticleCategory } from './article-categories.mjs';
 import identity from 'virtual:site-build-identity';
 import { parse, stringify } from 'yaml';
-import { commitGitFiles, DraftConflict, FeatureDenied, FeatureUnavailable, readGitFeatureConfig, mapGitItems, readGitBlob, readGitBlobs, readGitHead, readGitTree, type GitContext, type GitTree } from './site-git';
+import { commitGitFiles, DraftConflict, mapGitItems, readGitBlob, readGitBlobs, readGitHead, readGitTree, type GitContext, type GitTree } from './site-git';
 import { readSiteRelease } from './site-release';
 import {readSitePublicLocales as publicLocales} from './site-language-policy';
 
@@ -39,13 +39,6 @@ export async function openDraftState(ctx: GitContext, ref = '') {
   return { ctx, head, tree, files, active, release, deployed, deployedLocales };
 }
 type State = Awaited<ReturnType<typeof openDraftState>>;
-export function translationFeatureAllowed(features:Record<string,boolean>,item:{type:DraftKind;wasLive:boolean}){
-  return features[item.type==='product'?'products':'articles']===true&&(item.wasLive||features.translations===true);
-}
-export async function requireTranslationFeature(state:State,item:{type:DraftKind;wasLive:boolean}){
-  const {features}=await readGitFeatureConfig(state.ctx,state.files);
-  if(!translationFeatureAllowed(features,item))throw new FeatureDenied();
-}
 export async function summarizeDraft(state: State, type: DraftKind, id: string, withBody = false) {
   const path = draftPath(type, id);
   const sha = state.files.get(path);
@@ -111,10 +104,8 @@ export async function mutateTranslationDrafts(state: State, type: DraftKind, pay
   for (const [id, expected] of unique) {
     const current = await summarizeDraft(state,type,id);
     if(!current || current.sourceSha!==expected)throw new DraftConflict('草稿或公开语言已变化，请刷新后重试。');
-    await requireTranslationFeature(state,current);
     candidates.push(current);
   }
-  state.ctx.featureRequirements=[...new Set([...(state.ctx.featureRequirements||[]),type==='product'?'products':'articles',...(!candidates.every(item=>item.wasLive)?['translations']:[])])];
   const bodies=action==='delete'?new Map<string,string>():await readGitBlobs(state.ctx,candidates.filter(item=>action==='save'||!item.published).map(item=>item.sourceSha));
   for (const current of candidates) {
     const id=current.draftSlug,path=draftPath(type,id);
@@ -164,11 +155,9 @@ export async function translationDraftRoute(request: Request, url: URL, ctx: Git
         if (!safeDraftSlug(id) || type === 'all') throw new Error('草稿信息不正确。');
         const draft = await summarizeDraft(state, type, id, true);
         if (!draft) throw new Error('内容不存在或该语言未公开。');
-        await requireTranslationFeature(state,draft);
         return json({ draft: adapt(draft), warning: state.release.warning });
       }
-      const {features}=await readGitFeatureConfig(ctx,state.files);
-      const all = ((await listTranslationDrafts(state, type)) as any[]).filter(item=>translationFeatureAllowed(features,item));
+      const all = (await listTranslationDrafts(state, type)) as any[];
       const liveOnly = url.searchParams.get('scope') === 'live';
       const formal = url.searchParams.get('scope') === 'formal';
       const drafts = all.filter(item => formal ? item.wasLive : liveOnly ? item.lifecycle === 'live' : item.lifecycle !== 'live' && (url.searchParams.get('includePublished') === 'true' || !item.published));
@@ -183,7 +172,6 @@ export async function translationDraftRoute(request: Request, url: URL, ctx: Git
     }
     return json(result);
   } catch (error) {
-    if(error instanceof FeatureDenied||error instanceof FeatureUnavailable)return new Response(error.message,{status:error.status,headers:{'cache-control':'no-store'}});
     return new Response(error instanceof DraftConflict ? error.message : '无法读取或修改最新内容，请刷新后重试。' + (error instanceof Error && !/token|credential|github\.com|\{/.test(error.message) ? ` ${error.message}` : ''), { status: error instanceof DraftConflict ? 409 : 502, headers: { 'cache-control': 'no-store' } });
   }
 }

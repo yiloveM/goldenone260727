@@ -1,3 +1,9 @@
+## 2026-10-24 +08:00 - 站长撤回CAP-0017，恢复原生Keystatic
+
+- 站长明确要求回退Golden和母版本轮总成，48新增文件移除清单获原文确认；独立codex/rollback-keystatic-20261024，当前基线f928e3e，源码为本条引入提交。本站运行源码/测试/发布过滤/README精确恢复65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2，移除29个本轮新增总成依赖/配置/测试，原生CMS入口和原设置方式恢复；此前Manager/视觉/媒体/llms/80内容/资源不变。CAP-0017 rev2现为撤回/未采纳，历史实现与已发布回执仍保留，不作为继续分发依据。
+- 本地完整Manager53组及原Reader80/写回/媒体/视觉链通过；完整build843HTML/4699JSONLD零错误，513文件0错误0警告303提示（本机旧tsconfig亦扫描已有Temp生成文件）；模板检查与224公开产物比较零差异。推送/原site-publish及线上验证待回执；站长原7行本地交接保持且不提交。无需修改D1/R2或正文。母版提示词同步局部退回，通用建站改进保留。Aqua已停未发布，Etha/Corner本轮未动。
+- 不reset/强推；按新回退提交交付自身main和唯一site-publish。任何撤销本次回退须先有新明确指令并核后来CMS；不自动恢复总成或客户/云数据。
+
 ## 2026-10-24 +08:00 - CAP-0017 Golden One 发布验收回执
 
 - own main已核收到56990be37823bcb05efe3ad754bbe54029c3e9b9；[原site-publish40098554764](https://github.com/yiloveM/goldenone260727/actions/runs/40098554764)完整构建及实际部署completed/success。发布后10项真实HTTP只读检查通过：首页/两产品自身canonical、两公开语言llms逐字节与MIME、旧/新增私有管理接口隔离。此收据skip-ci不再部署。

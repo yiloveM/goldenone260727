@@ -68,7 +68,7 @@ export function installWorkspace(context) {
       $('workspaceStatus').textContent = data.message || '状态已更新。';
       const reminder = document.querySelector('.publication-guidance'); reminder.hidden = data.known && data.unpublished === 0;
       reminder.classList.toggle('has-changes', data.known && data.unpublished > 0);
-      $('publicationGuidanceText').textContent = data.known ? context.features?.publishing===false?`有 ${data.unpublished} 项内容等待网站更新，请联系站长安排发布。`:`有 ${data.unpublished} 项已审核变更，完成编辑后请在“网站发布”统一更新。` : '暂时无法确认未发布变更，请更新状态后核对。';
+      $('publicationGuidanceText').textContent = data.known ? `有 ${data.unpublished} 项已审核变更，完成编辑后请在“网站发布”统一更新。` : '暂时无法确认未发布变更，请更新状态后核对。';
       return data;
     }).catch(error => { $('workspaceStatus').textContent = error.message; $('workspaceUnpublished').textContent = '待确认'; document.querySelector('.publication-guidance').hidden = false; $('publicationGuidanceText').textContent = '暂时无法确认未发布变更，请稍后更新状态。'; }).finally(() => { refreshing = null; });
     return refreshing;

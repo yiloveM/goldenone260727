@@ -1,4 +1,4 @@
-import {aiSeoSettings as aiSeoSettings} from './data/site-policy';
+import aiSeoSettings from './data/ai-seo-settings.json';
 import { discoveryResponse } from './lib/ai-discovery-response';
 import astroServer from '@astrojs/cloudflare/entrypoints/server';
 import {
@@ -13,7 +13,7 @@ import { capturePublicPageView } from './lib/analytics/capture';
 import { getEnvString } from './lib/runtime-env';
 import { getScopedRuntimeSecret } from './lib/runtime-secret';
 import { handleDownloadRequest } from './pages/api/download';
-import {readFeatureState,requireFeature,featureResponse} from './lib/manager/features';
+import analyticsDashboardSettings from './keystatic/analytics-dashboard.json';
 import industryProfile from './data/industry-profile.json';
 
 type WorkerEnv = Parameters<(typeof astroServer)['fetch']>[1] & Record<string, unknown>;
@@ -23,6 +23,7 @@ type AssetFetcher = { fetch(input: Request | URL | string): Promise<Response> };
 const astro = astroServer;
 const PORTAL_COOKIE = '__Host-businessweb-portal';
 const SESSION_TTL_SECONDS = 12 * 60 * 60;
+const managerAnalyticsEnabled = analyticsDashboardSettings.managerVisible === true;
 const portalBrand = String(industryProfile.brand?.name || 'Golden One').trim() || 'Golden One';
 const portalOwner = String(
   (industryProfile.governance as { contentOwner?: string } | undefined)?.contentOwner || 'Ethan.B.Rain'
@@ -256,7 +257,7 @@ const mapPortalPath = (pathname: string, portal: AdminPortalConfig) => {
   if (suffix.startsWith('/api/')) return suffix;
   if (portal.name === 'keystatic') return `/keystatic${suffix}`;
   if (portal.name === 'manager' && (suffix === '/reviews' || suffix === '/reviews/')) return '/manager/reviews/';
-  if (portal.name === 'manager' && (suffix === '/analytics' || suffix === '/analytics/')) {
+  if (portal.name === 'manager' && managerAnalyticsEnabled && (suffix === '/analytics' || suffix === '/analytics/')) {
     return '/manager/analytics/';
   }
   return null;
@@ -377,9 +378,6 @@ const handlePortalRequest = async (
     }
 
     if (!hasSession) return notFound();
-    if(portal.name==='manager'&&(mappedPath==='/manager/analytics/'||mappedPath==='/manager/reviews/')){
-      try{const denied=requireFeature(await readFeatureState(env),mappedPath.includes('/analytics/')?'analytics':'reviews');if(denied)return securePortalResponse(denied,portal);}catch{return securePortalResponse(featureResponse(503),portal);}
-    }
     if (isEntry && request.method === 'POST') {
       return new Response(null, { status: 303, headers: { ...PRIVATE_HEADERS, location: `/${portal.uuid}` } });
     }

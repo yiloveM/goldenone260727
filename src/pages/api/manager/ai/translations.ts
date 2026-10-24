@@ -68,7 +68,6 @@ export const POST: APIRoute = async ({ locals, request }) => {
   if (!Array.isArray(body.locales) || body.locales.some(code => !scope.locales.includes(code))) return new Response('请选择本站已开放的目标语言。', { status: 400 });
   const targetLocales = normalizeLocales(body.locales);
   const sourceType = normalizeSourceType(body.sourceType);
-  if(scope.features.translations!==true||(sourceType==='products'&&!scope.features.products)||(sourceType==='blog'&&!scope.features.articles)||(sourceType==='all'&&(!scope.features.products||!scope.features.articles)))return new Response('站长暂未开放所选内容的翻译，本次未提交任务。',{status:403});
   const sourceSlug = String(body.sourceSlug || '').trim();
   const overwrite = body.overwrite === true;
   if (!['products','blog','all'].includes(body.sourceType || '') || sourceSlug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(sourceSlug)) return new Response('原文选择信息不正确。', { status: 400 });

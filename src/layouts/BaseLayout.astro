@@ -1,5 +1,4 @@
 ---
-import {siteConfig} from '../data/site-policy';
 import { getCollection } from 'astro:content';
 import '../styles/global.css';
 import '../styles/goldenone-redesign.css';
@@ -310,7 +309,7 @@ const localizedIndustry = translateTechnicalText(industryProfile.market.industry
       )}
     </header>
     <slot />
-    {!isContactPage && (!siteConfig || siteConfig.features.inquiryCart.visible) && <InquiryCart locale={pageLocale} />}
+    {!isContactPage && <InquiryCart locale={pageLocale} />}
     <BackToTop label={dictionary.common.backToTop} />
     <ContactAction whatsapp={hasWhatsApp ? siteInfo.whatsapp : ''} email={hasEmail ? siteInfo.email : ''} />
     <footer class="footer">

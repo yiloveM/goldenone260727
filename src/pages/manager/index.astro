@@ -17,10 +17,10 @@ import ImagePreview from '../../components/manager/ImagePreview.astro';
 import '../../styles/manager.css';
 import { serializeJsonLd } from '../../lib/json-ld.mjs';
 import siteOriginConfig from '../../data/site-origin.json';
-import {productEditorSettings as productEditorSettings} from '../../data/site-policy';
+import productEditorSettings from '../../data/product-editor-settings.json';
 import { productEditorFields, resolveProductEditorPolicy } from '../../lib/product-editor.mjs';
 const productEditorPolicy = resolveProductEditorPolicy(productEditorSettings);
-import {analyticsSettings as analyticsDashboardSettings} from '../../data/site-policy';
+import analyticsDashboardSettings from '../../keystatic/analytics-dashboard.json';
 import industryProfile from '../../data/industry-profile.json';
 import { reviewSystemEnabled } from '../../data/customerReviews';
 
@@ -48,7 +48,6 @@ const managerSiteName = industryProfile.brand?.name || '内容管理';
 
         <div class="content-area">
           <header class="manager-mobile-header"><button class="button secondary" id="managerMenuButton" aria-controls="managerSidebar" aria-expanded="false" type="button">工作区</button><strong>{managerSiteName}</strong><span>内容管理</span></header>
-          <div id="managerFeatureStatus" class="status" role="status" aria-live="polite"></div>
           <aside class="publication-guidance" role="note" aria-label="发布提醒" hidden>
             <strong>发布提醒</strong>
             <span id="publicationGuidanceText">正在确认未发布变更。</span>

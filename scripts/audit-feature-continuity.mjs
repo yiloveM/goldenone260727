@@ -29,7 +29,7 @@ const contracts = [
   {
     area: 'Private portal host gateway',
     file: 'src/worker.ts',
-    markers: ['getScopedRuntimeSecret', 'admin-portal-session', 'KEYSTATIC_SECRET', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'readFeatureState','requireFeature', 'contextWithEnv', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest', 'capturePublicPageView', 'context.waitUntil'],
+    markers: ['getScopedRuntimeSecret', 'admin-portal-session', 'KEYSTATIC_SECRET', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'getAdminPortalConfigSet', 'rewritePortalText', 'isProtectedPublicPath', 'isDirectPortalApiPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest', 'capturePublicPageView', 'context.waitUntil'],
   },
   {
     area: 'Private portal configuration boundary',
@@ -394,10 +394,8 @@ function auditProject(root, label) {
   for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
     if (managerUi.includes(forbidden)) addError(`${label}: Manager must not store or request a browser bearer token: ${forbidden}`);
   }
-  if (!managerUi.includes('data-tab="reviews" type="button" hidden={!managerReviewSystemEnabled}') ||
-      !managerUi.includes('context.managerReviewSystemEnabled=flags.reviews===true') ||
-      !managerUi.includes('node.hidden=!canUseTab(tab)')) {
-    addError(`${label}: Manager customer-review navigation must be controlled by the Keystatic review-system switch.`);
+  if (!managerUi.includes('{managerReviewSystemEnabled ? <button class="tab" data-tab="reviews"')) {
+    addError(`${label}: Manager review navigation must follow the owner-controlled review-system switch.`);
   }
   const managerAnalytics = readText(resolve(root, 'src/pages/manager/analytics.astro'));
   if (managerAnalytics.includes('<strong>Golden One</strong>') || !managerAnalytics.includes('<strong>{managerSiteName}</strong>') || !managerUi.includes('<strong>{managerSiteName}</strong>') || !managerAnalytics.includes('站点维护：{managerOwner}')) {

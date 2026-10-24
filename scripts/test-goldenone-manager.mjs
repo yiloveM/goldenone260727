@@ -1,5 +1,3 @@
-import {createHash} from 'node:crypto';
-import {openManagerTab,expandManagerEditor} from './manager-test-navigation.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir, mkdtemp, readdir } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
@@ -30,11 +28,9 @@ for (const name of await readdir(resolve(root, 'src/content/products'))) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
   const data = YAML.parse(match[1]);
   const content = source.slice(match[0].length).trim();
-  const normalizedText=source.replace(/\r\n/g,'\n');
-  const sourceSha=createHash('sha1').update(`blob ${Buffer.byteLength(normalizedText)}\0${normalizedText}`).digest('hex');
-  const normalized = backend.normalizeProduct({ ...data, productSlug: slug, content, sourceSha });
+  const normalized = backend.normalizeProduct({ ...data, productSlug: slug, content });
   documents.set(slug, { source, normalized, data });
-  backend.products.push({ ...policy, ...normalized, slug, locale:'en',sourcePath:`src/content/products/${slug}.mdoc` });
+  backend.products.push({ ...policy, ...normalized, slug });
   await writeFile(resolve(output, 'write-back/src/content/products', slug + '.mdoc'), source);
 }
 assert.ok(documents.size >= 38, 'Exercise the actual customer catalog, not just generic fixture data.');
@@ -58,13 +54,13 @@ try {
   });
   context.on('page', current => current.on('pageerror', error => faults.push(error.message)));
   page = await context.newPage();
-  await page.goto(server.url); await openManagerTab(page,'products');
+  await page.goto(server.url);
   const waitSaved = () => page.waitForFunction(() => document.getElementById('statusText').textContent.includes('草稿已保存'));
   await check('all real customer products retain metadata and image-group ordering through actual write-back', async () => {
     for (const [slug, { normalized, data, source }] of documents) {
       const applied = spawnSync(process.execPath, [resolve(root, 'scripts/apply-manager-product-draft.mjs')], {
         cwd: resolve(output, 'write-back'), encoding: 'utf8', env: { ...process.env,
-          MANAGER_PRODUCT_DRAFT_PAYLOAD: Buffer.from(JSON.stringify({...normalized,sourceSha:(()=>{const text=source.replace(/\r\n/g,'\n');return createHash('sha1').update(`blob ${Buffer.byteLength(text)}\0${text}`).digest('hex');})()})).toString('base64'), MANAGER_PRODUCT_DRAFT_ID: 'customer-regression' },
+          MANAGER_PRODUCT_DRAFT_PAYLOAD: Buffer.from(JSON.stringify(normalized)).toString('base64'), MANAGER_PRODUCT_DRAFT_ID: 'customer-regression' },
       });
       assert.equal(applied.status, 0, slug + ': ' + applied.stderr);
       const saved = await readFile(resolve(output, 'write-back/src/content/products', slug + '.mdoc'), 'utf8');
@@ -78,7 +74,7 @@ try {
     if (!['soft-enamel-pins', '3d-challenge-coins', 'custom-sports-medals'].includes(slug)) continue;
     await check(slug + ': original tables, images and features survive save/resume/write-back', async () => {
       await page.locator('#searchInput').fill(normalized.title);
-      await page.locator(`.manager-product-title[data-slug="${slug}"]`).click(); await expandManagerEditor(page);
+      await page.locator(`.manager-product-title[data-slug="${slug}"]`).click();
       assert.equal(await page.locator('#offeringType').inputValue(), normalized.offeringType || policy.offeringType);
       assert.equal(await page.locator('#modelStrategy').inputValue(), normalized.modelStrategy || policy.modelStrategy);
       await page.locator('#title').fill(normalized.title + ' test');
@@ -88,9 +84,9 @@ try {
       const gallery = [...new Set([normalized.image, ...normalized.galleryImages].filter(Boolean))];
       assert.deepEqual(draft.payload.galleryImages, gallery);
       assert.equal(draft.payload.image, gallery[0] || '');
-      await page.reload(); await openManagerTab(page,'products'); await page.locator('#searchInput').fill(normalized.title);
-      await page.locator(`.manager-product-title[data-slug="${slug}"]`).click(); await expandManagerEditor(page);
-      await page.locator(`[data-product-draft-edit="${draft.id}"]`).click(); await expandManagerEditor(page);
+      await page.reload(); await page.locator('#searchInput').fill(normalized.title);
+      await page.locator(`.manager-product-title[data-slug="${slug}"]`).click();
+      await page.locator(`[data-product-draft-edit="${draft.id}"]`).click();
       assert.equal(await page.locator('#title').inputValue(), normalized.title + ' test');
       await page.locator('#saveDraftButton').click(); await waitSaved();
       assert.equal(backend.productDrafts().filter(item => item.productSlug === slug).length, 1);
@@ -113,12 +109,9 @@ try {
     const slug = 'soft-enamel-pins';
     Object.assign(backend.products.find(item => item.slug === slug), { offeringType: 'solution', modelStrategy: 'configurable' });
     const draft = backend.productDrafts().find(item => item.productSlug === slug);
-    // This scenario needs a pending work draft; the previous scenario already
-    // completed this fixture's review, which correctly removes it from pending.
-    backend.db.prepare("UPDATE manager_product_drafts SET status='draft' WHERE id=?").run(draft.id);
-    await page.reload(); await openManagerTab(page,'products'); await page.locator('#searchInput').fill(documents.get(slug).normalized.title);
-    await page.locator(`.manager-product-title[data-slug="${slug}"]`).click(); await expandManagerEditor(page);
-    await page.locator(`[data-product-draft-edit="${draft.id}"]`).click(); await expandManagerEditor(page);
+    await page.reload(); await page.locator('#searchInput').fill(documents.get(slug).normalized.title);
+    await page.locator(`.manager-product-title[data-slug="${slug}"]`).click();
+    await page.locator(`[data-product-draft-edit="${draft.id}"]`).click();
     assert.equal(await page.locator('#offeringType').inputValue(), 'solution');
     assert.equal(await page.locator('#modelStrategy').inputValue(), 'configurable');
     assert.equal(await page.locator('#modelStrategy').isDisabled(), true);
@@ -129,30 +122,30 @@ try {
     const flags = JSON.parse(await readFile(resolve(root, 'src/data/site-language-settings.json'), 'utf8')).enabledLocales;
     const locales = Object.keys(flags).filter(code => flags[code]).map(value => ({ value, label: value }));
     backend.setLocales(locales);
-    await page.reload(); await openManagerTab(page,'products'); await openManagerTab(page,"translation");
+    await page.reload(); await page.locator('[data-tab="translation"]').click();
     await page.waitForFunction(count => document.querySelectorAll('#localeGrid input').length === count, locales.length);
     assert.equal(await page.locator('#localeGrid input').count(), locales.length);
-    backend.setLocales([]); await page.reload(); await openManagerTab(page,'products'); await openManagerTab(page,"translation");
+    backend.setLocales([]); await page.reload(); await page.locator('[data-tab="translation"]').click();
     await page.waitForFunction(() => document.getElementById('localeGrid').textContent.includes('尚未启用'));
     assert.equal(await page.locator('#localeGrid input').count(), 0);
-    backend.setLocales(locales); await page.reload(); await openManagerTab(page,'products'); await openManagerTab(page,"translation");
+    backend.setLocales(locales); await page.reload(); await page.locator('[data-tab="translation"]').click();
     await page.waitForFunction(count => document.querySelectorAll('#localeGrid input').length === count, locales.length);
   });
   await check('Golden One theme preference and PDF insertion retain their customer behavior', async () => {
     await page.locator('#themeMenuButton').click(); await page.locator('[data-theme-option="dark"]').click();
-    assert.equal(await page.evaluate(() => localStorage.getItem('businessweb-manager-theme')), 'dark');
-    await openManagerTab(page,"products");
-    await page.locator('#searchInput').fill(''); await page.locator('#newProductButton').click(); await expandManagerEditor(page);
+    assert.equal(await page.evaluate(() => localStorage.getItem('goldenone-manager-theme')), 'dark');
+    await page.locator('[data-tab="products"]').click();
+    await page.locator('#searchInput').fill(''); await page.locator('#newProductButton').click();
     const surface = page.locator('[data-rich-editor="productContent"] .rich-editor__surface');
     await surface.fill('Product documentation'); await surface.click();
-    await openManagerTab(page,"images");
+    await page.locator('[data-tab="images"]').click();
     await page.locator('[data-asset-insert-document]').first().click();
     assert.equal(await surface.locator('a').last().getAttribute('href'), '/fixture.pdf');
     assert.equal(await surface.locator('a').last().getAttribute('target'), '_blank');
     assert.equal(await surface.locator('a').last().getAttribute('rel'), 'noopener');
   });
   await check('article duplicate-save protection and resumed-draft identity also hold', async () => {
-    await openManagerTab(page,"blog");
+    await page.locator('[data-tab="blog"]').click();
     await page.locator('[data-blog-slug="sample-article"]').click();
     await page.locator('#blogTitle').fill('Golden One article pending revision');
     const before = backend.requests.filter(item => item.path.endsWith('/blog-drafts') && item.method === 'POST').length;
@@ -160,7 +153,7 @@ try {
     await page.waitForFunction(() => document.getElementById('blogStatus').textContent.includes('草稿已保存'));
     assert.equal(backend.requests.filter(item => item.path.endsWith('/blog-drafts') && item.method === 'POST').length - before, 1);
     const draft = backend.db.prepare('SELECT id FROM manager_blog_drafts').get();
-    await page.reload(); await openManagerTab(page,'products'); await openManagerTab(page,"blog");
+    await page.reload(); await page.locator('[data-tab="blog"]').click();
     await page.locator('[data-blog-slug="sample-article"]').click();
     await page.locator(`[data-blog-draft-edit="${draft.id}"]`).click();
     assert.equal(await page.locator('#blogTitle').inputValue(), 'Golden One article pending revision');
@@ -170,7 +163,7 @@ try {
     assert.equal(backend.db.prepare('SELECT COUNT(*) AS count FROM manager_blog_drafts').get().count, 1);
   });
   await check('store review drafts resume after reload, update one record and preserve optional legacy metadata', async () => {
-    await openManagerTab(page,"reviews");
+    await page.locator('[data-tab="reviews"]').click();
     await page.locator('#newReviewButton').click();
     await page.locator('#reviewBuyerLabel').fill('Pending custom gift buyer');
     await page.locator('#reviewQuote').fill('Careful finishing and clear communication.');
@@ -187,7 +180,7 @@ try {
     const legacy = JSON.parse(backend.db.prepare('SELECT payload_json FROM manager_review_drafts').get().payload_json);
     legacy.country = 'New Zealand'; legacy.projectType = 'Custom pins';
     backend.db.prepare('UPDATE manager_review_drafts SET payload_json = ? WHERE id = ?').run(JSON.stringify(legacy), draft.id);
-    await page.reload(); await openManagerTab(page,'products'); await openManagerTab(page,"reviews");
+    await page.reload(); await page.locator('[data-tab="reviews"]').click();
     await page.locator(`[data-review-draft-edit="${draft.id}"]`).click();
     assert.equal(await page.locator('#reviewBuyerLabel').inputValue(), 'Pending custom gift buyer');
     await page.locator('#reviewQuote').fill('Updated pending review.');
@@ -204,12 +197,12 @@ try {
     await page.waitForFunction(() => document.getElementById('connectionDetail').textContent.includes('重试'));
     assert.equal(backend.requests.filter(item => item.path.endsWith('/products')).length, before);
     assert.equal(await page.locator('#connectionPanel').evaluate(node => node.classList.contains('is-connected')), false);
-    await page.reload(); await openManagerTab(page,'products'); await page.waitForSelector('.manager-product-row');
+    await page.reload(); await page.waitForSelector('.manager-product-row');
     assert.equal(await page.locator('#connectionPanel').evaluate(node => node.classList.contains('is-connected')), true);
     assert.equal(await page.locator('[name="TURNSTILE_SECRET"], #turnstileEnabled, #catalogDownloadsEnabled').count(), 0);
   });
   await check('expired-session 403 cannot save and preserves input for an authorized retry', async () => {
-    await page.locator('#newProductButton').click(); await expandManagerEditor(page);
+    await page.locator('#newProductButton').click();
     await page.locator('#productSlug').fill('session-retry-product');
     await page.locator('#title').fill('Retain this pending title');
     await page.locator('#description').fill('Pending description');
@@ -221,8 +214,6 @@ try {
     assert.equal(await page.locator('#title').inputValue(), 'Retain this pending title');
     assert.equal(await page.locator('#saveDraftButton').isEnabled(), true);
     backend.setAuthenticated(true);
-    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
-    await page.locator('[data-tab=products]').waitFor({state:'visible'}); await openManagerTab(page,'products');
     await page.locator('#saveDraftButton').click(); await waitSaved();
     assert.equal(backend.productDrafts().length, before + 1);
   });

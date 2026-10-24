@@ -1,3 +1,5 @@
+> **2026-10-24 站长已撤回本轮CAP-0017功能总成改造。以下仅保留历史方案/使用说明，不是现行实现或继续移植授权。当前使用已恢复的原生Keystatic；实际回退收据见原进度记录。**
+
 # Keystatic 功能总成
 
 站长在原 Keystatic → **功能总成**管理本站支持的功能、Manager入口、语言及视觉开放位置；保存仍使用原生 GitHub CMS。本站采用严格 schemaVersion:2、scope:features，文件为 src/data/site-config.json；只接管开关和目标语言，首页/设计继续本站原实现。版本字段不是母版版本号，不代表整站升级。

@@ -1,3 +1,7 @@
+## CAP-0017 revision 2 — WITHDRAWN / INACTIVE
+
+2026-10-24 owner explicitly ordered native Keystatic rollback. Runtime/README restored to65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2;29 newly introduced assembly files removed after exact inventory confirmation. Original source baseline and previous capabilities unchanged. Historical source/release evidence below is retained, not present adoption or authorization to resume. Exact rollback/check/release receipts are in PROJECT-PROGRESS.
+
 ## CAP-0017 revision 2 — Feature-only assembly adoption
 
 - Owner exact 确认修改能力 approval of complete four-site proposal docs/proposals/keystatic-feature-adoption-20261024.md (mother); own baseline 65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2, local codex/feature-assembly-20261024. Mother rev1 e0c9d171f756b45942b546078cc949a7367e84e2 plus rev2 731f3e4da9d568c115bb823b7bb42b436c1026ea; initial mother provenance remains unchanged. This entry's introducing commit is own scoped source; no whole-site upgrade claim.

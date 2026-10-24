@@ -12,7 +12,6 @@ import { publicMediaUrl } from '../src/lib/public-media-url.mjs';
 import { adminMediaUrl } from '../src/lib/admin-media-url.mjs';
 import { productPreviewMedia, renderProductPreviewMedia } from '../src/lib/product-preview-media.mjs';
 import { installMedia } from '../src/scripts/manager/media.mjs';
-import {sitePolicyFixture} from './site-policy-test-fixture.mjs';
 
 fs.mkdirSync('Temp',{recursive:true});
 const output=fs.mkdtempSync(path.resolve('Temp/media-preview-tests-'));
@@ -50,16 +49,15 @@ test('actual Manager thumbnail and enlarged-image consumer uses the public origi
 });
 async function handler(relative) {
   const destination=path.join(output,relative.replace(/^src\/pages\/api\//,'').replace(/[/.]/g,'-')+'.mjs');
-  await build({entryPoints:[relative],outfile:destination,bundle:true,platform:'node',format:'esm',packages:'external',define:{'import.meta.env':JSON.stringify({DEV:true,PROD:false,PUBLIC_R2_ASSET_BASE_URL:base,SITE_URL:origin})},logLevel:'error',plugins:[sitePolicyFixture(),{name:'isolated-handler-environment',setup(b){
-    b.onResolve({filter:/^(?:astro:content|cloudflare:workers|virtual:site-build-identity)$|\/lib\/(?:manager\/(?:access|d1|site-visuals|github)|runtime-env)$/},args=>({path:args.path,namespace:'fixture'}));
+  await build({entryPoints:[relative],outfile:destination,bundle:true,platform:'node',format:'esm',packages:'external',define:{'import.meta.env':JSON.stringify({PUBLIC_R2_ASSET_BASE_URL:base,SITE_URL:origin})},logLevel:'error',plugins:[{name:'isolated-handler-environment',setup(b){
+    b.onResolve({filter:/^(?:astro:content|cloudflare:workers)$|\/lib\/(?:manager\/(?:access|d1|site-visuals|github)|runtime-env)$/},args=>({path:args.path,namespace:'fixture'}));
     b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:
       args.path==='astro:content'?'export const getCollection=async name=>globalThis.__mediaPreviewCollections?.[name]||[];':
       args.path==='cloudflare:workers'?'export const env={};':
-      args.path==='virtual:site-build-identity'?'export default {files:{}};':
       args.path.endsWith('/runtime-env')?'export const getRuntimeEnv=locals=>locals.env;':
       args.path.endsWith('/access')?'export const getRuntimeEnv=locals=>locals.env;export const requireManagerAccess=(request,env)=>env.deny?{response:new Response("Login required",{status:401})}:{email:"fixture@local.invalid"};':
       args.path.endsWith('/d1')?'export const getManagerDb=env=>env.MANAGER_DB;export const ensureManagerSchema=async()=>{};':
-      args.path.endsWith('/github')?'export const getDispatchToken=env=>env.DISPATCH||"";export const getRepoFullName=()=>"fixture/site";export const getBranch=()=>"main";export const encodeGitHubPath=value=>value;export const githubHeaders=()=>({});export const githubFetch=async(url,token,init)=>{const r=await fetch(url,{...init,redirect:"manual"});if(!r.ok)throw Error("Fixture response failed");return r.json();};':
+      args.path.endsWith('/github')?'export const getDispatchToken=env=>env.DISPATCH||"";export const getRepoFullName=()=>"fixture/site";export const getBranch=()=>"main";export const encodeGitHubPath=value=>value;export const githubHeaders=()=>({});':
       'export const openVisualState=async()=>{throw Error("Unexpected visual branch")};export const managerVisualSlots=()=>[];'}));
   }}]});
   return (await import(pathToFileURL(destination))).GET;
@@ -89,8 +87,7 @@ test('both real translation preview handlers render source gallery/details and e
   const response=await manager(context);assert.equal(response.status,200);const managerHtml=await response.text();assert.match(managerHtml,/<meta name="referrer" content="no-referrer">/);assert.ok(images(managerHtml).length>=(source.data.detailImages||[]).length);
   globalThis.__mediaPreviewCollections.products=[];assert.equal((await manager(context)).status,503);assert.equal((await manager({...context,locals:{env:{deny:true}}})).status,401);
   const owner=await handler('src/pages/api/ai/draft-preview.ts'),originalFetch=globalThis.fetch;let missing=false,requests=0;
-  const objects=new Map([['1'.repeat(40),source.raw],['2'.repeat(40),draftText],['3'.repeat(40),JSON.stringify({enabledLocales:{es:true}})],['4'.repeat(40),JSON.stringify({requiredPhraseKeys:[],requiredFaqCount:0,locales:{es:{approved:true,phrases:{},faqs:[]}}})]]);
-  globalThis.fetch=async(input,init)=>{requests++;assert.ok(!init?.method||init.method==='GET');const value=String(input);assert.ok(value.startsWith('https://api.github.com/'));if(value.endsWith('/user'))return Response.json({login:'fixture'});if(value.endsWith('/permission'))return Response.json({permission:'write'});if(value.includes('/git/ref/heads/'))return Response.json({object:{sha:'a'.repeat(40)}});if(value.includes('/git/trees/'))return Response.json({sha:'b'.repeat(40),tree:[['src/content/products/'+source.slug+'.mdoc',missing?'0':'1'],['src/content/productTranslations/'+slug+'.mdoc','2'],['src/data/site-language-settings.json','3'],['src/data/site-locales.json','4']].map(([path,id])=>({path,sha:id.repeat(40),type:'blob'}))});if(value.includes('/git/blobs/')){const text=objects.get(value.split('/').at(-1));return text===undefined?new Response('',{status:404}):Response.json({encoding:'base64',content:Buffer.from(text).toString('base64')});}if(value.includes('/actions/'))return Response.json({workflow_runs:[]});throw Error('Unexpected fixture request');};
+  globalThis.fetch=async(input,init)=>{requests++;assert.ok(!init?.method||init.method==='GET');const value=String(input);assert.ok(value.startsWith('https://api.github.com/'));if(value.endsWith('/user'))return Response.json({login:'fixture'});if(value.endsWith('/permission'))return Response.json({permission:'write'});if(value.includes('/productTranslations/'))return Response.json({encoding:'base64',content:Buffer.from(draftText).toString('base64')});if(value.includes('/products/'))return missing?new Response('',{status:404}):Response.json({encoding:'base64',content:Buffer.from(source.raw).toString('base64')});throw Error('Unexpected fixture request');};
   try{const request=new Request(url,{headers:{cookie:'keystatic-gh-access-token=fixture-token'}}),args={locals:{env:{PUBLIC_R2_ASSET_BASE_URL:base}},request,url};const result=await owner(args);assert.equal(result.status,200);const ownerHtml=await result.text();assert.match(ownerHtml,/<meta name="referrer" content="no-referrer">/);assert.ok(images(ownerHtml).length>=(source.data.detailImages||[]).length);missing=true;assert.equal((await owner(args)).status,503);assert.equal((await owner({...args,request:new Request(url)})).status,401);assert.ok(requests>0);}finally{globalThis.fetch=originalFetch;delete globalThis.__mediaPreviewCollections;}
 });
 

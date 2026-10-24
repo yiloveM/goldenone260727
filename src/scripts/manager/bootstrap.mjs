@@ -11,7 +11,6 @@ import { installPublishing } from './publishing.mjs';
 import { installVisuals } from './visuals.mjs';
 import { installWorkspace } from './workspace.mjs';
 import { installSorting } from './sorting.mjs';
-import {installFeatures} from './features.mjs';
 
 const instances = new WeakMap();
 
@@ -33,16 +32,13 @@ export function initializeManager(config) {
   installVisuals(context);
   installSorting(context);
   installWorkspace(context);
-  installFeatures(context);
   const bootstrapManager = async () => {
-    await context.loadFeaturePolicy();
-    if(context.features.contentSources)await context.loadTranslationLocales().catch(error=>context.setStatus('translationStatus',error.message,true));
-    if(context.features.products)await context.loadProducts();
-    if(context.features.products)await context.loadDraftsSafely();
+    await context.loadProducts();
+    await context.loadDraftsSafely();
     document.documentElement.dataset.managerReady = 'true';
     context.activateTab('dashboard');
     context.refreshWorkspace().catch(() => {});
-    if(context.features.translations)context.restoreTranslationTask().catch(error => { context.setStatus('translationStatus',error.message,true); context.updateTranslationOverview(); });
+    context.restoreTranslationTask().catch(error => { context.setStatus('translationStatus',error.message,true); context.updateTranslationOverview(); });
     if (context.managerReviewSystemEnabled && new URLSearchParams(window.location.search).get('section') === 'reviews') context.activateTab('reviews');
   };
   Object.assign(context, { bootstrapManager });
@@ -495,6 +491,12 @@ export function initializeManager(config) {
   context.ensureImageFieldPreview('image', 'statusText');
 
   context.ensureImageFieldPreview('blogImage', 'blogStatus');
+
+  context.loadTranslationLocales().catch(error => {
+    context.locales.splice(0, context.locales.length);
+    context.renderLocaleOptions();
+    context.setStatus('translationStatus', error.message, true);
+  });
 
   context.applyTheme(context.state.themeChoice);
 

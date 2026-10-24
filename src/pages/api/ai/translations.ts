@@ -3,7 +3,6 @@ import { getCollection } from 'astro:content';
 import { isProductPublished } from '../../../data/productCategories';
 import { getBackendTaskToken, getRuntimeEnv } from '../../../lib/runtime-env';
 import { selectedTargetLocales, type Locale } from '../../../data/i18n';
-import {readFeatureState,featureResponse} from '../../../lib/manager/features';
 
 export const prerender = false;
 
@@ -169,7 +168,6 @@ export const POST: APIRoute = async ({ locals, request }) => {
 
   const targetLocales = normalizeLocales(body.locales);
   const sourceType = normalizeSourceType(body.sourceType);
-  try{const state=(locals as any).featureState||await readFeatureState(env as any),flags=state.features;if(!flags.translations||(sourceType==='products'&&!flags.products)||(sourceType==='blog'&&!flags.articles)||(sourceType==='all'&&(!flags.products||!flags.articles)))return featureResponse();}catch{return featureResponse(503);}
   const sourceSlug = String(body.sourceSlug || '').trim();
   const overwrite = body.overwrite === true;
   if (!targetLocales.length) return new Response('At least one target language is required.', { status: 400 });

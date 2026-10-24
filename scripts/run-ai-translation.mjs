@@ -1,5 +1,3 @@
-import { readPolicyFile } from './site-policy.mjs';
-import {assertJobFeatures} from './job-feature-policy.mjs';
 import { GoogleGenAI } from '@google/genai';
 import YAML from 'yaml';
 import { existsSync } from 'node:fs';
@@ -16,7 +14,7 @@ const RESULT_DIR = path.join(ROOT, '.github', 'ai-translation-results');
 const GOOGLE_MODEL_FALLBACK = 'gemini-3.5-flash';
 const MAX_RETRYABLE_TRANSLATION_ATTEMPTS = 3;
 const locales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'];
-const languageSettings = readPolicyFile(ROOT, 'src/data/site-language-settings.json');
+const languageSettings = JSON.parse(await readFile(path.join(ROOT, 'src', 'data', 'site-language-settings.json'), 'utf8'));
 const nonEnglishLocales = locales.filter(
   locale => locale !== 'en' && languageSettings.enabledLocales?.[locale] === true
 );
@@ -80,8 +78,6 @@ const sourceType = ['products', 'blog', 'all'].includes(envText('AI_TRANSLATION_
   ? envText('AI_TRANSLATION_SOURCE_TYPE')
   : 'all';
 const sourceSlug = envText('AI_TRANSLATION_SOURCE_SLUG');
-const jobRequirements=['translations',...(sourceType==='all'?['products','articles']:[sourceType==='products'?'products':'articles'])];
-assertJobFeatures(ROOT,jobRequirements);
 const requestId = envText('AI_TRANSLATION_REQUEST_ID') || 'manual';
 const overwrite = boolEnv('AI_TRANSLATION_OVERWRITE');
 const apiKeyOffsetInput = Number(envText('AI_TRANSLATION_API_KEY_OFFSET'));
@@ -503,7 +499,6 @@ const toMdoc = (frontmatter, content) => `---\n${toFrontmatter(frontmatter)}\n--
 const translationId = (locale, slug) => `${locale}--${slug}.mdoc`;
 
 const writeProductTranslation = async (product, locale, translated) => {
-  assertJobFeatures(ROOT,jobRequirements);
   const outputPath = path.join(PRODUCT_TRANSLATION_DIR, translationId(locale, product.slug));
   await mkdir(PRODUCT_TRANSLATION_DIR, { recursive: true });
   await writeFile(outputPath, toMdoc({
@@ -528,7 +523,6 @@ const writeProductTranslation = async (product, locale, translated) => {
 };
 
 const writeBlogTranslation = async (post, locale, translated) => {
-  assertJobFeatures(ROOT,jobRequirements);
   const outputPath = path.join(BLOG_TRANSLATION_DIR, translationId(locale, post.slug));
   await mkdir(BLOG_TRANSLATION_DIR, { recursive: true });
   await writeFile(outputPath, toMdoc({
@@ -582,7 +576,6 @@ if (sourceType === 'all' || sourceType === 'products') {
 
       try {
         console.log(`Translating product ${product.slug} -> ${locale}`);
-        assertJobFeatures(ROOT,jobRequirements);
         const aiResult = await callGeminiWithRotatingKey(locale, 'product', sourcePayload, currentSourceOrdinal);
         const translated = normalizeProductTranslation(product, aiResult.data);
         const path = await writeProductTranslation(product, locale, translated);
@@ -620,7 +613,6 @@ if (sourceType === 'all' || sourceType === 'blog') {
 
       try {
         console.log(`Translating blog ${post.slug} -> ${locale}`);
-        assertJobFeatures(ROOT,jobRequirements);
         const aiResult = await callGeminiWithRotatingKey(locale, 'blog', sourcePayload, currentSourceOrdinal);
         const translated = normalizeBlogTranslation(post, aiResult.data);
         const path = await writeBlogTranslation(post, locale, translated);

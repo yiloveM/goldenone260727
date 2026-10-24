@@ -8,7 +8,6 @@ import { safeContentUrl } from '../../../lib/content-links.mjs';
 import { publicMediaUrl } from '../../../lib/public-media-url.mjs';
 import { renderProductPreviewMedia } from '../../../lib/product-preview-media.mjs';
 import siteOrigin from '../../../data/site-origin.json';
-import {readFeatureState,requireFeature,featureResponse} from '../../../lib/manager/features';
 export const prerender = false;
 const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 export const GET: APIRoute = async ({ locals, request, url }) => {
@@ -16,7 +15,6 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
   const media = (value: string) => publicMediaUrl(value, String(env?.PUBLIC_R2_ASSET_BASE_URL || import.meta.env.PUBLIC_R2_ASSET_BASE_URL || ''), siteOrigin.productionUrl);
   const kind = url.searchParams.get('kind') || '', id = url.searchParams.get('id') || '', version = url.searchParams.get('version') || '';
   if (!['product', 'blog', 'visual'].includes(kind) || !/^[a-z0-9-]{1,180}$/.test(id) || !version) return new Response('请先保存并重新打开草稿。', { status: 400 });
-  try{const state=(locals as any).featureState||await readFeatureState(env),denied=requireFeature(state,kind==='product'?'products':kind==='blog'?'articles':'visuals');if(denied)return denied;}catch{return featureResponse(503);}
   const db = getManagerDb(env); if (!db) return new Response('草稿预览暂不可用。', { status: 503 });
   await ensureManagerSchema(db);
   const table = kind === 'visual' ? 'manager_site_visual_drafts' : `manager_${kind}_drafts`;

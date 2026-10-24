@@ -1,5 +1,5 @@
 import { getRepoFullName, getBranch, getDispatchToken, githubFetch } from './github';
-import { readGitHead, readGitTree, readGitFeatureConfig } from '../site-git';
+import { readGitHead, readGitTree } from '../site-git';
 import { readSitePublicLocales } from '../site-language-policy';
 export async function managerTranslationScope(env: any) {
   const ctx = { repo: getRepoFullName(env), branch: getBranch(env), token: getDispatchToken(env, 'translation') };
@@ -7,7 +7,7 @@ export async function managerTranslationScope(env: any) {
   const head = await readGitHead(ctx), tree = await readGitTree(ctx, head);
   const files = new Map(tree.tree.filter(item => item.type === 'blob').map(item => [item.path,item.sha]));
   const locales = [...await readSitePublicLocales(ctx, files)].filter(code => code !== 'en');
-  return { ctx, locales, files,features:(await readGitFeatureConfig(ctx,files)).features };
+  return { ctx, locales, files };
 }
 export async function activeTranslationRuns(ctx: { repo: string; branch: string; token: string }) {
   const results = await Promise.all(['in_progress','queued','waiting','requested','pending'].map(status => githubFetch<{ workflow_runs: any[]; total_count: number }>(`https://api.github.com/repos/${ctx.repo}/actions/workflows/ai-translation.yml/runs?branch=${encodeURIComponent(ctx.branch)}&status=${status}&per_page=100`,ctx.token)));
