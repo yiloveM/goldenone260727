@@ -39,7 +39,7 @@ const mediaField = /^(?:image|imageUrl|src|sourceUrl|publicUrl|logo|footerLogo|i
 const looksMedia = value => /^(?:\/r2\/|r2\/)|\.(?:avif|webp|jpe?g|png|svg|ico|gif|pdf)(?:[?#].*)?$/i.test(value);
 
 export async function collectMediaReferences(root, vars, origin) {
-  const references=[], coverage=[],buildManagedAssets=[];
+  const references=[], coverage=[],buildManagedAssets=[],protectedReferences=[];
   const add=(raw,category,source,field,state='retained')=>{
     if(typeof raw!=='string'||!raw.trim())return;
     // Public body links are not automatically media, and directories are not objects.
@@ -78,8 +78,25 @@ export async function collectMediaReferences(root, vars, origin) {
     }
   }
   for(const [file,category] of [['src/data/site-visuals.json','banner'],['src/data/industry-profile.json','company']])if(fs.existsSync(within(root,file)))walk(readJson(within(root,file)),category,file);
-  const downloads='src/data/catalog-downloads.json';
-  if(fs.existsSync(within(root,downloads))){const data=readJson(within(root,downloads));if(data.enabled&&data.accessMode!=='protected'&&data.mode!=='protected')walk(data,'download',downloads);else coverage.push('Disabled/protected downloads excluded from public probing; their stored references remain protected.');}
+  const downloads='src/data/catalog-downloads.json',downloadModel='src/data/catalogDownloads.ts';
+  const rawDownloads=fs.existsSync(within(root,downloads))?readJson(within(root,downloads)):null;
+  let actualDownloads=null;
+  if(fs.existsSync(within(root,downloadModel))){
+    // Only the fixed, existing trusted consumer can establish a direct-download mode.
+    // Legacy enabled-only or static-array catalogues are gated, never inferred direct.
+    const result=await build({stdin:{contents:`import * as catalog from './${downloadModel}';export default catalog;`,resolveDir:root,loader:'ts'},bundle:true,write:false,format:'esm',platform:'node',logLevel:'silent',plugins:[{name:'fixed-download-policy-glob',setup(b){b.onLoad({filter:/[\\/]site-policy\.ts$/},args=>({loader:'ts',contents:fs.readFileSync(args.path,'utf8').replace(/import\.meta\.glob\('(\.\/site-config\.json)', \{ eager: true, import: 'default' \}\)/g,(_all,relative)=>{const target=path.join(path.dirname(args.path),relative);return JSON.stringify(fs.existsSync(target)?{[relative]:readJson(target)}:{});})}));}}]});
+    actualDownloads=(await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'))).default;
+  }
+  const downloadMode=actualDownloads?.catalogDownloadMode;
+  if(downloadMode==='direct')walk(actualDownloads.catalogDownloads||[],'download',downloadModel,[],'current-consumer');
+  else {
+    const documents=rawDownloads?.documents||actualDownloads?.catalogDownloads||[];
+    for(const[index,document]of documents.entries())if(typeof document?.url==='string'){
+      const value=publicMediaUrl(document.url,vars.PUBLIC_R2_ASSET_BASE_URL||'',origin);
+      protectedReferences.push({source:rawDownloads?downloads:downloadModel,field:`documents.${index}.url`,value:publicRegistryUrl(value)?value:'',category:'download',state:'protected-or-disabled',reason:downloadMode||'legacy-gated-or-unverified'});
+    }
+    if(documents.length||rawDownloads)coverage.push('Downloads: actual consumer has no explicit direct mode; protected/disabled/unverified catalogue references are retained locally and excluded from the public registry/probes.');
+  }
   // Evaluate existing, trusted read models. Registry references cannot nominate executable modules.
   const bg='src/data/backgroundImages.ts',categories='src/data/productCategories.ts',campaign='src/data/campaignImages.ts';
   if(fs.existsSync(within(root,bg))) {
@@ -100,7 +117,8 @@ export async function collectMediaReferences(root, vars, origin) {
   } else coverage.push('No background read model: dynamic consumer coverage requires manual verification.');
   for(const dir of ['src/components','src/pages','src/templates','src/styles'])for(const file of files(root,dir,['.astro','.css','.tsx','.ts']))body(fs.readFileSync(within(root,file),'utf8'),'company',file,'source-literal','retained');
   if(buildManagedAssets.length)coverage.push('Existing relative CSS dependency assets are build-managed, not guessed public URLs; verify emitted/inlined assets in the fresh build.');
-  return {references:references.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),buildManagedAssets,coverage,cleanupAllowed:false,limitations:['No complete cloud-draft or still-served release snapshot was supplied. Source states do not prove deployment.','Source literals conservatively protect stored uses; unrecognized/custom runtime consumers require independent review. No deletion is authorized by this report.']};
+  const protectedUrls=new Set(protectedReferences.map(ref=>ref.value).filter(Boolean));
+  return {references:references.filter(ref=>!protectedUrls.has(ref.value)).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),protectedReferences,buildManagedAssets,coverage,cleanupAllowed:false,limitations:['No complete cloud-draft or still-served release snapshot was supplied. Source states do not prove deployment.','Source literals conservatively protect stored uses; unrecognized/custom runtime consumers require independent review. No deletion is authorized by this report.']};
 }
 
 export function checkMediaReferences(registry, inventory, vars, origin, root) {

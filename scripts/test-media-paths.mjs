@@ -72,6 +72,24 @@ test('network probes are explicit, bounded, credential-free and never follow red
   const spa=async()=>new Response('<!doctype html><html>SPA</html>',{headers:{'content-type':'image/webp'}});
   assert.equal((await probeMedia(base+'/products/a.webp',[base],spa,dns)).passed,false);
 });
+
+test('legacy enabled-only and static catalogues stay protected even if JSON claims direct',async()=>{
+  for(const withEnabled of [true,false]){
+    const folder=fs.mkdtempSync(path.join(temp,'protected-downloads-'));fs.mkdirSync(path.join(folder,'src/data'),{recursive:true});fs.mkdirSync(path.join(folder,'src/pages'),{recursive:true});
+    const url=base+'/catalogue.pdf';fs.writeFileSync(path.join(folder,'src/data/catalog-downloads.json'),JSON.stringify({enabled:true,mode:'direct',documents:[{url}]}));
+    fs.writeFileSync(path.join(folder,'src/data/catalogDownloads.ts'),`${withEnabled?'export const catalogDownloadsEnabled=true;':''}export const catalogDownloads=[{url:${JSON.stringify(url)}}];`);
+    fs.writeFileSync(path.join(folder,'src/pages/example.astro'),`<a href="${url}">Historical literal</a>`);
+    const inventory=await collectMediaReferences(folder,{PUBLIC_R2_ASSET_BASE_URL:base},'https://site.businessmedia.com');
+    assert.equal(inventory.references.some(ref=>ref.value===url),false);assert.equal(inventory.protectedReferences.length,1);assert.equal(inventory.protectedReferences[0].value,url);assert.equal(onlineMediaSamples({entries:[{...entry(),category:'download',pathPrefix:'catalogue.pdf'}]},inventory).values.length,0);assert.equal(inventory.cleanupAllowed,false);
+  }
+});
+
+test('public catalogue scope follows the actual direct-mode consumer instead of stale JSON flags',async()=>{
+  const folder=fs.mkdtempSync(path.join(temp,'direct-downloads-'));fs.mkdirSync(path.join(folder,'src/data'),{recursive:true});const url=base+'/catalogue.pdf';
+  fs.writeFileSync(path.join(folder,'src/data/catalog-downloads.json'),JSON.stringify({enabled:false,mode:'protected',documents:[{url:base+'/private-old.pdf'}]}));
+  fs.writeFileSync(path.join(folder,'src/data/catalogDownloads.ts'),`export const catalogDownloadMode='direct';export const catalogDownloads=[{url:${JSON.stringify(url)}}];`);
+  const inventory=await collectMediaReferences(folder,{PUBLIC_R2_ASSET_BASE_URL:base},'https://site.businessmedia.com');assert.deepEqual(inventory.references.map(r=>r.value),[url]);assert.deepEqual(inventory.protectedReferences,[]);
+});
 test('existing CSS asset imports are not confused with public R2 paths or browser traversal URLs',async()=>{
   const folder=fs.mkdtempSync(path.join(temp,'css-'));fs.mkdirSync(path.join(folder,'src/styles'),{recursive:true});fs.mkdirSync(path.join(folder,'node_modules/flags'),{recursive:true});fs.writeFileSync(path.join(folder,'node_modules/flags/en.svg'),'<svg/>');fs.writeFileSync(path.join(folder,'src/styles/flags.css'),'a{background:url("../../node_modules/flags/en.svg")}b{background:url("/r2/company/banner.webp")}');
   const inventory=await collectMediaReferences(folder,{PUBLIC_R2_ASSET_BASE_URL:base},originForCss());
