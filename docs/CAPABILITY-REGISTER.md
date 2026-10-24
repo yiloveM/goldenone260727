@@ -285,3 +285,5 @@ Delivery receipt (2026-10-04 20:25 +08:00):
 - No feature mode/schema/auth/API/dependency/CDN/content/config/lock/workflow change; initial provenance retained. Revert this tool scope only after checking later registry/consumers, preserve protections and D1/R2/data. Complete cloud/current-release census and production business writes remain unverified; never infer cleanup permission.
 
 CAP-0017 rev2 release receipt: own source56990be37823bcb05efe3ad754bbe54029c3e9b9 received main; existing site-publish40098554764 full build/deploy success;10 actual read-only HTTP checks pass. Details/limits/recovery in PROJECT-PROGRESS. This docs-only skip-ci receipt does not redeploy.
+
+CAP-0017 withdrawal final receipt: native rollback9fe3f85 plus concurrent-history mergeb9a77255e7396c485890d32230f21e8f7ae2b1b7 received own main; original site-publish40101818535 build/deploy success,10 public readbacks plus live forms audit pass. Turnstile choice migrated to old setting as SAVED_NOT_PUBLISHED due empty public key; exact prerequisites/limits in current progress. This skip-ci receipt does not deploy or reactivate assembly.

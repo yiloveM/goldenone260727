@@ -1,3 +1,9 @@
+## 2026-10-24 +08:00 - 原生Keystatic回退已上线；保留未发布Turnstile选择
+
+- 自身main已收到回退9fe3f85与保留同期280a756的合并b9a77255e7396c485890d32230f21e8f7ae2b1b7；[原site-publish40101818535](https://github.com/yiloveM/goldenone260727/actions/runs/40101818535)完整build/实际部署success。上线源码与原65ce9a5一致，原53组Manager/Reader80/写回/媒体链、完整本地build及模板检查通过；224公开产物零差异；发布后10真实HTTP/2语言llms及私有隔离通过，公开contact API/页面/禁用下载只读检查一致，现网为原signed-captcha。
+- 站长明确保留同期Turnstile开启选择：本收据将它迁回旧原生设置src/data/form-verification.json（turnstileEnabled:true），仅保存未发布，skip-ci/原路径过滤均不重新部署。当前Wrangler公开sitekey为空，本机不能读取Cloudflare Secret；尚未验证配对/域名挑战/成功提交与重放，不称Turnstile已上线。后续任何网站发布前需补齐匹配sitekey/Secret/域名并验收，或由站长明确另选；AI不能自动关闭/填测试key或将本条当作配置完成。
+- 本次完整恢复原Keystatic及原设置入口，CAP-0017撤回不再采纳；保留历史/初始母版、80内容、视觉/媒体/llms/资源、站长原7行本地交接。生产正常登录后内容保存/云业务/付费AI未测试，无内容/媒体/D1/R2删除。Aqua已停且未发布，Etha/Corner未改；不继续分发。
+
 ## 2026-10-24 +08:00 - 回退合并同期验证码选择
 
 - fresh main发现后台280a756仅把provider从signed-captcha改成turnstile（其它为原生序列化顺序）；站长交互选择保留新业务选择并迁回旧设置。merge保留280a756历史，不reset/强推；总成site-config仍按批准回退移除。回退源码9fe3f85与本合并共同交付，原80内容/其它设置未改。
