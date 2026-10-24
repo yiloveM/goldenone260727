@@ -1,0 +1,43 @@
+name: Validate Customer Site
+
+on:
+  push:
+    branches: ['codex/**', main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Existing checks and build (no deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run types:cloudflare -- --check
+      - run: npm run check
+      - run: npm run test:forms
+      - run: npm run test:reviews
+      - run: npm run test:jsonld
+      - run: npm run test:llms
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:manager
+      - run: npm run test:manager:browser
+      - run: npm run check:admin-portals
+      - run: npm run check:template
+      - run: npm run check:preview
+      - run: npm run check:visual
+      - run: npm run check:class-names
+      - run: npm run build
