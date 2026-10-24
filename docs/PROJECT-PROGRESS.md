@@ -1,3 +1,9 @@
+## 2026-10-24 +08:00 - 回退合并同期验证码选择
+
+- fresh main发现后台280a756仅把provider从signed-captcha改成turnstile（其它为原生序列化顺序）；站长交互选择保留新业务选择并迁回旧设置。merge保留280a756历史，不reset/强推；总成site-config仍按批准回退移除。回退源码9fe3f85与本合并共同交付，原80内容/其它设置未改。
+- 实查原Wrangler当前TURNSTILE_SITEKEY为空，生产尚沿用旧已部署四位签名码；本机无Cloudflare API token，Secret配对/挑战通过未验证，不能冒称Turnstile已就绪。先用原有效设置发布恢复原生Keystatic，成功后将原form-verification.json的开启选择保存为未发布设置；不把尚未配齐的模式直接构建上线，也不自动关闭站长选择。待站长补齐匹配sitekey/Secret/域名后再沿原发布启用。
+- 两边Manager53/原Reader和完整build、Golden224公开产物零差异及普通模板检查通过；母版1aebaf3已备份，CI40100856078同源码重跑成功（首次Gitmaintenance.lock快照竞态，无代码/断言变动），生产40100856080 skipped。Aqua继续冻结未推/未发，Etha/Corner不变。本站真实回退发布及HTTP待新回执。
+
 ## 2026-10-24 +08:00 - 站长撤回CAP-0017，恢复原生Keystatic
 
 - 站长明确要求回退Golden和母版本轮总成，48新增文件移除清单获原文确认；独立codex/rollback-keystatic-20261024，当前基线f928e3e，源码为本条引入提交。本站运行源码/测试/发布过滤/README精确恢复65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2，移除29个本轮新增总成依赖/配置/测试，原生CMS入口和原设置方式恢复；此前Manager/视觉/媒体/llms/80内容/资源不变。CAP-0017 rev2现为撤回/未采纳，历史实现与已发布回执仍保留，不作为继续分发依据。
