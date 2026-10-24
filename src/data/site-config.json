@@ -1,6 +1,5 @@
 {
   "schemaVersion": 2,
-  "scope": "features",
   "features": {
     "manager": {
       "products": true,
@@ -11,7 +10,7 @@
       "publishing": true
     },
     "verification": {
-      "provider": "signed-captcha"
+      "provider": "turnstile"
     },
     "downloads": {
       "mode": "disabled"
@@ -44,10 +43,6 @@
         "contact": true
       }
     },
-    "productEditing": {
-      "offeringType": "physical-product",
-      "modelStrategy": "series"
-    },
     "visuals": {
       "editableSlots": [
         "home.primary",
@@ -69,6 +64,10 @@
         "category.more-metal-crafts",
         "category.promotion-gift"
       ]
+    },
+    "productEditing": {
+      "offeringType": "physical-product",
+      "modelStrategy": "series"
     }
   },
   "locales": {
@@ -76,5 +75,6 @@
     "selected": [
       "es"
     ]
-  }
+  },
+  "scope": "features"
 }
