@@ -1,3 +1,8 @@
+## 2026-10-24 +08:00 - CAP-0017 Golden One 发布验收回执
+
+- own main已核收到56990be37823bcb05efe3ad754bbe54029c3e9b9；[原site-publish40098554764](https://github.com/yiloveM/goldenone260727/actions/runs/40098554764)完整构建及实际部署completed/success。发布后10项真实HTTP只读检查通过：首页/两产品自身canonical、两公开语言llms逐字节与MIME、旧/新增私有管理接口隔离。此收据skip-ci不再部署。
+- 本地原生Keystatic57/Worker权限38/Manager55与本站11、原控件14及完整构建/224公开产物比较通过；实际生产登录后设置/业务保存未测试，未删除/上传/调用付费AI。保留站长原7行本地后缀不推。初始来源保留，仅CAP-0017 rev2采纳；下一站Aqua工程已开始，随后Etha、Corner仅本地。恢复仅定向56990be源码与配套配置/过滤并核后来CMS，不自动回滚D1/R2或其它站。
+
 ## 2026-10-24 +08:00 - CAP-0017 rev2 Golden One 独立采纳
 
 - 完整跨站B方案已原文确认；独立分支codex/feature-assembly-20261024，基线65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2。来源母版e0c9d17/731f3e4，仅功能总成闭包，非整站升级；源码为本条引入提交。18真实视觉位置/原开关值、80内容与所有旧设置哈希保留，公开首页/设计和付费服务未改。
