@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "node scripts/run-astro.mjs dev",
-    "build": "node scripts/run-astro.mjs verified-build",
+    "build": "node scripts/audit-media-paths.mjs && node scripts/run-astro.mjs verified-build",
     "preview": "node scripts/run-astro.mjs preview",
     "deploy": "node scripts/run-deploy.mjs",
     "deploy:worker": "node scripts/run-wrangler-deploy-with-retry.mjs",

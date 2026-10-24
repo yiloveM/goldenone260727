@@ -90,3 +90,5 @@ test('current repository registry is independently bound and all recognized uses
   assert.equal(result.status,local.repository==='ironstraight/businessweb'?'TEMPLATE_EMPTY':'SOURCE_CHECKED');
   if(local.repository==='ironstraight/businessweb')assert.equal(local.entries.length,0);else assert.ok(local.entries.length>0);
 });
+
+test('production build entry runs the readonly registry check first',()=>{const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));assert.ok(pkg.scripts.build.startsWith('node scripts/audit-media-paths.mjs && '));assert.ok(pkg.scripts.build.includes('verified-build'));});
