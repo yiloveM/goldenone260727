@@ -142,7 +142,7 @@ const page = ({
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer"><meta name="robots" content="noindex, nofollow, noarchive" />
     <title>${escapeHtml(title)} | Draft preview</title>
     <style>
       .preview-card a { color: #1762ad; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }

@@ -8,7 +8,7 @@ export function installMedia(context) {
   const thumbnailMarkup = (value, alt = '') => {
     const src = normalizeThumbnailUrl(value);
     if (!src) return '<span class="thumb-frame thumb-frame--empty" aria-hidden="true"></span>';
-    return `<span class="thumb-frame"><img src="${context.escapeHtml(src)}" alt="${context.escapeHtml(alt)}" loading="lazy" decoding="async" /></span>`;
+    return `<span class="thumb-frame"><img referrerpolicy="no-referrer" src="${context.escapeHtml(src)}" alt="${context.escapeHtml(alt)}" loading="lazy" decoding="async" /></span>`;
   };
 
   const syncModalLock = () => {
@@ -61,6 +61,7 @@ export function installMedia(context) {
       canSelect,
       statusId,
     };
+    context.$('imagePreviewImage').referrerPolicy = 'no-referrer';
     context.$('imagePreviewImage').src = previewUrl;
     context.$('imagePreviewImage').alt = context.state.previewImage.name;
     context.$('imagePreviewName').textContent = context.state.previewImage.name;

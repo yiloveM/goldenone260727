@@ -43,9 +43,9 @@ const products=fs.readdirSync('src/content/products').filter(name=>name.endsWith
   return {slug:name.slice(0,-5),raw,data:YAML.parse(m[1]),body:m[2]||''};
 });
 test('actual Manager thumbnail and enlarged-image consumer uses the public origin for every real static cover',()=>{
-  const context={publicSiteOrigin:origin,publicR2AssetBaseUrl:base};installMedia(context);
+  const context={publicSiteOrigin:origin,publicR2AssetBaseUrl:base,escapeHtml:String};installMedia(context);
   for(const product of products.filter(item=>String(item.data.image||'').startsWith('/images/')))assert.equal(context.normalizeThumbnailUrl(product.data.image),origin+product.data.image);
-  assert.equal(context.normalizeThumbnailUrl('/images/product.webp'),origin+'/images/product.webp');
+  assert.equal(context.normalizeThumbnailUrl('/images/product.webp'),origin+'/images/product.webp');assert.match(context.thumbnailMarkup('/images/product.webp'),/referrerpolicy="no-referrer"/);
 });
 async function handler(relative) {
   const destination=path.join(output,relative.replace(/^src\/pages\/api\//,'').replace(/[/.]/g,'-')+'.mjs');
@@ -68,7 +68,7 @@ test('real saved product handler renders every real gallery/detail, preserves ve
     const db={prepare(sql){assert.match(sql,/^SELECT /);return{bind(){return{first:async()=>({payload_json:JSON.stringify({...product.data,productSlug:product.slug,content:product.body}),updated_at:stamp})};}};}};
     const url=new URL('https://private.businessmedia.com/api/manager/content-preview?'+new URLSearchParams({kind:'product',id:'product-'+product.slug,version:stamp})),env={MANAGER_DB:db,PUBLIC_R2_ASSET_BASE_URL:base};
     const context={locals:{env},request:new Request(url),url};const response=await GET(context);assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);assert.match(response.headers.get('x-robots-tag'),/noindex/);
-    const html=await response.text(),actual=images(html),expected=productPreviewMedia(product.data,value=>publicMediaUrl(value,base,JSON.parse(fs.readFileSync('src/data/site-origin.json','utf8')).productionUrl||origin));
+    const html=await response.text();assert.match(html,/<meta name="referrer" content="no-referrer">/);const actual=images(html),expected=productPreviewMedia(product.data,value=>publicMediaUrl(value,base,JSON.parse(fs.readFileSync('src/data/site-origin.json','utf8')).productionUrl||origin));
     for(const src of [expected.cover,...expected.gallery,...expected.details.map(item=>item.src)].filter(Boolean))assert.ok(actual.some(image=>image.src===src),product.slug+' lost '+src);
     for(const detail of expected.details)if(detail.caption)assert.ok(html.includes(String(detail.caption).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))));
     if(!product.data.image&&(product.data.detailImages||[]).length)assert.ok(actual.length>0,'detail-only product must show its own figures');
@@ -84,16 +84,16 @@ test('both real translation preview handlers render source gallery/details and e
   globalThis.__mediaPreviewCollections={productTranslations:[{id:slug+'.mdoc',data:draft,body:'Translated body'}],products:[{id:source.slug+'.mdoc',data:source.data}]};
   const manager=await handler('src/pages/api/manager/ai/draft-preview.ts');
   const url=new URL('https://private.businessmedia.com/api/manager/ai/draft-preview?type=product&draft='+slug),context={locals:{env:{PUBLIC_R2_ASSET_BASE_URL:base}},request:new Request(url),url};
-  const response=await manager(context);assert.equal(response.status,200);assert.ok(images(await response.text()).length>=(source.data.detailImages||[]).length);
+  const response=await manager(context);assert.equal(response.status,200);const managerHtml=await response.text();assert.match(managerHtml,/<meta name="referrer" content="no-referrer">/);assert.ok(images(managerHtml).length>=(source.data.detailImages||[]).length);
   globalThis.__mediaPreviewCollections.products=[];assert.equal((await manager(context)).status,503);assert.equal((await manager({...context,locals:{env:{deny:true}}})).status,401);
   const owner=await handler('src/pages/api/ai/draft-preview.ts'),originalFetch=globalThis.fetch;let missing=false,requests=0;
   globalThis.fetch=async(input,init)=>{requests++;assert.ok(!init?.method||init.method==='GET');const value=String(input);assert.ok(value.startsWith('https://api.github.com/'));if(value.endsWith('/user'))return Response.json({login:'fixture'});if(value.endsWith('/permission'))return Response.json({permission:'write'});if(value.includes('/productTranslations/'))return Response.json({encoding:'base64',content:Buffer.from(draftText).toString('base64')});if(value.includes('/products/'))return missing?new Response('',{status:404}):Response.json({encoding:'base64',content:Buffer.from(source.raw).toString('base64')});throw Error('Unexpected fixture request');};
-  try{const request=new Request(url,{headers:{cookie:'keystatic-gh-access-token=fixture-token'}}),args={locals:{env:{PUBLIC_R2_ASSET_BASE_URL:base}},request,url};const result=await owner(args);assert.equal(result.status,200);assert.ok(images(await result.text()).length>=(source.data.detailImages||[]).length);missing=true;assert.equal((await owner(args)).status,503);assert.equal((await owner({...args,request:new Request(url)})).status,401);assert.ok(requests>0);}finally{globalThis.fetch=originalFetch;delete globalThis.__mediaPreviewCollections;}
+  try{const request=new Request(url,{headers:{cookie:'keystatic-gh-access-token=fixture-token'}}),args={locals:{env:{PUBLIC_R2_ASSET_BASE_URL:base}},request,url};const result=await owner(args);assert.equal(result.status,200);const ownerHtml=await result.text();assert.match(ownerHtml,/<meta name="referrer" content="no-referrer">/);assert.ok(images(ownerHtml).length>=(source.data.detailImages||[]).length);missing=true;assert.equal((await owner(args)).status,503);assert.equal((await owner({...args,request:new Request(url)})).status,401);assert.ok(requests>0);}finally{globalThis.fetch=originalFetch;delete globalThis.__mediaPreviewCollections;}
 });
 
 test('actual Keystatic image field and Markdoc node load public-origin images without rewriting stored values in light/dark mobile/desktop',async()=>{
   const start=async server=>{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return'http://127.0.0.1:'+server.address().port;};
-  const publicRequests=[],server=createServer((req,res)=>{publicRequests.push(req.url);res.setHeader('content-type','image/svg+xml');res.end('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" fill="#138477"/></svg>');});const publicOrigin=await start(server);
+  const publicRequests=[],server=createServer((req,res)=>{publicRequests.push(req.url);if(req.headers.referer){res.writeHead(403,{'content-type':'text/html'});return res.end('<!doctype html>Untrusted referrer');}res.setHeader('content-type','image/svg+xml');res.end('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120"><rect width="160" height="120" fill="#138477"/></svg>');});const publicOrigin=await start(server);
   // Generated browser bytes are not project source. A visible Temp/*.js would
   // otherwise enter Astro's **/* allowJs type scan on the next full build.
   const widget=path.join(output,'image-widget.txt');

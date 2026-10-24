@@ -287,7 +287,7 @@ export function R2ImagePicker({
                   {isDocumentPicker ? (
                     <span className="r2-picker__pdf-icon" aria-hidden="true">PDF</span>
                   ) : (
-                    <span className="r2-picker__thumb"><img src={file.url} alt="" loading="lazy" /></span>
+                    <span className="r2-picker__thumb"><img referrerPolicy="no-referrer" src={file.url} alt="" loading="lazy" /></span>
                   )}
                   <span className="r2-picker__tile-name" title={file.name}>
                     {file.name}

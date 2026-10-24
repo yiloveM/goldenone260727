@@ -33,7 +33,7 @@ function R2ImageNodeView({
     <div ref={rootRef} className={`r2-markdoc-image${isSelected ? ' is-selected' : ''}`}>
       {previewUrl ? (
         <button type="button" className="r2-markdoc-image__preview" onClick={() => setIsPickerOpen(true)}>
-          <img src={previewUrl} alt={value.alt || ''} loading="lazy" />
+          <img referrerPolicy="no-referrer" src={previewUrl} alt={value.alt || ''} loading="lazy" />
         </button>
       ) : (
         <button type="button" className="r2-markdoc-image__empty" onClick={() => setIsPickerOpen(true)}>

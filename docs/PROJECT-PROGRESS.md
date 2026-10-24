@@ -1,3 +1,9 @@
+## 2026-10-24 +08:00 - CAP-0016 rev2 private-image compatibility aligned
+
+- Selected generic source mother6156852/55a73ca plus private-media fixd718e4f6866314029f6a6e7ddb19280476b77796 (Aqua CAND-0021 actual206-image vs403-HTML referrer reproduction). Own baseline6285f7f, reviewed codex/private-media-referrer-20261024; source is this entry introducing commit. Source/translation schemas, content,CDN,Wrangler,languages,feature policy,auth/API/sole release chain unchanged. Manager images/three owner image consumers and private preview documents suppress private Referer; normal public pages and browser/CDN protections unchanged.
+- Final media17 incl refusing-referrer two-origin regression/all38 real products/3 handlers/owner widgets light-dark1280/390, full Manager53+original chain and owner16, completebuild843HTML/4699JSON-LD0errors pass. Registry14 actual roots/659refs and actual22 HTTP evidence retained; no full cloud/current-release census or cleanup. Existing normal-session pilot acceptance remains84d994a; no production test content writes.
+- Ready own-main/sole site-publish under building authority; exact new runtime/CI/public receipt pending. Preserve owner7-line local suffix. Recover scoped own source after laterCMS review, never roll D1/R2/data or other sites back. This selected CAP does not replace the original mother baseline.
+
 ### 2026-10-24 +08:00 - Golden media pilot normal-session acceptance
 
 - Owner restored the normal Manager login. Read-only authenticated product list, custom-bottle-stoppers editor thumbnail and enlarged image now load the public /images/ URL, natural dimensions1774x887; three sampled R2 covers load800x800. Spinner detail-only product retains its three original figure groups and no invented primary photo. No content/save/review/upload/delete performed.

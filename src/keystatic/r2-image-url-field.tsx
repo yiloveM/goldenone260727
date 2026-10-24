@@ -48,7 +48,7 @@ function R2ImageUrlInput({
         />
         {canPreview ? (
           <button type="button" className="r2-url-field__preview" onClick={() => setIsPickerOpen(true)} aria-label="閲嶆柊閫夋嫨鍥剧墖">
-            {isDocument ? <span className="r2-url-field__pdf-icon" aria-hidden="true">PDF</span> : <img src={previewUrl} alt="" loading="lazy" />}
+            {isDocument ? <span className="r2-url-field__pdf-icon" aria-hidden="true">PDF</span> : <img referrerPolicy="no-referrer" src={previewUrl} alt="" loading="lazy" />}
           </button>
         ) : (
           <span className="r2-url-field__preview r2-url-field__preview--empty" aria-hidden="true" />
