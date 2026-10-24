@@ -1,3 +1,9 @@
+### 2026-10-24 +08:00 - Golden media pilot normal-session acceptance
+
+- Owner restored the normal Manager login. Read-only authenticated product list, custom-bottle-stoppers editor thumbnail and enlarged image now load the public /images/ URL, natural dimensions1774x887; three sampled R2 covers load800x800. Spinner detail-only product retains its three original figure groups and no invented primary photo. No content/save/review/upload/delete performed.
+- Current product work queue, including reviewed history, is empty: saved-draft UI could not be exercised without creating production test content; all38 real products and both translation preview handlers pass isolated tests instead. Keystatic real production login NOT VERIFIED; actual components passed isolated two-origin/light/dark/mobile/desktop checks. CAND-0020 pilot accepted with these explicit limits; proceed to approved mother generalization, Aqua, Corner local only.
+- Runtime d4144e4 / site-publish40012264003 success, audit closure33b47fc; mother standard934c2c3 validation40013663418 success and production skipped. CLI secure online check remains UNVERIFIED for non-public DNS; independent22 HTTP plus normal-browser evidence is separate. No exhaustive cloud/current-release census or cleanup claimed; recover scoped source commits, preserving later CMS/D1/R2 and owner's local7-line suffix.
+
 ### 2026-10-24 +08:00 - Golden pilot released; normal-session UI pending
 
 - Runtime d4144e4df8783a8fc59db2424d32e01affe2a568 received own main; original site-publish40012264003 build and actual Worker deployment completed/success. Public homepage/two detail-only products have correct self-canonical, both llms paths200;22 registered media samples are genuine200 images. Full local build/Manager/widget evidence remains in preceding pilot entry. No production content writes.

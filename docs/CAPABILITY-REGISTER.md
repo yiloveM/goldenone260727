@@ -258,3 +258,5 @@ Delivery receipt (2026-10-04 20:25 +08:00):
   Roll back this customer's release commit by scoped revert; retain newer CMS data.
 
 2026-10-24 CAND-0020 release receipt: source d4144e4df8783a8fc59db2424d32e01affe2a568 / original40012264003 build+deploy success; public5/registeredHTTP22 pass. Audit-only scope/CSS-asset follow-up has media16 local passes, no second release; authenticated normal-session UI still pending owner login. Mother integration and other-site adoption remain pending, never inferred from publishing. See sole PROJECT-PROGRESS for exact limits/recovery.
+
+2026-10-24 CAND-0020 rev1 normal-session acceptance: actual Manager public-origin thumbnail/enlarged1774x887 and three R2 covers800x800 pass, no production writes. Existing product work queue (including reviewed history) empty; saved-draft UI and production Keystatic login NOT VERIFIED, isolated real-source handlers/components pass. Mother backport may proceed; deployment remains d4144e4 /40012264003, tools33b47fc. No full cloud census/cleanup.
