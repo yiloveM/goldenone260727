@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 2,
+  "scope": "features",
+  "features": {
+    "manager": {
+      "products": true,
+      "articles": true,
+      "translations": true,
+      "visuals": true,
+      "media": true,
+      "publishing": true
+    },
+    "verification": {
+      "provider": "signed-captcha"
+    },
+    "downloads": {
+      "mode": "disabled"
+    },
+    "reviews": {
+      "enabled": true
+    },
+    "inquiryCart": {
+      "visible": true
+    },
+    "managerAnalytics": {
+      "visible": true
+    },
+    "articlePublisher": {
+      "enabled": false,
+      "research": true,
+      "bodyImage": false
+    },
+    "aiDiscovery": {
+      "enabled": true,
+      "multilingual": true,
+      "markdown": true,
+      "llmsFull": false,
+      "include": {
+        "products": true,
+        "categories": true,
+        "articles": true,
+        "company": true,
+        "resources": true,
+        "contact": true
+      }
+    },
+    "productEditing": {
+      "offeringType": "physical-product",
+      "modelStrategy": "series"
+    },
+    "visuals": {
+      "editableSlots": [
+        "home.primary",
+        "home.quality",
+        "home.cooperation",
+        "pages.productsCatalog",
+        "pages.about",
+        "pages.contact",
+        "pages.faq",
+        "pages.articles",
+        "category.lapel-pin-and-badge",
+        "category.medal",
+        "category.challenge-coin",
+        "category.key-chain",
+        "category.golf-accessories-and-tools",
+        "category.belt-buckle",
+        "category.metal-and-wooden-plaque",
+        "category.fridge-magnets",
+        "category.more-metal-crafts",
+        "category.promotion-gift"
+      ]
+    }
+  },
+  "locales": {
+    "source": "en",
+    "selected": [
+      "es"
+    ]
+  }
+}

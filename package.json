@@ -50,7 +50,9 @@
     "test:llms": "node --test scripts/test-llms-discovery.mjs scripts/test-worker-chunks.mjs",
     "media:check": "node scripts/audit-media-paths.mjs",
     "media:audit": "node scripts/audit-media-paths.mjs",
-    "test:media": "node --test scripts/test-media-paths.mjs scripts/test-product-preview-media.mjs"
+    "test:media": "node --test scripts/test-media-paths.mjs scripts/test-product-preview-media.mjs",
+    "test:features": "node scripts/audit-feature-contract.mjs && node scripts/test-manager-feature-access.mjs",
+    "test:features:ui": "node scripts/test-keystatic-feature-ui.mjs"
   },
   "dependencies": {
     "@astrojs/check": "0.9.9",

@@ -1,3 +1,6 @@
+import {siteConfig as compiledSiteConfig} from './src/data/site-policy';
+import {siteConfigFields} from './src/keystatic/site-config-fields';
+import {centralPolicyNotice} from './src/keystatic/central-policy-notice';
 import { siteVisualFields } from './src/keystatic/site-visual-fields';
 import { aiSeoFields } from './src/keystatic/ai-seo-fields';
 import { blogManagerField } from './src/keystatic/blog-manager-field';
@@ -125,13 +128,16 @@ const specTablesTranslationField = () =>
     { label: '型号参数表', itemLabel: props => props.fields.title.value || '参数表' }
   );
 
-export default config({
+export function createKeystaticConfig(siteConfig:any=compiledSiteConfig,controls?:Record<string,boolean>,downloadMode?:string){
+const activeReviews=controls?.reviews??siteConfig?.features?.reviews?.enabled??reviewSystemEnabled;
+const keystaticConfig=config({
   storage: isProduction
     ? { kind: 'github', repo: { owner: githubOwner, name: githubName } }
     : { kind: 'local' },
   ui: {
     brand: { name: 'Golden One 内容管理' },
     navigation: {
+      '功能总成':['siteConfig'],
       'AI & SEO Settings': ["aiSeo"],
       '站点设置': ["analyticsDashboard","siteFoundation","productEditorSettings","catalogDownloads","siteLanguages","customerReviews","formVerification"],
       '内容管理': ['productManager', 'productOrder', 'products', 'blogManager', 'aiTranslator', 'productTranslationReview', 'blogTranslationReview', 'sitePublisher'],
@@ -139,6 +145,7 @@ export default config({
     },
   },
   singletons: {
+    siteConfig:singleton({label:'功能总成',path:'src/data/site-config',format:'json',schema:siteConfigFields(siteConfig?.schemaVersion||1,siteConfig?.scope)}),
     siteVisuals: singleton({ label: '站点视觉资源', path: 'src/data/site-visuals', format: 'json', schema: siteVisualFields() }),
     aiSeo: singleton({label:'AI 内容导航',path:'src/data/ai-seo-settings',format:'json',schema:aiSeoFields()}),
     blogManager: singleton({label:'所有文章',path:'src/keystatic/blog-manager',format:'json',schema:{manager:blogManagerField()}}),
@@ -487,9 +494,9 @@ export default config({
           }),
           { label: '常见问题', itemLabel: props => props.fields.question.value || 'FAQ' }
         ),
-        reviews: productReviewFields(reviewSystemEnabled),
-        aggregateRatingValue: reviewFieldVisibility(fields.text({ label: '产品总评分（选填）', defaultValue: '' }), reviewSystemEnabled),
-        aggregateRatingCount: reviewFieldVisibility(fields.integer({ label: '产品评分人数（选填）', defaultValue: 0, validation: { min: 0 } }), reviewSystemEnabled),
+        reviews: productReviewFields(activeReviews),
+        aggregateRatingValue: reviewFieldVisibility(fields.text({ label: '产品总评分（选填）', defaultValue: '' }), activeReviews),
+        aggregateRatingCount: reviewFieldVisibility(fields.integer({ label: '产品评分人数（选填）', defaultValue: 0, validation: { min: 0 } }), activeReviews),
         featured: fields.checkbox({ label: '首页推荐', defaultValue: false }),
         content: fields.markdoc({ label: '正文内容', components: r2MarkdocComponents }),
       },
@@ -603,3 +610,7 @@ export default config({
     }),
   },
 });
+
+if(siteConfig){const root:any=keystaticConfig.singletons;const paths:Record<string,string[]>={formVerification:['turnstileEnabled'],catalogDownloads:['mode','enabled'],customerReviews:['enabled'],productEditorSettings:['offeringType','modelStrategy'],analyticsDashboard:['managerVisible'],articlePublisher:['enabled'],aiSeo:['enabled','multilingual','markdown','llmsFull'],siteLanguages:['sourceLocale','enabledLocales']};for(const[name,keys]of Object.entries(paths)){if(!root[name])continue;const schema=root[name].schema;for(const key of keys)schema[key]=fields.ignored();schema.centralPolicy=centralPolicyNotice();}
+if(siteConfig.schemaVersion===2){if(root.articlePublisher){root.articlePublisher.schema.ai.fields.research=fields.ignored();root.articlePublisher.schema.images.fields.bodyImage=fields.ignored();}if(root.aiSeo)root.aiSeo.schema.include=fields.ignored();const hide=(f:any)=>{if(f?.kind==='object')for(const[k,v]of Object.entries(f.fields))k==='enabled'?f.fields[k]=fields.ignored():hide(v);if(f?.kind==='array')hide(f.element);};if(root.siteVisuals)for(const f of Object.values(root.siteVisuals.schema))hide(f);}}return keystaticConfig;}
+export default createKeystaticConfig();

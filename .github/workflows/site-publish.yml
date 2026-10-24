@@ -27,6 +27,7 @@ on:
       - 'src/data/form-verification.json'
       - 'src/data/ai-seo-settings.json'
       - 'src/data/site-visuals.json'
+      - 'src/data/site-config.json'
       - '.github/ai-translation-results/**'
   workflow_dispatch:
     inputs:

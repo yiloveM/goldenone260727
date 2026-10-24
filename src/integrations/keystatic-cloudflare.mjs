@@ -1,4 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
+import {fileURLToPath} from 'node:url';
 
 export default function keystatic() {
   return {
@@ -36,8 +37,8 @@ import "@keystatic/core/ui";
         );
 
         injectRoute({
-          entryPoint: '@keystatic/astro/internal/keystatic-astro-page.astro',
-          entrypoint: '@keystatic/astro/internal/keystatic-astro-page.astro',
+          entryPoint: fileURLToPath(new URL('../keystatic/feature-page.astro',import.meta.url)),
+          entrypoint: fileURLToPath(new URL('../keystatic/feature-page.astro',import.meta.url)),
           pattern: '/keystatic/[...params]',
           prerender: false,
         });

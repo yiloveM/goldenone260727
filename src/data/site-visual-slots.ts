@@ -1,5 +1,5 @@
 import profile from './industry-profile.json';
-import settings from './site-language-settings.json';
+import {siteLanguageSettings as settings} from './site-policy';
 import localeCopy from './site-locales.json';
 import origin from './site-origin.json';
 

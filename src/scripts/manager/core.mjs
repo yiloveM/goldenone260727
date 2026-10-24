@@ -298,6 +298,7 @@ export function installCore(context) {
   const activePanel = () => document.querySelector('.section.is-active')?.dataset.panel || '';
 
   const activateTab = tab => {
+    if(context.canUseTab&&!context.canUseTab(tab))return;
     if (tab === 'reviews' && !context.managerReviewSystemEnabled) return;
     const activeNavTab = tab === 'translation-editor' ? state.translationEditor.returnTab || context.translationDraftTabForType(state.translationEditor.type) : tab;
     document.querySelectorAll('.tab').forEach(button => button.classList.toggle('is-active', button.dataset.tab === activeNavTab));

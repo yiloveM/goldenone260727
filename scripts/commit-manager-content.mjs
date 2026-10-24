@@ -3,6 +3,7 @@ import { realpathSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { loadWranglerVars } from './load-wrangler-vars.mjs';
+import {assertJobFeatures} from './job-feature-policy.mjs';
 export function commitManagerContent({kind,root=process.cwd(),env=process.env,vars=loadWranglerVars(root),git}={}) {
   git ||= (args,optional=false)=>{try{return execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe']}).trim();}catch(error){if(optional&&error.status===1)return '';throw new Error('Git operation failed; changes were not force-pushed.');}};
   const fail=()=>{throw new Error('Content write identity, path or branch changed; reopen the latest draft.');};
@@ -22,6 +23,7 @@ export function commitManagerContent({kind,root=process.cwd(),env=process.env,va
   const base=git(['rev-parse','HEAD']);
   git(['fetch','--no-tags','origin',`refs/heads/${branch}`]);
   if(git(['rev-parse','FETCH_HEAD'])!==base)fail();
+  assertJobFeatures(root,[kind==='product'?'products':kind==='blog'?'articles':'reviews'],{env:{...env,GITHUB_ACTIONS:'false'}});
   git(['config','user.name','github-actions[bot]']);git(['config','user.email','41898282+github-actions[bot]@users.noreply.github.com']);
   git(['add','--',path]);if(git(['diff','--cached','--name-only'])!==path)fail();
   git(['commit','-m',`Apply manager ${kind} draft [skip ci]`]);

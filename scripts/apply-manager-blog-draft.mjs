@@ -1,5 +1,7 @@
 import { requireArticleCategory } from '../src/lib/article-categories.mjs';
 import { createHash } from 'node:crypto';
+import {assertJobFeatures} from './job-feature-policy.mjs';
+assertJobFeatures(process.cwd(),['articles'],{env:{...process.env,GITHUB_ACTIONS:'false'}});
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import YAML from 'yaml';

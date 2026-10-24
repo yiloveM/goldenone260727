@@ -23,7 +23,7 @@ async function copyTree(source, target) {
   }
 }
 
-export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true, profile = {governance:{contentOwner:'Manager regression'}}) {
+export async function buildManagerFixture(root, output, reviews, policy = testPolicy, label = reviews ? 'on' : 'off', analytics = true, profile = {governance:{contentOwner:'Manager regression'}}, centralized = false) {
   const fixture = resolve(output, label);
   for (const file of ['src/pages/manager/index.astro', 'src/lib/product-editor.mjs', 'src/lib/product-reviews.mjs', 'src/lib/json-ld.mjs', 'src/lib/admin-dialog.mjs', 'src/lib/content-links.mjs', 'src/lib/public-media-url.mjs', 'src/lib/admin-media-url.mjs', 'src/lib/article-categories.mjs', 'src/data/customerReviews.ts', 'src/data/site-origin.json']) {
     const source = await readFile(resolve(root, file), 'utf8');
@@ -34,10 +34,12 @@ export async function buildManagerFixture(root, output, reviews, policy = testPo
       if (existsSync(resolve(root, 'src/styles/manager.css'))) await write(resolve(fixture, 'src/styles/manager.css'), await readFile(resolve(root, 'src/styles/manager.css')));
     } else await copyTree(resolve(root, directory), resolve(fixture, directory));
   }
-  await write(resolve(fixture, 'src/data/product-editor-settings.json'), JSON.stringify(policy));
+  for(const file of ['src/data/site-policy.ts','src/lib/feature-registry.mjs','src/lib/feature-policy.mjs','src/lib/site-config-core.mjs','src/lib/site-config-schema.mjs','src/lib/standard-modules.mjs','src/config/standard-modules.json','src/config/site-config.schema.json','src/config/site-config-v1.schema.json','src/config/site-feature-config.schema.json','src/data/feature-support.mjs','src/data/site-language-settings.json','src/data/form-verification.json','src/data/catalog-downloads.json','src/data/ai-seo-settings.json','src/data/article-publisher-settings.json'])if(existsSync(resolve(root,file)))await write(resolve(fixture,file),await readFile(resolve(root,file)));
+  if(centralized){const config=JSON.parse(await readFile(resolve(root,'src/data/site-config.json'),'utf8'));if(config.modules)config.modules.home=config.modules.home.filter(x=>x.id!=='reviews');config.features.reviews.enabled=reviews;config.features.managerAnalytics.visible=analytics;config.features.productEditing=policy;await write(resolve(fixture,'src/data/site-config.json'),JSON.stringify(config));}
+  await write(resolve(fixture, 'src/data/product-editor-settings.json'), JSON.stringify(centralized?{offeringType:'physical-product',modelStrategy:'series'}:policy));
   await write(resolve(fixture, 'src/pages/index.astro'), '<!doctype html><html lang="en"><body><main><h1>Public isolation fixture</h1></main></body></html>');
-  await write(resolve(fixture, 'src/data/customer-reviews.json'), JSON.stringify({ enabled: reviews, summary: {}, reviews: [] }));
-  await write(resolve(fixture, 'src/keystatic/analytics-dashboard.json'), JSON.stringify({ managerVisible: analytics }));
+  await write(resolve(fixture, 'src/data/customer-reviews.json'), JSON.stringify({ enabled: centralized?!reviews:reviews, summary: {}, reviews: [] }));
+  await write(resolve(fixture, 'src/keystatic/analytics-dashboard.json'), JSON.stringify({ managerVisible: centralized?!analytics:analytics }));
   await write(resolve(fixture, 'src/data/industry-profile.json'), JSON.stringify(profile));
   await build({ root: fixture, configFile: false, output: 'static', logLevel: 'error',
     vite: { build: { minify: false } }, outDir: resolve(fixture, 'dist'), cacheDir: resolve(fixture, '.astro-cache') });
@@ -86,6 +88,7 @@ export async function managerBackend(root, output) {
   let sequence = 0;
   let writes = 0;
   let reviewsEnabled = true;
+  const features={products:true,articles:true,translations:true,visuals:true,media:true,publishing:true,analytics:true};
   let failPublish = true;
   let failSave = false;
   let policy = testPolicy;
@@ -102,6 +105,7 @@ export async function managerBackend(root, output) {
     if(delayedApis.has(pathname)){const delay=delayedApis.get(pathname);delayedApis.delete(pathname);await new Promise(done=>setTimeout(done,delay));}
     requests.push({ path: pathname, method, ...(method === 'GET' ? {} : { body }) });
     if (!authenticated) throw Object.assign(new Error('登录已过期，请重新登录。'), { status: 403 });
+    if(pathname.endsWith('/features'))return {features:{...features,reviews:reviewsEnabled,productTranslations:features.products&&features.translations,articleTranslations:features.articles&&features.translations,contentSources:features.products||features.articles}};
     if (failedApis.delete(pathname)) throw new Error('连接暂时失败，请重试。');
     if (pathname.endsWith('/status')) return { ok: true, manager: { email: 'editor@example.test' }, checks: [] };
     if (pathname.endsWith('/workspace')) return workspace;
@@ -199,7 +203,7 @@ export async function managerBackend(root, output) {
   };
   return { requests, db, productDrafts, products, assets, translationDrafts, records,
     visualDrafts, visualSlots, orderGroups, setWorkspace:value=>{workspace=value;}, setTranslationStatus:value=>{translationStatus=value;},
-    setReviews: value => { reviewsEnabled = value; }, delayNextApi: (path,ms) => delayedApis.set(path,ms), failNextSave: () => { failSave = true; },
+    setFeatures: value=>Object.assign(features,value),setReviews: value => { reviewsEnabled = value; }, delayNextApi: (path,ms) => delayedApis.set(path,ms), failNextSave: () => { failSave = true; },
     failNextApi: path => failedApis.add(path), setPolicy: value => { policy = value; },
     setLocales: value => { enabledLocales = value; }, normalizeProduct: normalizer.normalizeProductDraftPayload,
     setAuthenticated: value => { authenticated = value; },
@@ -232,7 +236,10 @@ export async function managerBackend(root, output) {
           res.end(file);
         } catch (error) { if (!res.headersSent) res.writeHead(error.status || 503, { 'content-type': 'text/plain; charset=utf-8' }); res.end(error.message); }
       });
-      await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+      for(let attempt=0;;attempt++){
+        try{await new Promise((resolve,reject)=>{const fail=error=>reject(error);server.once('error',fail);server.listen(20000+Math.floor(Math.random()*40000),'127.0.0.1',()=>{server.removeListener('error',fail);resolve();});});break;}
+        catch(error){if(error.code!=='EADDRINUSE'||attempt>=7)throw error;}
+      }
       return { url: `http://127.0.0.1:${server.address().port}/${testUuid}`, stop: () => new Promise(resolve => server.close(resolve)) };
     } };
 }

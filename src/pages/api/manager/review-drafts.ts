@@ -1,7 +1,9 @@
 import { reconcileDraftRecords, deleteDraftRecordRoute, canEditDraftRecord } from '../../../lib/manager/draft-records';
 import type { APIRoute } from 'astro';
-import reviewData from '../../../data/customer-reviews.json';
+import { reviewSettings as reviewData } from '../../../data/site-policy';
 import { allCustomerReviews, customerReviewSummary } from '../../../data/customerReviews';
+import {siteConfig} from '../../../data/site-policy';
+import {readManagerPolicyFile} from '../../../lib/site-policy-git';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import {
   createReviewDraftId,
@@ -37,6 +39,10 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const env = getRuntimeEnv(locals);
   const access = requireManagerAccess(request, env);
   if (access.response) return access.response;
+  if(siteConfig) {
+    try{if(!(await readManagerPolicyFile(env,'src/data/customer-reviews.json',reviewData)).enabled)return new Response('评价功能已关闭，已有草稿仍保留。',{status:403});}
+    catch{return new Response('当前评价设置暂时无法核验，请稍后重试。',{status:503});}
+  }
   const db = getManagerDb(env);
   if (!db) return databaseUnavailable();
   try {

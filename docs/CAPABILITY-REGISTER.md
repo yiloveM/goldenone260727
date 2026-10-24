@@ -1,3 +1,10 @@
+## CAP-0017 revision 2 — Feature-only assembly adoption
+
+- Owner exact 确认修改能力 approval of complete four-site proposal docs/proposals/keystatic-feature-adoption-20261024.md (mother); own baseline 65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2, local codex/feature-assembly-20261024. Mother rev1 e0c9d171f756b45942b546078cc949a7367e84e2 plus rev2 731f3e4da9d568c115bb823b7bb42b436c1026ea; initial mother provenance remains unchanged. This entry's introducing commit is own scoped source; no whole-site upgrade claim.
+- Strict features-only v2 with original choices/18 visual slots; original17 singleton/4 collections plus siteConfig. Original homepage,80 content files/all old JSON settings unchanged; no new runtime dependency/cloud resource/automatic article executor. Direct download is not implemented and cannot be selected; retain signed CAPTCHA/protected-download contract. Six Manager modules use common registry, native Keystatic linkage, current-Git API/queue/final CAS and content scope checks.
+- Local evidence: actual Core Reader/UI/API57 (three isolated native saves), actual Worker/auth/API38, Manager55, actual80-record Reader, original customer11/controls14, review17, owner16, media19, lifecycle22/SQLite19/bulk5/commit8/catalog5; template53 contracts and full build843 HTML/4699 JSON-LD zero errors,0 warnings17 hints. Exact224 public正文/SEO/sitemap/AI-output entries unchanged; two public languages/108 mirrors preserved. All cloud mutations/paid AI/normal GitHub OAuth writes NOT TESTED. Production CI/HTTP pending own main receipt.
+- Recovery: scoped introducing source plus configuration/filter after comparing later CMS, preserve original settings/content/drafts/D1/R2. No other-client or automatic cloud rollback. Stable usage: KEYSTATIC-FEATURE-ASSEMBLY.md; release/handoff only PROJECT-PROGRESS.
+
 # Golden One Capability Register
 
 ## CAND-0020 revision 1 — Independent media registration and complete product previews

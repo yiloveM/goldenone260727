@@ -1,4 +1,4 @@
-import { commitGitFiles, DraftConflict, readGitHead, readGitTree, type GitContext } from '../site-git';
+import { commitGitFiles, DraftConflict,FeatureDenied,FeatureUnavailable, readGitHead, readGitTree, type GitContext } from '../site-git';
 type Selection={sourcePath:string;sourceSha:string};
 export async function formalContentDeletionRoute(request:Request,ctx:GitContext,readRecords:(head:string)=>Promise<any[]>,noun:string) {
   const planFor=async(selection:Selection[])=>{
@@ -16,5 +16,5 @@ export async function formalContentDeletionRoute(request:Request,ctx:GitContext,
     const tree=await readGitTree(ctx,plan.head);
     const commit=await commitGitFiles(ctx,plan.head,tree.sha,plan.records.map(record=>({path:record.sourcePath,sha:null})),`Delete ${plan.records.length} selected ${noun} pages [skip ci]`);
     return Response.json({commit,removed:plan.records.length,message:'删除已保存；下次“发布网站更新”完成后，以上页面将撤下。图片和下载文件会保留。'},{headers:{'cache-control':'no-store'}});
-  }catch(error){return new Response(error instanceof DraftConflict?error.message:'无法核验或删除内容，请刷新后重试。',{status:error instanceof DraftConflict?409:502,headers:{'cache-control':'no-store'}});}
+  }catch(error){const known=error instanceof DraftConflict||error instanceof FeatureDenied||error instanceof FeatureUnavailable;return new Response(known?error.message:'无法核验或删除内容，请刷新后重试。',{status:known?error.status:502,headers:{'cache-control':'no-store'}});}
 }

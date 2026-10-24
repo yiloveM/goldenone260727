@@ -269,7 +269,7 @@ const structuralChecks = [
   ['src/layouts/BaseLayout.astro', ['rel="canonical"', 'hreflang', 'application/ld+json', 'max-image-preview:large', 'goldenone-redesign.css', 'data-visual-foundation="signature-product"', 'brandAssets.icon', 'apple-touch-icon', 'site.webmanifest']],
   ['astro.config.mjs', ["imageService: 'compile'", "sessionKVBindingName: 'SESSION'", 'tailwindcss()', "from './src/integrations/keystatic-cloudflare.mjs'", "exclude: ['@keystatic/astro', '@keystatic/core']", "include: ['slate-react']"]],
   ['wrangler.toml', ['account_id = "473b41497c5031874c630ecb9bc45ced"', './src/worker.ts', 'keep_vars = true', 'directory = "./dist"', 'binding = "ASSETS"', 'html_handling = "none"', 'run_worker_first = true', 'KEYSTATIC_PORTAL_HOST', 'MANAGER_PORTAL_HOST', 'CONTENT_BUCKET', 'MANAGER_DB']],
-  ['src/worker.ts', ['getScopedRuntimeSecret', 'admin-portal-session', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'KEYSTATIC_SECRET', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'managerAnalyticsEnabled', 'contextWithEnv', 'x-robots-tag', 'rewritePortalText', 'isProtectedPublicPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest']],
+  ['src/worker.ts', ['getScopedRuntimeSecret', 'admin-portal-session', 'PUBLIC_KEYSTATIC_GITHUB_APP_SLUG', 'KEYSTATIC_SECRET', '__Host-businessweb-portal', 'SameSite=Strict', 'portalLoginResponse', 'readFeatureState','requireFeature', 'contextWithEnv', 'x-robots-tag', 'rewritePortalText', 'isProtectedPublicPath', 'fetchPublicAsset', 'fetchPortalPage', 'handleDownloadRequest']],
   ['src/middleware.ts', ['requireInternalPortalAccess', 'allowKeystaticOAuthCallback']],
   ['src/lib/admin-portals.ts', ['KEYSTATIC_PORTAL_UUID', 'MANAGER_PORTAL_UUID', 'requireInternalPortalAccess']],
   ['src/lib/admin-portal-rewrite.ts', ['rewritePortalText', '\\\/keystatic', 'rewritePortalLocation']],
@@ -282,7 +282,9 @@ const structuralChecks = [
   ['src/data/seo.ts', ['productEntitiesEnabled = true', 'ProductGroup', 'FAQPage', 'Service']],
   ['keystatic.config.ts', ['managerVisible', 'siteFoundation', 'catalogDownloads', 'siteLanguages', "path: 'src/data/site-language-settings'", "path: 'src/data/catalog-downloads'", "path: 'src/data/industry-profile'", 'aiTranslator', 'sitePublisher', 'imagePool', 'siteLanguageBulkActionsField', 'siteLanguageCheckboxField', "brand: { name: 'Golden One 内容管理' }", "'站点设置':", "'内容管理':", "'媒体资源':"]],
   ['src/keystatic/site-language-selector-field.tsx', ['全选全部目标语言', '反选当前选择', 'languageBulkEvent', 'siteLanguageCheckboxField']],
-  ['src/integrations/keystatic-cloudflare.mjs', ["'/keystatic/[...params]'", '@keystatic/astro/internal/keystatic-astro-page.astro']],
+  ['src/integrations/keystatic-cloudflare.mjs', ["'/keystatic/[...params]'", '../keystatic/feature-page.astro']],
+  ['src/keystatic/feature-page.astro', ["import FeatureApp from './feature-app'", '<FeatureApp client:only="react" />']],
+  ['src/keystatic/feature-app.tsx', ["from '@keystatic/core/ui'", 'interfaceConfig(createKeystaticConfig', '<Keystatic config={config}']],
   ['src/pages/api/keystatic/[...params].ts', ['makeGenericAPIRouteHandler', 'KEYSTATIC_GITHUB_CLIENT_ID', 'KEYSTATIC_GITHUB_CLIENT_SECRET', 'KEYSTATIC_SECRET']],
   ['src/content.config.ts', ['loader: glob', 'offeringType', 'modelStrategy']],
   ['src/lib/manager/d1.ts', ['offeringType', 'modelStrategy', 'normalizeProductDraftPayload']],
@@ -314,6 +316,15 @@ try {
   const managerUi = readManagerSources(root).text;
   for (const forbidden of ['businessweb-manager-token', 'managerTokenInput', 'managerConnectButton', 'managerLogoutButton']) {
     if (managerUi.includes(forbidden)) add('error', 'src/pages/manager/index.astro', `Manager must not store or request a browser bearer token: ${forbidden}`);
+  }
+  if (!managerUi.includes('data-tab="reviews" type="button" hidden={!managerReviewSystemEnabled}') ||
+      !managerUi.includes('context.managerReviewSystemEnabled=flags.reviews===true') ||
+      !managerUi.includes('node.hidden=!canUseTab(tab)')) {
+    add('error', 'src/pages/manager/index.astro', 'Customer-review navigation must be controlled by the Keystatic review-system switch.');
+  }
+  const managerAnalyticsUi = await source('src/pages/manager/analytics.astro');
+  if (managerAnalyticsUi.includes('<strong>BusinessWeb</strong>')) {
+    add('error', 'src/pages/manager/analytics.astro', 'Analytics must display the configured content owner instead of a hard-coded template brand.');
   }
 } catch {
   // The missing-file error above is enough context.

@@ -1,9 +1,11 @@
 import { reconcileDraftRecords, deleteDraftRecordRoute, canEditDraftRecord } from '../../../lib/manager/draft-records';
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import productEditorSettings from '../../../data/product-editor-settings.json';
+import { productEditorSettings as productEditorSettings } from '../../../data/site-policy';
 import { enforceProductEditorPolicy, productDraftReviewFields, retainUneditedProductReviews } from '../../../lib/product-editor.mjs';
 import { reviewSystemEnabled } from '../../../data/customerReviews';
+import {siteConfig} from '../../../data/site-policy';
+import {readManagerPolicyFiles} from '../../../lib/site-policy-git';
 import { getRuntimeEnv, requireManagerAccess } from '../../../lib/manager/access';
 import {
   createDraftId,
@@ -70,6 +72,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
   let payload;
   let requestedId = '';
   let expectedUpdatedAt = '';
+  let latestPolicy=productEditorSettings;
+  let latestReviewsEnabled=reviewSystemEnabled;
+  const saved=(locals as any).featureState;
+  if(saved){latestPolicy=saved.config?.features.productEditing||saved.legacy?.productEditing||latestPolicy;latestReviewsEnabled=saved.features.reviews===true;}
+  else if(siteConfig) {
+    try{const latest=await readManagerPolicyFiles(env,{'src/data/product-editor-settings.json':productEditorSettings,'src/data/customer-reviews.json':{enabled:reviewSystemEnabled}});latestPolicy=latest['src/data/product-editor-settings.json'];latestReviewsEnabled=latest['src/data/customer-reviews.json'].enabled===true;}
+    catch{return new Response('当前编辑设置暂时无法核验，请稍后重试。',{status:503});}
+  }
 
   try {
     const body = (await request.json()) as { id?: string; updatedAt?: string; payload?: unknown };
@@ -78,7 +88,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     const input = body.payload as { productSlug?: string } | undefined;
     const product = (await getCollection('products')).find(item => item.id.replace(/\.mdoc$/, '') === input?.productSlug);
     payload = normalizeProductDraftPayload(productDraftReviewFields(
-      enforceProductEditorPolicy(body.payload, productEditorSettings, product?.data), reviewSystemEnabled,
+      enforceProductEditorPolicy(body.payload, latestPolicy, product?.data), latestReviewsEnabled,
     ));
   } catch (error) {
     void error;

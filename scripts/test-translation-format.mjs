@@ -1,3 +1,4 @@
+import {sitePolicyFixture} from './site-policy-test-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,readdir,mkdir,mkdtemp,writeFile} from 'node:fs/promises';
@@ -10,7 +11,7 @@ import {canonicalArticleCategory} from '../src/lib/article-categories.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 await mkdir(resolve(root,'.sandbox/translation-format'),{recursive:true});
 const out=await mkdtemp(resolve(root,'.sandbox/translation-format/test-'));
-async function compile(entry,name,plugins=[]){const target=resolve(out,name+'.mjs');await build({entryPoints:[resolve(root,entry)],outfile:target,bundle:true,packages:'external',platform:'node',format:'esm',define:{'import.meta.env':'{"PROD":true}'},plugins,logLevel:'error'});return import(pathToFileURL(target).href);}
+async function compile(entry,name,plugins=[]){const target=resolve(out,name+'.mjs');await build({entryPoints:[resolve(root,entry)],outfile:target,bundle:true,packages:'external',platform:'node',format:'esm',define:{'import.meta.env':'{"PROD":true}'},plugins:[sitePolicyFixture(),...plugins],logLevel:'error'});return import(pathToFileURL(target).href);}
 const config=(await compile('keystatic.config.ts','config')).default;
 const split=source=>{const match=source.match(/^---\s*\r?\n([\s\S]*?)\r?\n---\r?\n?/);return {data:YAML.parse(match[1]),body:source.slice(match[0].length)};};
 for(const portal of ['manager','keystatic'])test(portal+' real article/product writer preserves types and links and reopens in Keystatic',async()=>{

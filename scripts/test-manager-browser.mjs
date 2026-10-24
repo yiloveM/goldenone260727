@@ -388,15 +388,16 @@ try {
   await page.locator('#saveDraftButton').click(); await waitText('statusText', '草稿已保存');
   const pendingReviewDraft = backend.productDrafts().find(item => item.productSlug === 'sample-service').id;
   backend.setReviews(false);
+  backend.setFeatures({analytics:false});
   const offServer = await backend.start(offDist);
   try {
     await check('Keystatic OFF hides review editing while preserving old unpublished reviews', async () => {
       const off = await context.newPage(); await off.goto(offServer.url); await openManagerTab(off,'products'); await off.waitForSelector('.manager-product-title[data-slug="sample-service"]');
-      assert.equal(await off.locator('[data-tab="reviews"]').count(), 0);
-      assert.equal(await off.locator('#managerAnalyticsLink').count(), 0);
+      assert.equal(await off.locator('[data-tab="reviews"]').isVisible(), false);
+      assert.equal(await off.locator('#managerAnalyticsLink').isVisible(), false);
       await off.locator('.manager-product-title[data-slug="sample-service"]').click();
       await off.locator(`[data-product-draft-edit="${pendingReviewDraft}"]`).click();
-      assert.equal(await off.locator('#productReviewList').count(), 0);
+      assert.equal(await off.locator('#productReviewList').isVisible(), false);
       await off.locator('#title').fill('OFF state title'); await off.locator('#saveDraftButton').click();
       await off.waitForFunction(() => document.getElementById('statusText').textContent.includes('草稿已保存'));
       assert.ok(backend.productDrafts().some(item => item.productSlug === 'sample-service' && item.payload.reviews?.length));
@@ -405,6 +406,7 @@ try {
   } finally { await offServer.stop(); }
   await check('re-enabling reviews restores preserved draft fields without data re-entry', async () => {
     backend.setReviews(true);
+    backend.setFeatures({analytics:true});
     const enabled = await context.newPage(); await enabled.goto(server.url);
     await openManagerTab(enabled,'products');
     await enabled.waitForSelector('.manager-product-title[data-slug="sample-service"]');
@@ -431,6 +433,24 @@ try {
   await checkManagerImages({ page, backend, check, output });
   await checkAdminWorkflow({page,backend,check,output});
   await checkManagerUx({page,backend,check,output});
+  await check('all optional modules OFF retains the workspace and performs no closed-module bootstrap reads',async()=>{
+    backend.setFeatures({products:false,articles:false,translations:false,visuals:false,media:false,publishing:false,analytics:false});backend.setReviews(false);
+    const before=backend.requests.length,current=await context.newPage();await current.goto(server.url);await current.waitForFunction(()=>document.documentElement.dataset.managerReady==='true');
+    for(const name of ['products','blog','translation','visuals','images','publish','reviews'])assert.equal(await current.locator(`[data-tab="${name}"]`).isVisible(),false,name);
+    assert.equal(await current.locator('[data-panel="dashboard"]').isVisible(),true);
+    assert.ok(backend.requests.slice(before).every(row=>['/api/manager/status','/api/manager/features','/api/manager/workspace','/api/manager/deploy/site'].includes(row.path)));
+    await current.close();
+  });
+  await check('saved policy refresh closes stale editors without losing unsaved text and reopens without reload',async()=>{
+    backend.setFeatures({products:true,articles:true,translations:true,visuals:true,media:true,publishing:true,analytics:true});backend.setReviews(true);backend.setTranslationStatus(null);
+    const current=await context.newPage();await current.clock.install();await current.goto(server.url);await current.bringToFront();await openManagerTab(current,'products');
+    await current.locator('.manager-product-title[data-slug="sample-service"]').click();await expandManagerEditor(current);await current.locator('#title').fill('Preserved while closed');
+    backend.setFeatures({products:false,media:false,publishing:false,translations:false});await current.clock.runFor(15050);await current.waitForFunction(()=>document.querySelector('[data-tab="products"]').hidden);
+    assert.equal(await current.locator('#title').inputValue(),'Preserved while closed');assert.equal(await current.locator('[data-panel="dashboard"]').isVisible(),true);
+    backend.setFeatures({products:true});await current.clock.runFor(15050);await current.waitForFunction(()=>!document.querySelector('[data-tab="products"]').hidden);await openManagerTab(current,'products');
+    assert.equal(await current.locator('#title').inputValue(),'Preserved while closed');assert.equal(await current.locator('[data-tab="translation"]').isVisible(),false);assert.equal(await current.locator('[data-tab="publish"]').isVisible(),false);
+    await current.close();backend.setFeatures({products:true,articles:true,translations:true,visuals:true,media:true,publishing:true,analytics:true});
+  });
   assert.deepEqual(faults, []); assert.deepEqual(forbidden, []);
   assert.ok(backend.requests.every(item => item.path.startsWith('/api/manager/')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ checks, requests: backend.requests, cloudWrites: 'NONE', realAuthentication: 'NOT_TESTED', output }, null, 2));

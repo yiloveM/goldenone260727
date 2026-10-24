@@ -1,4 +1,4 @@
-import reviewData from './customer-reviews.json';
+import {reviewSettings as reviewData} from './site-policy';
 import {
   normalizeReviewRecords,
   productReviewSummary,

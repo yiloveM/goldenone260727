@@ -1,4 +1,7 @@
 import { createHash } from 'node:crypto';
+import {assertJobFeatures} from './job-feature-policy.mjs';
+assertJobFeatures(process.cwd(),['products'],{env:{...process.env,GITHUB_ACTIONS:'false'}});
+import {readPolicyFile,readSiteConfig} from './site-policy.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import YAML from 'yaml';
@@ -86,6 +89,7 @@ try {
   if (error.code !== 'ENOENT') throw error;
 }
 // Re-resolve after checkout: an older Manager draft must not overwrite the owner's latest policy.
+editorSettings=readPolicyFile(cwd,'src/data/product-editor-settings.json',editorSettings);
 const ownerPolicy = resolveProductEditorPolicy(editorSettings, isNewProduct ? {} : document.toJSON());
 
 document.set('title', String(payload.title).trim());
@@ -106,8 +110,11 @@ document.set('highlights', normalizeStringArray(payload.highlights));
 document.set('faqs', normalizeFaqs(payload.faqs));
 document.set('featured', payload.featured === true);
 
-if (Object.hasOwn(payload, 'reviews')) document.set('reviews', validateProductReviews(payload.reviews));
-for (const [key, value] of Object.entries(validateProductRating(payload))) document.set(key, value);
+const currentSiteConfig=readSiteConfig(cwd);
+if(!currentSiteConfig || currentSiteConfig.features.reviews.enabled) {
+  if (Object.hasOwn(payload, 'reviews')) document.set('reviews', validateProductReviews(payload.reviews));
+  for (const [key, value] of Object.entries(validateProductRating(payload))) document.set(key, value);
+}
 
 if (isNewProduct) {
   document.set('featured', payload.featured === true);

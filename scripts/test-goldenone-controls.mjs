@@ -1,3 +1,4 @@
+import {sitePolicyFixture} from './site-policy-test-fixture.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir, mkdtemp, cp } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -24,7 +25,7 @@ for (const file of ['src/data/customer-reviews.json', 'src/data/site-language-se
 
 await check('real Keystatic schemas read all existing values and expose owner policy navigation', async () => {
   const file = resolve(output, 'keystatic-config.mjs');
-  await bundle({ entryPoints: [resolve(root, 'keystatic.config.ts')], bundle: true, packages: 'external', platform: 'node', format: 'esm', outfile: file, define: { 'import.meta.env': '{}' }, logLevel: 'error' });
+  await bundle({ plugins:[sitePolicyFixture()],entryPoints: [resolve(root, 'keystatic.config.ts')], bundle: true, packages: 'external', platform: 'node', format: 'esm', outfile: file, define: { 'import.meta.env': '{}' }, logLevel: 'error' });
   const config = (await import(pathToFileURL(file).href)).default;
   const reader = createReader(root, config);
   const profile = await json('src/data/industry-profile.json');
@@ -46,7 +47,9 @@ let failures = [];
 try {
   for (const state of [{ label: 'on', reviews: true, turnstile: true, downloads: true, empty: false }, { label: 'off', reviews: false, turnstile: false, downloads: false, empty: false }, { label: 'empty', reviews: true, turnstile: true, downloads: true, empty: true }]) {
     const fixture = resolve(output, state.label);
-    for (const directory of ['src/data', 'src/lib', 'src/components', 'src/styles']) await cp(resolve(root, directory), resolve(fixture, directory), { recursive: true });
+    for (const directory of ['src/data', 'src/lib', 'src/config', 'src/components', 'src/styles']) await cp(resolve(root, directory), resolve(fixture, directory), { recursive: true });
+    await cp(resolve(root,'src/keystatic/analytics-dashboard.json'),resolve(fixture,'src/keystatic/analytics-dashboard.json'),{recursive:true});
+    const central=await json('src/data/site-config.json');central.features.reviews.enabled=state.reviews;central.features.verification.provider=state.turnstile?'turnstile':'signed-captcha';central.features.downloads.mode=state.downloads?'protected':'disabled';await write(resolve(fixture,'src/data/site-config.json'),JSON.stringify(central));
     await write(resolve(fixture, 'src/data/customer-reviews.json'), JSON.stringify({ enabled: state.reviews, summary: {}, reviews: [] }));
     await write(resolve(fixture, 'src/data/form-verification.json'), JSON.stringify({ turnstileEnabled: state.turnstile }));
     await write(resolve(fixture, 'src/data/catalog-downloads.json'), JSON.stringify({ enabled: state.downloads, documents: state.empty ? [] : [{ id: 'catalogue', fileName: 'catalogue.pdf', title: 'Custom gifts catalogue', description: '', url: 'https://cdn.example.test/catalogue.pdf' }] }));

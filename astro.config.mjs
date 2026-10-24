@@ -8,7 +8,8 @@ import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 import keystatic from './src/integrations/keystatic-cloudflare.mjs';
 import tailwindcss from '@tailwindcss/vite';
-import siteLanguageSettings from './src/data/site-language-settings.json';
+import {readPolicyFile} from './scripts/site-policy.mjs';
+const siteLanguageSettings=readPolicyFile(process.cwd(),'src/data/site-language-settings.json');
 import siteLocaleConfig from './src/data/site-locales.json';
 import siteOriginConfig from './src/data/site-origin.json';
 

@@ -1,3 +1,9 @@
+## 2026-10-24 +08:00 - CAP-0017 rev2 Golden One 独立采纳
+
+- 完整跨站B方案已原文确认；独立分支codex/feature-assembly-20261024，基线65ce9a58cce2f1cf8cef79311eb7e7ac2ed8c3c2。来源母版e0c9d17/731f3e4，仅功能总成闭包，非整站升级；源码为本条引入提交。18真实视觉位置/原开关值、80内容与所有旧设置哈希保留，公开首页/设计和付费服务未改。
+- 本地：真实Core Reader/UI/API57+原生隔离保存3、Worker鉴权API38、Manager55、本站11/控件14、评价17/站长16/媒体19及原生命周期SQLite写回链通过；完整build843HTML/4699JSON-LD零错误、0警告17提示，224公开正文/SEO/sitemap/AI产物精确零差异，原2语言108镜像不变。测试脚本只修正已过时导航/源SHA/草稿状态假设，不削弱实际断言。证据Temp/keystatic-feature-adoption-20261024；无生产内容写入/删除/R2上传/计费AI，真实GitHub OAuth保存未测。
+- 当前仅本地验收，own main推送/原site-publish/真实HTTP待回执；保留站长原7行本地后缀不入提交。恢复按本批源码及配置/过滤协调范围化revert，先核后来CMS，保留D1/R2与有效草稿。Golden上线核验通过后才执行Aqua→Etha→Corner；Corner任意远端/生产仍需专项授权。
+
 ## 2026-10-24 +08:00 - CAP-0016 rev3 tool closure and verified release receipt
 
 - Runtime526f4474738328269f10085e60af5b0f0c160d7d received own main; original site-publish40077915748 full build/actual deployment completed/success. Post-release8 public canonical/llms/private-isolation checks pass. 843HTML/4699JSON-LD/2languages108mirrors final build and complete Manager53/owner16 pass; normal production Manager after release loads three800px R2 images and1774px static cover, all no-referrer. Product queue including reviewed history empty; no production draft created for testing.

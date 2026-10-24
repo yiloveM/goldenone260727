@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "modules": [
+    {
+      "id": "navigation",
+      "revision": 1,
+      "name": "导航栏",
+      "kind": "shell",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "找到真实页面及联系入口",
+      "requires": [],
+      "contentRequirements": [
+        "public navigation targets"
+      ],
+      "variants": [
+        "standard"
+      ],
+      "support": "implemented",
+      "requiresModules": [],
+      "mustComeAfter": []
+    },
+    {
+      "id": "hero",
+      "revision": 1,
+      "name": "Banner / Hero",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "理解业务并选择下一步",
+      "requires": [],
+      "contentRequirements": [
+        "one H1",
+        "verified positioning",
+        "public CTA"
+      ],
+      "variants": [
+        "image",
+        "text"
+      ],
+      "support": "implemented",
+      "requiresModules": [],
+      "mustComeAfter": []
+    },
+    {
+      "id": "categories",
+      "revision": 1,
+      "name": "产品大类",
+      "kind": "section",
+      "offeringModes": [
+        "industrial-series",
+        "discrete-products",
+        "hybrid"
+      ],
+      "industryExamples": [
+        "hardware",
+        "equipment",
+        "consumer goods"
+      ],
+      "buyerTask": "按类别找到产品",
+      "requires": [],
+      "contentRequirements": [
+        "published categories"
+      ],
+      "variants": [
+        "grid"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "featured-products",
+      "revision": 1,
+      "name": "精选产品",
+      "kind": "section",
+      "offeringModes": [
+        "industrial-series",
+        "discrete-products",
+        "hybrid"
+      ],
+      "industryExamples": [
+        "hardware",
+        "equipment",
+        "custom merchandise"
+      ],
+      "buyerTask": "浏览重点产品",
+      "requires": [],
+      "contentRequirements": [
+        "published featured products"
+      ],
+      "variants": [
+        "grid",
+        "editorial-list"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "oem-odm",
+      "revision": 1,
+      "name": "OEM / ODM 定制",
+      "kind": "section",
+      "offeringModes": [
+        "discrete-products",
+        "industrial-series",
+        "hybrid"
+      ],
+      "industryExamples": [
+        "contract manufacturing",
+        "custom merchandise"
+      ],
+      "buyerTask": "理解定制范围并提交要求",
+      "requires": [],
+      "contentRequirements": [
+        "verified scope",
+        "localized content",
+        "public inquiry target"
+      ],
+      "variants": [
+        "editorial"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "process",
+      "revision": 1,
+      "name": "合作与交付流程",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "理解真实先后步骤",
+      "requires": [],
+      "contentRequirements": [
+        "ordered steps"
+      ],
+      "variants": [
+        "steps"
+      ],
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "company-capability",
+      "revision": 1,
+      "name": "企业与制造能力",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "manufacturing",
+        "professional services"
+      ],
+      "buyerTask": "评估供应方能力",
+      "requires": [],
+      "contentRequirements": [
+        "verified company facts",
+        "appropriate images"
+      ],
+      "variants": [
+        "editorial"
+      ],
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "applications",
+      "revision": 1,
+      "name": "应用与解决方案",
+      "kind": "section",
+      "offeringModes": [
+        "industrial-series",
+        "services",
+        "solutions",
+        "hybrid"
+      ],
+      "industryExamples": [
+        "water treatment",
+        "engineering",
+        "professional services"
+      ],
+      "buyerTask": "从使用场景寻找方案",
+      "requires": [],
+      "contentRequirements": [
+        "localized content",
+        "existing public targets"
+      ],
+      "variants": [
+        "list"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "articles",
+      "revision": 1,
+      "name": "技术文章与新闻",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "查阅专业资料与动态",
+      "requires": [],
+      "contentRequirements": [
+        "published localized articles"
+      ],
+      "variants": [
+        "grid"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "reviews",
+      "revision": 1,
+      "name": "客户评价",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "了解真实购买体验",
+      "requires": [
+        "reviews"
+      ],
+      "contentRequirements": [
+        "published reviews"
+      ],
+      "variants": [
+        "list"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "downloads",
+      "revision": 1,
+      "name": "资料下载",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "equipment",
+        "technical services"
+      ],
+      "buyerTask": "获取产品与技术资料",
+      "requires": [
+        "downloads"
+      ],
+      "contentRequirements": [
+        "verified documents",
+        "existing download security"
+      ],
+      "variants": [
+        "list"
+      ],
+      "emptyPolicy": "omit",
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "inquiry",
+      "revision": 1,
+      "name": "询盘与联系入口",
+      "kind": "section",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "提交具体需求",
+      "requires": [],
+      "contentRequirements": [
+        "public contact target",
+        "existing verification and delivery"
+      ],
+      "variants": [
+        "compact"
+      ],
+      "support": "implemented",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    },
+    {
+      "id": "footer",
+      "revision": 1,
+      "name": "页脚",
+      "kind": "shell",
+      "offeringModes": [
+        "all"
+      ],
+      "industryExamples": [
+        "all"
+      ],
+      "buyerTask": "获取联系方式与必要站点信息",
+      "requires": [],
+      "contentRequirements": [
+        "real contact and legal targets"
+      ],
+      "variants": [
+        "standard"
+      ],
+      "support": "implemented",
+      "requiresModules": [],
+      "mustComeAfter": []
+    },
+    {
+      "id": "file-upload",
+      "revision": 1,
+      "name": "访客文件上传",
+      "kind": "section",
+      "offeringModes": [
+        "discrete-products",
+        "hybrid"
+      ],
+      "industryExamples": [
+        "custom manufacturing"
+      ],
+      "buyerTask": "保密提交设计参考",
+      "requires": [
+        "secure-file-intake"
+      ],
+      "contentRequirements": [
+        "file signature and size checks",
+        "abuse protection",
+        "private delivery",
+        "retention and recovery"
+      ],
+      "variants": [],
+      "support": "candidate",
+      "requiresModules": [
+        "hero"
+      ],
+      "mustComeAfter": [
+        "hero"
+      ]
+    }
+  ]
+}

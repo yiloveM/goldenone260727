@@ -1,6 +1,7 @@
 import { promptDialog } from '../lib/admin-dialog.mjs';
-import { type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type KeyboardEvent as ReactKeyboardEvent, type MouseEvent, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useSyncedSurfaceTheme } from './use-synced-surface-theme';
+import {FeatureUiContext} from './feature-assembly-field';
 
 type R2Folder = {
   type: 'folder';
@@ -100,11 +101,14 @@ export function R2ImagePicker({
   const [cursor, setCursor] = useState<string | undefined>();
   const [state, setState] = useState<LoadState>({ kind: 'idle' });
   const [copiedUrl, setCopiedUrl] = useState('');
+  const allowed=useContext(FeatureUiContext).features?.media!==false,epoch=useRef(0);
 
   const isDocumentPicker = assetKind === 'document';
   useSyncedSurfaceTheme(rootRef, 'r2');
 
   const loadAssets = useCallback(async (nextPrefix: string, nextCursor?: string, append = false) => {
+    const currentEpoch=++epoch.current;
+    if(!allowed){setState({kind:'error',message:'媒体管理暂未开放。已有图片仍保留，可关闭此窗口继续编辑。'});return;}
     const normalizedPrefix = normalizeAdminPrefix(nextPrefix);
     setState(current => (append && current.kind === 'ready' ? current : { kind: 'loading' }));
 
@@ -117,6 +121,7 @@ export function R2ImagePicker({
       if (!response.ok) throw new Error(await response.text());
 
       const data = (await response.json()) as R2AssetResponse;
+      if(currentEpoch!==epoch.current)return;
       const files = data.files || data.images || [];
       setPrefix(data.prefix);
       setCursor(data.cursor);
@@ -135,15 +140,17 @@ export function R2ImagePicker({
         return { kind: 'ready', data: { ...data, files } };
       });
     } catch (error) {
+      if(currentEpoch!==epoch.current)return;
       setState({
         kind: 'error',
         message: error instanceof Error ? error.message : '无法加载图片池。',
       });
     }
-  }, []);
+  }, [allowed]);
 
   useEffect(() => {
     if (isOpen) void loadAssets(prefix || '');
+    return()=>{epoch.current++;};
   }, [isOpen, loadAssets]);
 
   useEffect(() => {

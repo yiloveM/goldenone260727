@@ -1,5 +1,7 @@
 import { githubFetch } from './manager/github';
-export type GitContext = { repo: string; branch: string; token: string; bodyCache?: Map<string,string> };
+import { featurePolicy } from './feature-policy.mjs';
+import { parseSiteConfig } from './site-config-core.mjs';
+export type GitContext = { repo: string; branch: string; token: string; bodyCache?: Map<string,string>; featureRequirements?: string[] };
 export type GitTree = { sha: string; tree: Array<{ path: string; sha: string; type: string }> };
 export class DraftConflict extends Error { status = 409; }
 export async function gitBlobSha(content: string) {
@@ -8,6 +10,22 @@ export async function gitBlobSha(content: string) {
 }
 export const api = (ctx: GitContext) => `https://api.github.com/repos/${ctx.repo}`;
 export const decodeGitBlob = (value: string) => new TextDecoder().decode(Uint8Array.from(atob(value.replace(/\s/g, '')), char => char.charCodeAt(0)));
+export class FeatureDenied extends Error { status = 403; constructor(){super('站长暂未开放此功能，本次未保存；已有内容仍保留。');} }
+export class FeatureUnavailable extends Error {status=503;constructor(){super('暂时无法核验功能设置，本次未保存，请稍后重试。');}}
+export async function readGitFeatureConfig(ctx: GitContext, files: Map<string,string>) {
+  try{
+  const sha=files.get('src/data/site-config.json');
+  const config=sha?parseSiteConfig(JSON.parse(await readGitBlob(ctx,sha))):null;
+  const legacy:Record<string,any>={};
+  if(!config)await Promise.all(Object.entries({reviews:'src/data/customer-reviews.json',analytics:'src/keystatic/analytics-dashboard.json',downloads:'src/data/catalog-downloads.json',publisher:'src/data/article-publisher-settings.json',aiSeo:'src/data/ai-seo-settings.json',productEditing:'src/data/product-editor-settings.json'}).map(async([key,file])=>{const value=files.get(file);if(value)legacy[key]=JSON.parse(await readGitBlob(ctx,value));}));
+  return {config,legacy,features:featurePolicy(config,legacy)};
+  }catch{throw new FeatureUnavailable();}
+}
+export async function assertGitFeatures(ctx: GitContext, files: Map<string,string>, requirements=ctx.featureRequirements||[]) {
+  if(!requirements.length)return;
+  const state=await readGitFeatureConfig(ctx,files);
+  if(requirements.some(id=>state.features[id]!==true))throw new FeatureDenied();
+}
 const blobs = new Map<string, string>();
 export async function readGitTree(ctx: GitContext, ref: string): Promise<GitTree> {
   const result = await githubFetch<GitTree & { truncated?: boolean }>(`${api(ctx)}/git/trees/${encodeURIComponent(ref)}?recursive=1`, ctx.token);
@@ -62,6 +80,14 @@ export async function mapGitItems<T, U>(items: T[], read: (item: T) => Promise<U
 }
 export async function commitGitFiles(ctx: GitContext, head: string, treeSha: string, files: Array<{ path: string; content?: string; sha?: string | null }>, message: string) {
   if (!files.length) return '';
+  const required=new Set(ctx.featureRequirements||[]);
+  for(const file of files){
+    if(/^src\/content\/(products|productTranslations)\//.test(file.path)||file.path==='src/keystatic/product-order.json')required.add('products');
+    if(/^src\/content\/(blog|blogTranslations)\//.test(file.path))required.add('articles');
+    if(file.path==='src/data/site-visuals.json')required.add('visuals');
+    if(file.path==='src/data/customer-reviews.json')required.add('reviews');
+  }
+  if(required.size){const current=await readGitHead(ctx);if(current!==head)throw new DraftConflict('内容或功能设置已变化，请重新载入后重试。');const snapshot=await readGitTree(ctx,head);await assertGitFeatures(ctx,new Map(snapshot.tree.filter(item=>item.type==='blob').map(item=>[item.path,item.sha])),[...required]);}
   const tree = files.map(file=>({path:file.path,mode:'100644',type:'blob',...(file.content===undefined?{sha:file.sha}:{content:file.content})}));
   if(new TextEncoder().encode(JSON.stringify(tree)).byteLength>6*1024*1024)throw new Error('本批内容较多，请按语言分批处理。');
   const nextTree = await githubFetch<{sha:string}>(`${api(ctx)}/git/trees`, ctx.token, { method: 'POST', body: JSON.stringify({ base_tree: treeSha, tree }) });

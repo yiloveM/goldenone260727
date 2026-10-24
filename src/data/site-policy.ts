@@ -1,0 +1,25 @@
+import { effectivePolicyFile, parseSiteConfig } from '../lib/site-config-core.mjs';
+import type { z } from 'astro/zod';
+import type { siteConfigSchema,siteConfigV1Schema,siteFeatureConfigSchema } from '../lib/site-config-schema.mjs';
+import {validateFeatureSupport} from '../lib/feature-policy.mjs';
+import languageLegacy from './site-language-settings.json';
+import verificationLegacy from './form-verification.json';
+import downloadsLegacy from './catalog-downloads.json';
+import reviewsLegacy from './customer-reviews.json';
+import productLegacy from './product-editor-settings.json';
+import analyticsLegacy from '../keystatic/analytics-dashboard.json';
+import aiLegacy from './ai-seo-settings.json';
+const publisherLegacy = {};
+// An absent file is the explicit legacy mode. A present invalid file must fail.
+const configs = import.meta.glob('./site-config.json', { eager: true, import: 'default' });
+export const siteConfig = (Object.hasOwn(configs, './site-config.json') ? parseSiteConfig(configs['./site-config.json']) : null) as z.infer<typeof siteConfigSchema> | z.infer<typeof siteConfigV1Schema> | z.infer<typeof siteFeatureConfigSchema> | null;
+validateFeatureSupport(siteConfig);
+export const siteComposition = siteConfig && 'modules' in siteConfig ? siteConfig : null;
+export const siteLanguageSettings = effectivePolicyFile('src/data/site-language-settings.json', languageLegacy, siteConfig) as typeof languageLegacy;
+export const verificationSettings = effectivePolicyFile('src/data/form-verification.json', verificationLegacy, siteConfig) as typeof verificationLegacy;
+export const downloadSettings = effectivePolicyFile('src/data/catalog-downloads.json', downloadsLegacy, siteConfig) as typeof downloadsLegacy;
+export const reviewSettings = effectivePolicyFile('src/data/customer-reviews.json', reviewsLegacy, siteConfig) as typeof reviewsLegacy;
+export const productEditorSettings = effectivePolicyFile('src/data/product-editor-settings.json', productLegacy, siteConfig) as typeof productLegacy;
+export const analyticsSettings = effectivePolicyFile('src/keystatic/analytics-dashboard.json', analyticsLegacy, siteConfig) as typeof analyticsLegacy;
+export const aiSeoSettings = effectivePolicyFile('src/data/ai-seo-settings.json', aiLegacy, siteConfig) as typeof aiLegacy;
+export const articlePublisherSettings = effectivePolicyFile('src/data/article-publisher-settings.json', publisherLegacy, siteConfig) as typeof publisherLegacy;

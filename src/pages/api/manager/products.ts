@@ -1,7 +1,7 @@
 import { readProductCatalog } from '../../../lib/manager/product-catalog';
 import { getDispatchToken } from '../../../lib/manager/github';
 import type { APIRoute } from 'astro';
-import productEditorSettings from '../../../data/product-editor-settings.json';
+import {productEditorSettings as productEditorSettings} from '../../../data/site-policy';
 import { resolveProductEditorPolicy } from '../../../lib/product-editor.mjs';
 import { getCollection } from 'astro:content';
 import { allCustomerReviews } from '../../../data/customerReviews';
@@ -37,7 +37,7 @@ export const GET: APIRoute = async ({ locals, request }) => {
       translations: catalog?.translations || [],
       warning: catalog?.warning || (catalog ? '' : '最新产品暂无法同步，当前为部署时目录；删除前必须重新核验最新版本。'),
       branch: catalog?.branch,
-      editorPolicy: resolveProductEditorPolicy(productEditorSettings),
+      editorPolicy: resolveProductEditorPolicy((locals as any).featureState?.config?.features.productEditing||(locals as any).featureState?.legacy?.productEditing||productEditorSettings),
       products: catalog ? catalog.products.map(product => ({...product, reviews:storedProductReviews(product.slug,product.reviews,allCustomerReviews)})) : products.map(product => ({
         id: product.id,
         slug: slugFromId(product.id),

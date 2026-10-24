@@ -1,4 +1,4 @@
-import downloadSettingsJson from './catalog-downloads.json';
+import {downloadSettings as downloadSettingsJson} from './site-policy';
 
 export interface CatalogDownload {
   id: string;
@@ -10,6 +10,7 @@ export interface CatalogDownload {
 
 interface CatalogDownloadSettings {
   enabled?: boolean;
+  mode?: string;
   documents?: unknown[];
 }
 

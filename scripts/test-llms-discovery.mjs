@@ -1,3 +1,4 @@
+import {sitePolicyFixture} from './site-policy-test-fixture.mjs';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { mkdir, mkdtemp, readFile, writeFile, stat } from 'node:fs/promises';
@@ -111,19 +112,19 @@ test('generic adapters discover core pages from built JSON-LD without inventing 
 });
 test('real Keystatic reader accepts settings and keeps new policy owner-only',async()=>{
   const f=await fixture(),out=resolve(f.root,'config.mjs');
-  await build({entryPoints:['keystatic.config.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true}'},logLevel:'silent'});
+  await build({plugins:[sitePolicyFixture()],entryPoints:['keystatic.config.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true}'},logLevel:'silent'});
   const {default:config}=await import(pathToFileURL(out));const source=await createReader(process.cwd(),config).singletons.aiSeo.read();
   assert.equal(typeof source.enabled,'boolean');assert.ok(config.ui.navigation['AI & SEO Settings'].includes('aiSeo'));if(config.singletons.articlePublisher)assert.ok(config.singletons.articlePublisher.path.includes('article-publisher-settings'));else assert.equal(config.ui.navigation['AI & SEO Settings'].includes('articlePublisher'),false);
 });
 test('real settings reader reopens ON/OFF/empty/re-enabled values and retains localized arrays',async()=>{
   const f=await fixture(),out=resolve(f.root,'settings-reader.mjs');
-  await build({entryPoints:['keystatic.config.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true}'},logLevel:'silent'});
+  await build({plugins:[sitePolicyFixture()],entryPoints:['keystatic.config.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true}'},logLevel:'silent'});
   const {default:config}=await import(pathToFileURL(out));await mkdir(resolve(f.root,'src/data'),{recursive:true});
   const states=[{...settings,summaries:[{locale:'es',text:'Información comercial verificada.'}],excludePaths:['/private-offer/']},{...settings,enabled:false},{...defaults},{...settings}];
   for(const state of states){await writeFile(resolve(f.root,'src/data/ai-seo-settings.json'),JSON.stringify(state));const reopened=await createReader(f.root,config).singletons.aiSeo.read();assert.equal(reopened.enabled,state.enabled);assert.equal(reopened.markdown,state.markdown);assert.deepEqual(reopened.summaries,state.summaries||[]);assert.deepEqual(reopened.excludePaths,state.excludePaths||[]);}
 });
 test('actual Workers ASSETS response never substitutes SPA HTML and has correct MIME/HEAD/OFF',async()=>{
-  const code=await build({stdin:{contents:`import { discoveryResponse } from './src/lib/ai-discovery-response.ts';export default {async fetch(request){const u=new URL(request.url);return await discoveryResponse(request,{fetch:async()=>new Response(u.searchParams.has('spa')?'<!doctype html>Fallback':u.searchParams.has('authored')?'# Existing authored document\\n':u.pathname.endsWith('.md')?'<!-- businessweb-ai-discovery:v2 -->\\n<!-- discovery-scope:/es/llms.txt -->\\n# Model\\n':'# Site\\n')},{enabled:!u.searchParams.has('off'),markdown:true,llmsFull:false})||new Response('Other');}};`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'neutral',logLevel:'silent'});
+  const code=await build({plugins:[sitePolicyFixture()],stdin:{contents:`import { discoveryResponse } from './src/lib/ai-discovery-response.ts';export default {async fetch(request){const u=new URL(request.url);return await discoveryResponse(request,{fetch:async()=>new Response(u.searchParams.has('spa')?'<!doctype html>Fallback':u.searchParams.has('authored')?'# Existing authored document\\n':u.pathname.endsWith('.md')?'<!-- businessweb-ai-discovery:v2 -->\\n<!-- discovery-scope:/es/llms.txt -->\\n# Model\\n':'# Site\\n')},{enabled:!u.searchParams.has('off'),markdown:true,llmsFull:false})||new Response('Other');}};`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'neutral',logLevel:'silent'});
   const mf=new Miniflare({modules:true,script:code.outputFiles[0].text,compatibilityDate:'2026-05-15'});
   try{
     const md=await mf.dispatchFetch('http://localhost/es/model.html.md');assert.equal(md.status,200);assert.match(md.headers.get('content-type'),/^text\/markdown/);assert.match(md.headers.get('link'),/\/es\/llms.txt/);
@@ -136,13 +137,13 @@ test('actual Workers ASSETS response never substitutes SPA HTML and has correct 
 test('status endpoint denies public/Manager access and detects saved settings awaiting release',async()=>{
   const f=await fixture(),out=resolve(f.root,'status.mjs');
   const portalHeader=(await readFile(resolve(process.cwd(),'src/lib/admin-portals.ts'),'utf8')).match(/export const ADMIN_PORTAL_HEADER = '([^']+)'/)[1];
-  await build({entryPoints:['src/pages/api/keystatic/llms-status.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',logLevel:'silent',plugins:[{name:'cloudflare-fixture',setup(b){b.onResolve({filter:/^cloudflare:workers$/},()=>({path:'env',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const env={};'}));}}]});
+  await build({entryPoints:['src/pages/api/keystatic/llms-status.ts'],outfile:out,bundle:true,format:'esm',platform:'node',packages:'external',logLevel:'silent',plugins:[sitePolicyFixture(),{name:'cloudflare-fixture',setup(b){b.onResolve({filter:/^cloudflare:workers$/},()=>({path:'env',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export const env={};'}));}}]});
   const {GET}=await import(pathToFileURL(out));let assetReads=0;
   const env={KEYSTATIC_PORTAL_HOST:'owner.example',MANAGER_PORTAL_HOST:'editor.example',KEYSTATIC_PORTAL_UUID:'11111111-2222-4333-8444-555555555555',MANAGER_PORTAL_UUID:'66666666-7777-4888-8999-aaaaaaaaaaaa',PUBLIC_KEYSTATIC_GITHUB_REPO:'fixture/own',ASSETS:{fetch:async()=>{assetReads++;return globalThis.Response.json({enabled:true,configHash:fingerprint(settings),locales:[],limits:[],skipped:{}});}}};
   const context=(host,portal)=>({locals:{env},request:new Request(`https://${host}/api/keystatic/llms-status`,{headers:portal?{[portalHeader]:portal}:{}}),cookies:{get:()=>({value:'isolated'})}});
   assert.equal((await GET(context('public.example'))).status,404);assert.equal((await GET(context('editor.example','manager'))).status,404);assert.equal(assetReads,0);
   const original=globalThis.fetch;
-  try{let current=settings;globalThis.fetch=async(url,init)=>{assert.match(url,/repos\/fixture\/own\/contents\/src\/data\/ai-seo-settings.json/);assert.equal(init.redirect,'manual');return globalThis.Response.json({encoding:'base64',content:Buffer.from(JSON.stringify(current)).toString('base64')});};
+  try{let current=settings;globalThis.fetch=async(url,init)=>{assert.match(url,/repos\/fixture\/own\/git\//);assert.equal(init.redirect,'manual');const sha=fingerprint(current).slice(0,40);if(url.includes('/git/ref/heads/'))return globalThis.Response.json({object:{sha:'e'.repeat(40)}});if(url.includes('/git/trees/'))return globalThis.Response.json({sha:'e'.repeat(40),tree:[{path:'src/data/ai-seo-settings.json',type:'blob',sha}]});assert.ok(url.endsWith('/git/blobs/'+sha));return globalThis.Response.json({encoding:'base64',content:Buffer.from(JSON.stringify(current)).toString('base64')});};
     const ready=await GET(context('owner.example','keystatic'));assert.equal(ready.status,200);assert.equal((await ready.json()).matchesCurrent,true);
     current={...settings,maxEntries:42};const pending=await GET(context('owner.example','keystatic'));assert.equal((await pending.json()).matchesCurrent,false);
   }finally{globalThis.fetch=original;}

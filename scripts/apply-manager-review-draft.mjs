@@ -1,6 +1,9 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import {readSiteConfig,readPolicyFile} from './site-policy.mjs';
 import { normalizeReviewRecords, validateReviewInput } from '../src/lib/product-reviews.mjs';
+import {assertJobFeatures} from './job-feature-policy.mjs';
+assertJobFeatures(process.cwd(),['reviews'],{env:{...process.env,GITHUB_ACTIONS:'false'}});
 
 const file = path.join(process.cwd(), 'src', 'data', 'customer-reviews.json');
 const encoded = String(process.env.MANAGER_REVIEW_DRAFT_PAYLOAD || '').trim();
@@ -12,6 +15,7 @@ if (payload.id !== expectedId) throw new Error('Review ID does not match the wor
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(payload.id)) throw new Error('Invalid review ID.');
 
 const data = JSON.parse(await readFile(file, 'utf8'));
+if(readSiteConfig(process.cwd()) && !readPolicyFile(process.cwd(),'src/data/customer-reviews.json',data).enabled) throw new Error('Customer reviews are disabled; draft retained.');
 data.reviews = Array.isArray(data.reviews) ? data.reviews : [];
 const normalized = normalizeReviewRecords(data.reviews);
 data.reviews = data.reviews.map((review, index) => ({ ...review, id: normalized[index].id }));

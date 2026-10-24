@@ -1,3 +1,4 @@
+import {sitePolicyFixture} from './site-policy-test-fixture.mjs';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
@@ -7,7 +8,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import YAML from 'yaml';
 const output=resolve('.sandbox/manager-visual-api');await mkdir(output,{recursive:true});const run=await mkdtemp(resolve(output,'run-'));
-await build({entryPoints:['src/pages/api/manager/site-visuals.ts','src/pages/api/manager/content-preview.ts','src/pages/api/manager/product-order.ts','src/pages/api/manager/ai/translations.ts','src/pages/api/manager/ai/translation-status.ts','src/pages/api/manager/ai/translation-locales.ts','src/lib/manager/d1.ts'],outdir:run,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true,"PUBLIC_KEYSTATIC_GITHUB_REPO":"fixture/site"}'},logLevel:'silent',plugins:[{name:'isolated-runtime',setup(b){
+await build({entryPoints:['src/pages/api/manager/site-visuals.ts','src/pages/api/manager/content-preview.ts','src/pages/api/manager/product-order.ts','src/pages/api/manager/ai/translations.ts','src/pages/api/manager/ai/translation-status.ts','src/pages/api/manager/ai/translation-locales.ts','src/lib/manager/d1.ts'],outdir:run,bundle:true,format:'esm',platform:'node',packages:'external',define:{'import.meta.env':'{"PROD":true,"PUBLIC_KEYSTATIC_GITHUB_REPO":"fixture/site"}'},logLevel:'silent',plugins:[sitePolicyFixture(),{name:'isolated-runtime',setup(b){
  b.onResolve({filter:/cloudflare:workers|virtual:site-build-identity|astro:content|\/access$|\/data\/site-visuals$|^\.\/site-visuals$/},args=>({path:args.path,namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='cloudflare:workers'?'export const env={};':args.path==='virtual:site-build-identity'?'export default {files:{}}':args.path==='astro:content'?'export const getCollection=async()=>[];':args.path.endsWith('/access')?'export const getRuntimeEnv=locals=>locals.env;export const requireManagerAccess=(request,env)=>env.denied?{response:new Response("Unauthorized",{status:401})}:{email:"fixture@example.test",response:null};':'export const overlaySiteImages=x=>x;export const siteVisual=(key,image)=>({image,active:false});'}));
 }}]});

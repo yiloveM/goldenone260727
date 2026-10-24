@@ -5,7 +5,7 @@ import { productStructuredData, articleStructuredData, absoluteUrl, siteUrl, typ
 import { faqs as publicFaqs, siteInfo } from './site';
 import { industryProfile, primaryKeyword, publicSiteCopy } from './industry-profile';
 import siteLocaleConfig from './site-locales.json';
-import siteLanguageSettings from './site-language-settings.json';
+import {siteLanguageSettings as siteLanguageSettings} from './site-policy';
 
 export const supportedLocales = ['en', 'zh', 'ar', 'hi', 'es', 'fr', 'bn', 'pt', 'ru', 'ur', 'de', 'tr', 'fil', 'ko', 'uz', 'ja', 'ms', 'nl', 'el', 'th'] as const;
 export type Locale = (typeof supportedLocales)[number];

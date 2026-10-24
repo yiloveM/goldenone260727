@@ -4,7 +4,9 @@ import { renderProductPreviewMedia } from '../../../lib/product-preview-media.mj
 import siteOrigin from '../../../data/site-origin.json';
 import type { APIRoute } from 'astro';
 import { getRuntimeEnv } from '../../../lib/runtime-env';
-import { parse } from 'yaml';
+import {openDraftState,summarizeDraft,requireTranslationFeature,splitDraft} from '../../../lib/draft-lifecycle';
+import {readGitBlob,FeatureDenied} from '../../../lib/site-git';
+import {featureResponse} from '../../../lib/manager/features';
 
 export const prerender = false;
 
@@ -68,37 +70,6 @@ const hasGitHubWriteAccess = async (request: Request, env: Env) => {
   );
 
   return permission.permission === 'admin' || permission.permission === 'maintain' || permission.permission === 'write';
-};
-
-const encodePath = (path: string) => path.split('/').map(encodeURIComponent).join('/');
-
-const decodeBase64 = (value: string) => {
-  const normalized = value.replace(/\s+/g, '');
-  const binary = atob(normalized);
-  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-};
-
-const readRepoFile = async (repoFullName: string, branch: string, path: string, accessToken: string) => {
-  const response = await fetch(
-    `https://api.github.com/repos/${repoFullName}/contents/${encodePath(path)}?ref=${encodeURIComponent(branch)}`,
-    { headers: githubHeaders(accessToken) }
-  );
-
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error(await response.text());
-  const data = await response.json() as { content?: string; encoding?: string };
-  if (!data.content || data.encoding !== 'base64') return null;
-  return decodeBase64(data.content);
-};
-
-const splitMdoc = (content: string) => {
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
-  if (!match) return { data: {}, body: content };
-  return {
-    data: parse(match[1]) as Record<string, any>,
-    body: match[2] || '',
-  };
 };
 
 const escapeHtml = (value: unknown) =>
@@ -220,27 +191,20 @@ export const GET: APIRoute = async ({ locals, request, url }) => {
     return new Response('需要先登录内容管理后台，才可以预览翻译草稿。', { status: 401 });
   }
 
+  if(!['product','blog'].includes(url.searchParams.get('type')||'product'))return new Response('草稿类型不正确。',{status:400});
   const type = normalizeDraftType(url.searchParams.get('type'));
   const draftSlug = safeDraftSlug(url.searchParams.get('draft'));
   if (!draftSlug) return new Response('Draft slug is invalid.', { status: 400 });
 
   const repoFullName = getRepoFullName(env);
   const branch = getBranch(env);
-  const draftPath = type === 'product'
-    ? `src/content/productTranslations/${draftSlug}.mdoc`
-    : `src/content/blogTranslations/${draftSlug}.mdoc`;
-  const draftFile = await readRepoFile(repoFullName, branch, draftPath, accessToken);
-  if (!draftFile) return new Response('找不到这个翻译草稿。', { status: 404 });
-
-  const draft = splitMdoc(draftFile);
+  let draft:{data:Record<string,any>;body:string},source:Record<string,any>;
+  try{const state=await openDraftState({repo:repoFullName,branch,token:accessToken}),summary=await summarizeDraft(state,type,draftSlug,true);
+    if(!summary)return new Response('内容不存在或该语言未开放。',{status:404});
+    await requireTranslationFeature(state,summary);draft={data:summary.data!,body:summary.body!};
+    source=splitDraft(await readGitBlob(state.ctx,state.files.get(`src/content/${type==='product'?'products':'blog'}/${summary.sourceSlug}.mdoc`)!)).data;
+  }catch(error){return featureResponse(error instanceof FeatureDenied?403:503);}
   const data = draft.data;
-  const sourceSlug = String(data.sourceSlug || '');
-  const sourcePath = type === 'product'
-    ? `src/content/products/${sourceSlug}.mdoc`
-    : `src/content/blog/${sourceSlug}.mdoc`;
-  const sourceFile = sourceSlug ? await readRepoFile(repoFullName, branch, sourcePath, accessToken) : null;
-  const source = sourceFile ? splitMdoc(sourceFile).data : {};
-  if (type === 'product' && !sourceFile) return new Response('产品原文暂时无法读取，草稿已保留，请稍后重新打开预览。', { status: 503, headers: { 'cache-control': 'no-store' } });
   const image = media(String(source.image || ''));
 
   const body = type === 'product'

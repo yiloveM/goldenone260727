@@ -1,6 +1,7 @@
 // Shared by the build, the owner form and the authenticated content writer.
 // Slots are declared by the site adapter; a content request never supplies paths.
 export const VISUAL_FILE = 'src/data/site-visuals.json';
+import {projectVisualControls} from './site-config-core.mjs';
 /** @typedef {{locale:string,text:string}} LocaleText */
 /** @typedef {{enabled:boolean,image:string,mobileImage:string,alt:string,localizedAlts:LocaleText[],focusX:number,focusY:number,[key:string]:any}} Visual */
 /** @typedef {{version:number,home:{heroSlides:{key:string,visual:Visual}[],center:Visual,primaryCta:{href:string,labels:LocaleText[]}},pages:Record<string,Visual>,categories:{key:string,visual:Visual}[],[key:string]:any}} VisualConfig */
@@ -79,7 +80,7 @@ export function validateSiteVisuals(value, policy) {
   return result;
 }
 export function mergeVisualPatch(raw, patch, policy) {
-  const current = validateSiteVisuals(raw, policy);
+  const current = validateSiteVisuals(Array.isArray(policy.editableSlots)?projectVisualControls(raw,policy.editableSlots):raw, policy);
   assert(object(patch) && Object.keys(patch).every(key => ['slots', 'primaryCta'].includes(key)), '只允许修改已开放位置的内容。');
   assert(Array.isArray(patch.slots) && patch.slots.length > 0 && patch.slots.length <= policy.slots.length, '请选择需要修改的位置。');
   const next = structuredClone(raw || emptySiteVisuals(policy.slots)), seen = new Set();
@@ -89,7 +90,7 @@ export function mergeVisualPatch(raw, patch, policy) {
     assert(slot && slot.supported !== false && visualAt(current, slot)?.enabled && !seen.has(item.key), '位置尚未开放或已经重复。'); seen.add(item.key);
     const existing = visualAt(next, slot) || {}, incoming = { ...item };
     if (incoming.localizedAlts !== undefined) incoming.localizedAlts = [...(existing.localizedAlts || []).filter(entry => !policy.locales.includes(entry.locale)), ...localeTexts(incoming.localizedAlts, policy)];
-    setVisual(next, slot, { ...existing, ...normalizeVisual({ ...existing, ...incoming }, { ...policy, locales: policy.knownLocales || policy.locales }), enabled: true });
+    setVisual(next, slot, { ...existing, ...normalizeVisual({ ...existing, ...incoming }, { ...policy, locales: policy.knownLocales || policy.locales }), enabled: Array.isArray(policy.editableSlots)?existing.enabled===true:true });
   }
   if (patch.primaryCta !== undefined) {
     assert(seen.has('home.primary') && object(patch.primaryCta) && Object.keys(patch.primaryCta).every(key => ['href', 'labels'].includes(key)), '首页链接只能随首屏内容一起修改。');

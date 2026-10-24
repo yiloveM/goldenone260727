@@ -1,13 +1,14 @@
 import { getBranch, getDispatchToken, getRepoFullName } from './github';
-import { readGitHead, readGitTree, readGitBlob, commitGitFiles, DraftConflict } from '../site-git';
+import { readGitHead, readGitTree, readGitBlob, commitGitFiles, DraftConflict,FeatureDenied,FeatureUnavailable,readGitFeatureConfig } from '../site-git';
 import { readSitePublicLocales } from '../site-language-policy';
 import { visualSlots, visualPolicy } from '../../data/site-visual-slots';
 import { legacySiteImages } from '../../data/backgroundImages';
 import { categoryBackgroundImage } from '../../data/productCategories';
 import { VISUAL_FILE, mergeVisualPatch, validateSiteVisuals, visualAt } from '../site-visuals.mjs';
+import {readGitPolicyFile} from '../site-policy-git';
 
 export async function openVisualState(env: any) {
-  const ctx = { repo: getRepoFullName(env), branch: getBranch(env), token: getDispatchToken(env) };
+  const ctx = { repo: getRepoFullName(env), branch: getBranch(env), token: getDispatchToken(env),featureRequirements:['visuals'] };
   const expected = String(import.meta.env.PUBLIC_KEYSTATIC_GITHUB_REPO || '');
   if (!ctx.token || !expected || ctx.repo.toLowerCase() !== expected.toLowerCase() || ctx.repo.toLowerCase() === 'ironstraight/businessweb') throw new Error('本站内容服务暂时不可用。');
   const head = await readGitHead(ctx), tree = await readGitTree(ctx, head);
@@ -15,8 +16,10 @@ export async function openVisualState(env: any) {
   const sha = files.get(VISUAL_FILE) || 'missing';
   const raw = sha === 'missing' ? null : JSON.parse(await readGitBlob(ctx, sha));
   const locales = [...await readSitePublicLocales(ctx, files)];
-  const policy = { ...visualPolicy, locales, cdn: String(env.PUBLIC_R2_ASSET_BASE_URL || visualPolicy.cdn) };
-  const config = validateSiteVisuals(raw, policy);
+  const features=await readGitFeatureConfig(ctx,files);
+  const policy = { ...visualPolicy, ...(features.config?.schemaVersion===2?{editableSlots:features.config.features.visuals.editableSlots}:{}), locales, origin: visualPolicy.origin || String(env.SITE_URL || ''), cdn: String(env.PUBLIC_R2_ASSET_BASE_URL || visualPolicy.cdn) };
+  if(!features.features.visuals)throw new FeatureDenied();
+  const config = validateSiteVisuals(await readGitPolicyFile(ctx,files,VISUAL_FILE,raw), policy);
   return { ctx, head, tree, files, sha, raw, config, policy };
 }
 export function visualDefaultImage(slot: typeof visualSlots[number]) {
@@ -49,7 +52,7 @@ export async function approveVisualDraft(db: any, state: Awaited<ReturnType<type
   } catch (error) {
     // A definite CAS rejection is recoverable. Ambiguous network outcomes stay
     // locked; a later fresh tree can prove that the intended blob was received.
-    if (error instanceof DraftConflict) await db.prepare("UPDATE manager_site_visual_drafts SET status='draft' WHERE id=? AND status='queued' AND applied_content_sha=?").bind(row.id, intended).run();
+    if (error instanceof DraftConflict||error instanceof FeatureDenied||error instanceof FeatureUnavailable) await db.prepare("UPDATE manager_site_visual_drafts SET status='draft' WHERE id=? AND status='queued' AND applied_content_sha=?").bind(row.id, intended).run();
     throw error;
   }
 }
